@@ -6,8 +6,8 @@
 
 ```
 # clone repo; requires `git`
-git clone https://github.com/informalsystems/atomkraft-examples
-cd atomkraft-examples/authz
+git clone https://github.com/informalsystems/atomkraft-cosmos
+cd atomkraft-cosmos
 
 # compile simd; requires `make`, `go`
 git submodule update --init --recursive
@@ -22,8 +22,8 @@ poetry run atomkraft test trace --trace traces/special2.itf.json --reactor react
 
 ```
 # create atomkraft project
-atomkraft init authz
-cd authz
+atomkraft init atomkraft-cosmos
+cd atomkraft-cosmos
 
 # generate reactor stub
 atomkraft reactor --actions "init,give grant,expire grant,revoke grant,execute grant" --variables "Identifiers,Validators,outcome_status,num_execs,action_taken,active_grants,num_grants,expired_grants"
@@ -32,8 +32,8 @@ atomkraft reactor --actions "init,give grant,expire grant,revoke grant,execute g
 # ... work ...
 
 # put traces in /trace
-cp Authz-Audit/Authz-Atomkraft/examples/cosmos-sdk/traces/./AuthzModuleEXT/TracesForTesting/8.GrantSpentFollowedByRevokeFailureCEX/counterexample.itf.json traces/special1.itf.json
-cp Authz-Audit/Authz-Atomkraft/examples/cosmos-sdk/traces/./AuthzModuleEXT/TracesForTesting/7.ExpiredGrantGivenAgainExecCEX/counterexample.itf.json traces/special2.itf.json
+cp Authz-Audit/Authz-Atomkraft/examples/cosmos-sdk/traces/AuthzModuleEXT/TracesForTesting/8.GrantSpentFollowedByRevokeFailureCEX/counterexample.itf.json traces/special1.itf.json
+cp Authz-Audit/Authz-Atomkraft/examples/cosmos-sdk/traces/AuthzModuleEXT/TracesForTesting/7.ExpiredGrantGivenAgainExecCEX/counterexample.itf.json traces/special2.itf.json
 
 # set action_taken.action_type to "init" for the first states
 

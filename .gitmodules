@@ -1,3 +1,3 @@
 [submodule "authz/cosmos-sdk"]
-	path = authz/cosmos-sdk
+	path = cosmos-sdk
 	url = https://github.com/cosmos/cosmos-sdk

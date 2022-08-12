@@ -4,16 +4,40 @@
 
 ### Usage
 
+Atomkraft uses Python 3.10. Make sure `python3.10` is installed.
+
+#### Python3.10
+
+```
+# install pyenv
+pyenv install 3.10.5
+pyenv global 3.10.5
+```
+
 ```
 # clone repo; requires `git`
 git clone https://github.com/informalsystems/atomkraft-cosmos
 cd atomkraft-cosmos
 
-# compile simd; requires `make`, `go`
+# compile a cosmos-sdk chain binary if you don't have any; requires `make`, `go`, `gcc`
 git submodule update --init --recursive
 (cd cosmos-sdk; make build)
 
-# run test; requires `poetry`
+# if you are using different chain binary, update the chain config accordingly
+atomkraft chain config prefix cosmos
+atomkraft chain config binary ./cosmos-sdk/build/simd
+
+# prefix for few popular chain binaries
+# cosmos-sdk (simd) : cosmos
+# cosmoshub (gaiad) : cosmos
+# cosmwasm (wasmd) : wasm
+# osmosis (osmosisd) : osmo
+# juno (junod) : juno
+
+# install python dependencies; requires `poetry`
+poetry update
+
+# run tests
 poetry run atomkraft test trace --trace traces/special1.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
 poetry run atomkraft test trace --trace traces/special2.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
 ```

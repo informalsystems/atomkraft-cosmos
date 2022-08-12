@@ -136,7 +136,8 @@ Identifiers = ["A", "B", "C"]
 Validators = ["X", "Y", "Z"]
 
 
-@step("init")
+# Mirel's traces use empty string for init step
+@step("")
 def init(testnet, state):
     print("Step: init")
 

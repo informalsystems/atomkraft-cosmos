@@ -4,8 +4,11 @@
 Msg on behalf of granter's account. *)
 (******************************************************************************)
 
-SOME_MSG_TYPE_URL == "some/msg/type/url"
-AuthorizationTypes == { SOME_MSG_TYPE_URL }
+CONSTANT
+    \* @type: Str;
+    GenericMsgTypeUrl
+
+AuthorizationTypes == { GenericMsgTypeUrl }
 
 GenericMsg == [
 
@@ -40,6 +43,5 @@ INSTANCE Authz WITH
     MsgTypeURL <- MsgTypeURL,
     Accept <- Accept
 
---------------------------------------------------------------------------------
-
-======
+================================================================================
+Created by Hernán Vanzetto on 10 August 2022

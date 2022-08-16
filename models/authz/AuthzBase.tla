@@ -29,16 +29,10 @@ CONSTANTS
 \*     ];
 
 --------------------------------------------------------------------------------
-(******************************************************************************)
-(* Abstract interface to an Authorization. *)
-(******************************************************************************)
-\* @ type: Set(AUTH);
-\* Authorization == [
-\*     type: {"Authorization"}
-\* ]
 
 \* @typeAlias: AUTH = [type: Str, spendLimit: COINS, allowList: Set(ADDRESS), maxTokens: COINS, validators: VALIDATORS, allow: Bool, authorizationType: AUTH_TYPE];
 \* @type: AUTH;
 NoAuthorization == [ type |-> "NoAuthorization" ]
 
 ================================================================================
+Created by Hernán Vanzetto on 10 August 2022

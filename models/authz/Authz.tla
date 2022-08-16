@@ -88,19 +88,13 @@ Grants == [
 NoGrant == [ authorization |-> NoAuthorization, expirationTime |-> "none" ]
 
 \* @type: (GRANT_ID) => Bool;
-HasGrant(g) ==
-    /\ g \in DOMAIN grantStore
-    /\ grantStore[g] # NoGrant    
+HasGrant(g) == g \in DOMAIN grantStore
 
 \* @type: (GRANT_ID) => Bool;
-IsActive(g) == 
-    /\ HasGrant(g)
-    /\ grantStore[g].expirationTime # "past"
+IsActive(g) == grantStore[g] # NoGrant    
 
 \* @type: (GRANT_ID) => Bool;
-IsExpired(g) == 
-    /\ HasGrant(g)
-    /\ grantStore[g].expirationTime = "past"
+IsExpired(g) == grantStore[g].expirationTime = "past"
 
 \* The action of deleting a grant from the KV store in the server.
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L204
@@ -307,7 +301,7 @@ DispatchActionsOneMsg(grantee, msg) ==
         [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
     ELSE
         LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.msgTypeUrl] IN
-        IF ~ HasGrant(g) THEN 
+        IF ~ HasGrant(g) \/ ~ IsActive(g) THEN 
             [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
         ELSE 
             LET grant == grantStore[g] IN
@@ -380,8 +374,7 @@ RequestGrant(granter, grantee, grant) ==
         g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl]
     IN
     /\ IsValid(g)
-    /\ ~ IsActive(g)
-    /\ grant.expirationTime # "past"
+    /\ ~ HasGrant(g) \/ ~ IsActive(g) \/ IsExpired(g)
     /\ LET msg == [type |-> "grant", granter |-> granter, grantee |-> grantee, grant |-> grant] IN
         /\ lastEvent' = msg
         /\ lastRequest' = msg
@@ -399,8 +392,8 @@ RequestGrant(granter, grantee, grant) ==
 RequestRevoke(granter, grantee, msgTypeUrl) == 
     LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
     /\ IsValid(g)
+    /\ HasGrant(g)
     /\ IsActive(g)
-    \* /\ ~ IsExpired(g)
     /\ LET msg == [type |-> "revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
         /\ lastEvent' = msg
         /\ lastRequest' = msg
@@ -434,9 +427,9 @@ remove the grant from a set of active grants (the system will do so once it
 notices that the grant expired, upon running the Execute function). *)
 (*****************************************************************************)
 Expire(g) ==
+    /\ HasGrant(g)
     /\ IsActive(g)
     /\ ~ IsExpired(g)
-    /\ IsValid(g)
     /\ grantStore' = [grantStore EXCEPT ![g].expirationTime = "past"]
     /\ LET event == [type |-> "expire", g |-> g] IN
         lastEvent' = event

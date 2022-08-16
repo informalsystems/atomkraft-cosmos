@@ -87,16 +87,14 @@ Grants == [
 \* @type: GRANT;
 NoGrant == [ authorization |-> NoAuthorization, expirationTime |-> "none" ]
 
+-------------------------------------------------------------------------------
 \* @type: (GRANT_ID) => Bool;
 HasGrant(g) == g \in DOMAIN grantStore
 
 \* @type: (GRANT_ID) => Bool;
-IsExpired(g) == grantStore[g].expirationTime = "past"
-
-\* The action of deleting a grant from the KV store in the server.
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L204
-DeleteGrant(g) == 
-    grantStore' = [k \in DOMAIN grantStore \ {g} |-> grantStore[k]]
+IsExpired(g) == 
+    /\ HasGrant(g)
+    /\ grantStore[g].expirationTime = "past"
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -306,17 +304,6 @@ DispatchActionsOneMsg(grantee, msg) ==
             ELSE 
                 Accept(grant.auth, msg)
 
-\* @type: (REQUEST_MSG, ACCEPT_RESPONSE) => Bool;
-PostProcessExec(request, acceptResponse) == 
-    LET msg == CHOOSE msg \in request.msgs: TRUE IN
-    LET g == [granter |-> msg.signer, grantee |-> request.grantee, msgTypeUrl |-> msg.msgTypeUrl] IN
-    IF acceptResponse.delete THEN
-        DeleteGrant(g)
-    ELSE IF acceptResponse.accept /\ acceptResponse.updated # NoUpdate THEN
-        grantStore' = [grantStore EXCEPT ![g].authorization = acceptResponse.updated]
-    ELSE
-        UNCHANGED <<grantStore>>
-
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
 CallExec(msgExec) == 
@@ -330,12 +317,31 @@ CallExec(msgExec) ==
     <<execResponse, acceptResponse>>
 
 -------------------------------------------------------------------------------
+\* In TLA+ functions are total, that is, they are defined over all elements of
+\* their domain S. A map is a partial function over S, that is, a function 
+\* whose domain is a subset of S, or possibly S itself.
+IsMap(f, S, T) ==
+    /\ f = [x \in DOMAIN f |-> f[x]]
+    /\ DOMAIN f \subseteq S
+    /\ \A x \in DOMAIN f: f[x] \in T
+
+\* The empty tuple is the only function in TLA+ with an empty domain.
+EmptyMap == <<>>
+
+AddMap(map, key, value) ==
+    [k \in (DOMAIN map) \cup {key} |-> IF k = key THEN value ELSE map[k]]
+
+DeleteMap(map, key) ==
+    [k \in DOMAIN map \ {key} |-> map[k]]
+
+-------------------------------------------------------------------------------
 \* Just for the initial state
 NoRequest == [type |-> "NoRequest"]
 NoResponse == [type |-> "NoResponse"]
 
 TypeOK == 
-    /\ grantStore \in [ValidGrantIds -> Grants]
+    /\ IsMap(grantStore, ValidGrantIds, Grants)
+    \* /\ grantStore \in {<<>>} \cup [ValidGrantIds -> Grants \cup {NoGrant}]
     /\ lastRequest \in RequestMessages \cup {NoRequest}
     /\ lastResponse \in Responses \cup {NoResponse}
     /\ lastEvent \in RequestMessages \cup {NoRequest} \cup ExpireEvents
@@ -343,7 +349,7 @@ TypeOK ==
 -------------------------------------------------------------------------------
 
 Init ==
-    /\ grantStore = [g \in {} |-> NoGrant]
+    /\ grantStore = EmptyMap
     /\ lastRequest = NoRequest
     /\ lastResponse = NoResponse
     /\ lastEvent = NoRequest
@@ -377,7 +383,7 @@ RequestGrant(granter, grantee, grant) ==
         /\ LET response == CallGrant(msg) IN
             /\ lastResponse' = response
             /\ IF response.ok THEN
-                    grantStore' = [grantStore EXCEPT ![g] = grant]
+                    grantStore' = AddMap(grantStore, g, grant)
                 ELSE
                     UNCHANGED grantStore
 
@@ -394,10 +400,21 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
         /\ lastRequest' = msg
         /\ LET response == CallRevoke(msg) IN
             /\ IF response.ok THEN
-                    DeleteGrant(g)
+                    grantStore' = DeleteMap(grantStore, g)
                 ELSE 
                     UNCHANGED grantStore
             /\ lastResponse' = response
+
+\* @type: (REQUEST_MSG, ACCEPT_RESPONSE) => Bool;
+PostProcessExec(request, acceptResponse) == 
+    LET msg == CHOOSE msg \in request.msgs: TRUE IN
+    LET g == [granter |-> msg.signer, grantee |-> request.grantee, msgTypeUrl |-> msg.msgTypeUrl] IN
+    IF acceptResponse.delete THEN
+        grantStore' = DeleteMap(grantStore, g)
+    ELSE IF acceptResponse.accept /\ acceptResponse.updated # NoUpdate THEN
+        grantStore' = [grantStore EXCEPT ![g].authorization = acceptResponse.updated]
+    ELSE
+        UNCHANGED <<grantStore>>
 
 (*****************************************************************************)
 (* The predicate which models the execution of a message. It checks whether

@@ -5,41 +5,52 @@ cosmos.bank.v1beta1.MsgSend Msg. It takes a SpendLimit that specifies the
 maximum amount of tokens the grantee can spend. The SpendLimit is updated as the
 tokens are spent. *)
 (******************************************************************************)
-EXTENDS Authz, Integers
+EXTENDS AuthzBase, Integers
 
-Coins == Int
+CONSTANT
+    \* @typeAlias: COINS = Int;
+    \* @type: Set(COINS);
+    Coins
 
+ASSUME Coins \in SUBSET Int
+
+\* @typeAlias: MSG_TYPE_URL = Str;
+\* @type: MSG_TYPE_URL;
 SendMsgTypeURL == "send"
 
+\* The message to send coins from one account to another.
+\* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @type: Set(SDK_MSG_CONTENT);
+SdkMsgContent == 
+    LET Msgs == [
+        type: {"MsgSend"},
+        fromAddress: Address,
+        toAddress: Address,
+        amount: Coins
+    ] IN 
+    { msg \in Msgs: msg.fromAddress # msg.toAddress /\ msg.amount > 0 }
+
 \* Types of messages allowed to be granted permission
-AuthorizationTypes == { SendMsgTypeURL }
+\* @type: Set(MSG_TYPE_URL);
+MsgTypeUrls == { SendMsgTypeURL }
+
+--------------------------------------------------------------------------------
 
 \* SendAuthorization allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
-SendAuthorization == [  
+\* @type: AUTH;
+Authorization == [  
     type: {"SendAuthorization"},
 
-	spendLimit: Coins,
-
-	\* Specifies an optional list of addresses to whom the grantee can send
-	\* tokens on behalf of the granter. If omitted, any recipient is allowed.
-    allowList: SUBSET Address
+	spendLimit: Coins
 ]
 
-UpdateSpendLimit(auth, spendLimit) == [
-    type |-> "SendAuthorization",
-    spendLimit |-> spendLimit,
-    allowList |-> auth.toAddress
-]
+\* @type: AUTH;
+NoAuthorization == [ type |-> "NoAuthorization" ]
 
-\* MsgSend represents a message to send coins from one account to another.
-MsgSend == [
-    type: {"MsgSend"},
-	fromAddress: Address,
-	toAddress: Address,
-	amount: Coins
-}
+--------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
 MsgTypeURL(auth) ==
@@ -49,24 +60,25 @@ MsgTypeURL(auth) ==
 \* @type: SEND_MSG => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET amount == msg.content.amount IN
-    IF msg.content.validatorAddress \notin auth.allowList THEN
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
-    ELSE IF amount < auth.spendLimit THEN
+    IF amount < auth.spendLimit THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "insufficient-amount"]
     ELSE [
         accept |-> amount >= auth.spendLimit,
-        delete |-> amount = auth.spendLimit,
+        delete |-> amount <= auth.spendLimit,
         updated |-> IF amount > auth.spendLimit
-                THEN UpdateSpendLimit(auth, auth.spendLimit - amount)
-                ELSE NoAuthorization,
+            THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
+            ELSE NoAuthorization,
         error |-> "none"
     ]
 
-INSTANCE Authz WITH 
-    MsgTypeUrls <- AuthorizationTypes,
-    Authorization <- SendAuthorization,
-    SdkMsgContent <- MsgSend,
-    MsgTypeURL <- MsgTypeURL,
-    Accept <- Accept
+--------------------------------------------------------------------------------
+
+\* INSTANCE Authz WITH 
+\*     MsgTypeUrls <- MsgTypeUrls,
+\*     SdkMsgContent <- SdkMsgContent,
+\*     Authorization <- Authorization,
+\*     MsgTypeURL <- MsgTypeURL,
+\*     Accept <- Accept
 
 ================================================================================
+Created by Hernán Vanzetto on 10 August 2022

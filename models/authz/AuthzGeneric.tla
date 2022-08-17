@@ -5,30 +5,45 @@ Msg on behalf of granter's account. *)
 (******************************************************************************)
 
 CONSTANT
-    \* @type: Str;
+    \* @typeAlias: MSG_TYPE_URL = Str;
+    \* @type: MSG_TYPE_URL;
     GenericMsgTypeUrl
 
 AuthorizationTypes == { GenericMsgTypeUrl }
 
-GenericMsg == [
+\* @typeAlias: SDK_MSG_CONTENT = [type: MSG_TYPE_URL];
+\* @type: Set(SDK_MSG_CONTENT);
+SdkMsgContent == [type: {GenericMsgTypeUrl}]
 
-]
+\* Types of messages allowed to be granted permission
+\* @type: Set(MSG_TYPE_URL);
+MsgTypeUrls == { GenericMsgTypeUrl }
+
+--------------------------------------------------------------------------------
 
 \* GenericAuthorization gives the grantee unrestricted permissions to execute
 \* the provided method on behalf of the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L34
-GenericAuthorization == [
+\* @typeAlias: AUTH = [type: Str, msg: MSG_TYPE_URL];
+\* @type: Set(AUTH);
+Authorization == [
     type: {"GenericAuthorization"},
     
     \* Msg, identified by it's type URL, to grant unrestricted permissions to execute.
-    msg: AuthorizationTypes
+    msg: MsgTypeUrls
 ]
 
+\* @type: AUTH;
+NoAuthorization == [ type |-> "NoAuthorization" ]
+
+--------------------------------------------------------------------------------
+
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L17
+\* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == auth.msg
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L22
-\* @type: SEND_MSG => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == [
     accept |-> TRUE, 
     delete |-> FALSE, 
@@ -36,12 +51,14 @@ Accept(auth, msg) == [
     error |-> "none"
 ]
 
-INSTANCE Authz WITH 
-    MsgTypeUrls <- AuthorizationTypes,
-    Authorization <- GenericAuthorization,
-    \* SdkMsgs <- ??,
-    MsgTypeURL <- MsgTypeURL,
-    Accept <- Accept
+--------------------------------------------------------------------------------
+
+\* INSTANCE Authz WITH 
+\*     MsgTypeUrls <- MsgTypeUrls,
+\*     SdkMsgContent <- SdkMsgContent,
+\*     Authorization <- Authorization,
+\*     MsgTypeURL <- MsgTypeURL,
+\*     Accept <- Accept
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

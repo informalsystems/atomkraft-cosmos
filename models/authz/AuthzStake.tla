@@ -11,17 +11,23 @@ stake with. *)
 (******************************************************************************)
 EXTENDS AuthzBase, Integers
 
+CONSTANT
+    \* @typeAlias: COINS = Int;
+    \* @type: Set(COINS);
+    Coins
 
-\* @type: Set(COINS);
-Coins == Int
+ASSUME Coins \in SUBSET Int
 
 \* @type: COINS;
 NoMax == -1
 
+\* @typeAlias: MSG_TYPE_URL = Str;
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L205
-\* @type: Set(SDK_MSG);
+\* @type: Set(SDK_MSG_CONTENT);
 MsgDelegate == [
     type: {"delegate"},
 	delegatorAddress: Address,
@@ -32,7 +38,7 @@ MsgDelegate == [
 \* MsgUndelegate defines a SDK message for performing an undelegation from a
 \* delegate and a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L370
-\* @type: Set(SDK_MSG);
+\* @type: Set(SDK_MSG_CONTENT);
 MsgUndelegate == [
     type: {"undelegate"},
 	delegatorAddress: Address,
@@ -43,7 +49,7 @@ MsgUndelegate == [
 \* MsgBeginRedelegate defines a SDK message for performing a redelegation of
 \* coins from a delegator and source validator to a destination validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L283
-\* @type: Set(SDK_MSG);
+\* @type: Set(SDK_MSG_CONTENT);
 MsgBeginRedelegate == [
     type: {"beginRedelegate"},
 	delegatorAddress: Address,
@@ -52,17 +58,20 @@ MsgBeginRedelegate == [
 	amount: Coins
 ]
 
-\* @type: Set(SDK_MSG);
-StakingMessages == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
+\* @type: Set(SDK_MSG_CONTENT);
+SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
 
 \* Types of messages allowed to be granted permission
-\* @type: Set(str);
-AuthorizationTypes == { m.type: m \in StakingMessages }
+\* @type: Set(MSG_TYPE_URL);
+MsgTypeUrls == { m.type: m \in SdkMsgContent }
+
+--------------------------------------------------------------------------------
 
 \* StakeAuthorization defines an authorization for delegate/undelegate/redelegate.
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
+\* @typeAlias: AUTH = [type: Str, maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
-StakeAuthorization == [  
+Authorization == [  
     type: {"StakeAuthorization"},
 
 	\* Specifies the maximum amount of tokens can be delegate to a validator. If
@@ -72,7 +81,7 @@ StakeAuthorization == [
 
 	\* A set of validator addresses to whom delegation of tokens is either
     \* allowed or denied.
-    validators: SUBSET Validators,
+    validators: SUBSET Address,
 
     \* Extra field not present in the code.
     \* If TRUE, validators is a list of allowed addresses. 
@@ -80,9 +89,13 @@ StakeAuthorization == [
     allow: BOOLEAN,
 
 	\* Specifies one of three authorization types.
-    authorizationType: AuthorizationTypes
+    authorizationType: MsgTypeUrls
 ]
 
+\* @type: AUTH;
+NoAuthorization == [ type |-> "NoAuthorization" ]
+
+\* @type: (AUTH, COINS) => AUTH;
 UpdateMaxTokens(auth, maxTokens) == [
     type |-> "StakeAuthorization",
     maxTokens |-> maxTokens,
@@ -91,17 +104,21 @@ UpdateMaxTokens(auth, maxTokens) == [
     authorizationType |-> auth.authorizationType
 ]
 
+--------------------------------------------------------------------------------
+
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L38
-\* MsgTypeURL(auth) ==
-\*     auth.authorizationType
-\** FIX: the above does not type check
-MsgTypeURL == "delegate"
+\* @type: (AUTH) => MSG_TYPE_URL;
+MsgTypeURL(auth) ==
+    auth.authorizationType
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L58
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
-    LET amount == msg.content.amount IN
-    LET validatorAddress == 
+    LET 
+        \* @type: COINS;
+        amount == msg.content.amount
+        \* @type: ADDRESS;
+        validatorAddress == 
         CASE msg.msgTypeUrl = "delegate" -> msg.content.validatorAddress 
         [] msg.msgTypeUrl = "undelegate" -> msg.content.validatorAddress 
         [] msg.msgTypeUrl = "redelegate" -> msg.content.validatorDstAddress 
@@ -114,19 +131,24 @@ Accept(auth, msg) ==
         [accept |-> TRUE, delete |-> FALSE, updated |-> UpdateMaxTokens(auth, NoMax), error |-> "none"]
     ELSE [ 
         accept |-> amount >= auth.maxTokens, 
-        delete |-> amount = auth.maxTokens, 
+        delete |-> amount <= auth.maxTokens, 
         updated |-> IF amount > auth.maxTokens 
             THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
             ELSE NoAuthorization,
         error |-> "none"
     ]
 
-INSTANCE Authz WITH 
-    Authorization <- StakeAuthorization,
-    MsgTypeUrls <- AuthorizationTypes,
-    SdkMsgContent <- StakingMessages,
-    MsgTypeURL <- MsgTypeURL,
-    Accept <- Accept
+--------------------------------------------------------------------------------
+
+\* INSTANCE Authz WITH 
+\*     MsgTypeUrls <- MsgTypeUrls,
+\*     SdkMsgContent <- SdkMsgContent,
+\*     Authorization <- Authorization,
+\*     MsgTypeURL <- MsgTypeURL,
+\*     Accept <- Accept
+
+================================================================================
+Created by Hernán Vanzetto on 10 August 2022
 
 --------------------------------------------------------------------------------
 (* State predicates for test scenarios *)

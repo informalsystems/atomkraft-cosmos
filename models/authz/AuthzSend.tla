@@ -37,10 +37,11 @@ MsgTypeUrls == { SendMsgTypeURL }
 
 --------------------------------------------------------------------------------
 
-\* SendAuthorization allows the grantee to spend up to spendLimit coins from
+\* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
-\* @type: AUTH;
+\* @typeAlias: AUTH = [type: Str, spendLimit: COINS];
+\* @type: Set(AUTH);
 Authorization == [  
     type: {"SendAuthorization"},
 
@@ -53,11 +54,12 @@ NoAuthorization == [ type |-> "NoAuthorization" ]
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
+\* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) ==
     SendMsgTypeURL
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
-\* @type: SEND_MSG => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET amount == msg.content.amount IN
     IF amount < auth.spendLimit THEN

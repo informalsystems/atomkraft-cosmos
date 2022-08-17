@@ -67,7 +67,7 @@ MsgTypeUrls == { m.type: m \in SdkMsgContent }
 
 --------------------------------------------------------------------------------
 
-\* StakeAuthorization defines an authorization for delegate/undelegate/redelegate.
+\* The authorization for delegate/undelegate/redelegate.
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
 \* @typeAlias: AUTH = [type: Str, maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);

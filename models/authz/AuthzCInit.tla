@@ -1,13 +1,18 @@
 ------------------------------ MODULE AuthzCInit -------------------------------
 (******************************************************************************)
-
+(* Model instantiation for Apalache. *)
+(* https://apalache.informal.systems/docs/apalache/parameters.html?highlight=constinit#constinit-predicate *)
 (******************************************************************************)
-EXTENDS Authz
+EXTENDS AuthzProperties
 
 ConstInit ==
     /\ Address = {"a1", "a2"}
-    \* /\ Coins = {0,1}
-    /\ GenericMsgTypeUrl = "generic/msg/type"
+    
+    \* For Send and Stake authorizations
+    /\ Coins = {0,1}
+
+    \* For Generic authorizations
+    \* /\ GenericMsgTypeUrl = "generic/msg/type"
 
 --------------------------------------------------------------------------------
 

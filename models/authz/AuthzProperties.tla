@@ -24,39 +24,52 @@ GrantSuccess ==
     /\ lastRequest.type = "grant"
     /\ lastResponse.ok = TRUE
 
+NotGrantSuccess == ~ GrantSuccess
+
 GrantFailedSameAddress ==
     /\ lastRequest.type = "grant"
     /\ lastResponse.ok = FALSE
     /\ lastResponse.error = "granter-equal-grantee"
-    
+
+NotGrantFailedSameAddress == ~ GrantFailedSameAddress
+
 GrantFailedAuthExpired ==
     /\ lastRequest.type = "grant"
     /\ lastResponse.ok = FALSE
     /\ lastResponse.error = "authorization-expired"
 
+NotGrantFailedAuthExpired == ~ GrantFailedAuthExpired
+
 RevokeSuccess ==
     /\ lastRequest.type = "revoke"
     /\ lastResponse.ok = TRUE
 
-\* @typeAlias: TRACE = Int -> [lastEvent: EVENT, lastResponse: RESPONSE_MSG];
-\* @type: (TRACE) => Bool;
+NotRevokeSuccess == ~ RevokeSuccess
+
+--------------------------------------------------------------------------------
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastRequest: REQUEST_MSG, lastResponse: RESPONSE_MSG];
+\* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailure(trace) ==
-    \E i \in DOMAIN trace:
+    \E i, j \in DOMAIN trace: j = i + 1 /\
         LET state1 == trace[i] IN 
-        LET state2 == trace[i+1] IN
+        LET state2 == trace[j] IN
         /\ state1.lastEvent.type = "expire"
         /\ state2.lastEvent.type = "revoke" 
         /\ state2.lastResponse.ok = FALSE
 
-\* @type: (TRACE) => Bool;
+NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
+
+\* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailureSameGrant(trace) ==
-    \E i \in DOMAIN trace:
+    \E i, j \in DOMAIN trace: j = i + 1 /\
         LET state1 == trace[i] IN 
-        LET state2 == trace[i+1] IN
+        LET state2 == trace[j] IN
         /\ state1.lastEvent.type = "expire"
         /\ state2.lastEvent.type = "revoke" 
         /\ state2.lastResponse.ok = FALSE
         /\ state1.lastEvent.g = grantIdOfRevoke(state2.lastRequest)
+
+NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
 
 \* \* 3. MIREL Test Case: testing grant failures and then successful creation of grant
 \* \* @type: Seq(STATE) => Bool;
@@ -90,3 +103,4 @@ ExpireRevokeFailureSameGrant(trace) ==
 \*         /\ Len(trace) >= k
 
 ================================================================================
+Created by Hernán Vanzetto on 10 August 2022

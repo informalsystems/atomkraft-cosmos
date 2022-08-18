@@ -47,7 +47,7 @@ RevokeSuccess ==
 NotRevokeSuccess == ~ RevokeSuccess
 
 --------------------------------------------------------------------------------
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastResponse: RESPONSE_MSG];
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastResponse: RESPONSE_MSG, numRequests: Int];
 \* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailure(trace) ==
     \E i, j \in DOMAIN trace: j = i + 1 /\

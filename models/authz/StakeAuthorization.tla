@@ -107,6 +107,7 @@ Authorization == [
 \*     updated record has more fields than are specified in its type annotation.
 \*     For details see
 \*     https://apalache.informal.systems/docs/apalache/known-issues.html#updating-records-with-excess-fields
+\* @type: (AUTH, COINS) => AUTH;
 UpdateMaxTokens(auth, maxTokens) == [
     maxTokens |-> maxTokens, 
     validators |-> auth.validators, 

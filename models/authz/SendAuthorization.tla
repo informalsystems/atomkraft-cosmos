@@ -39,7 +39,6 @@ SdkMsgContent ==
     { msg \in Msgs: msg.fromAddress # msg.toAddress /\ msg.amount > 0 }
 
 --------------------------------------------------------------------------------
-
 \* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
@@ -51,7 +50,6 @@ Authorization == [
 ]
 
 --------------------------------------------------------------------------------
-
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == 

@@ -27,6 +27,9 @@ ConstInit ==
     /\ GenericAuthTypes = instance_GenericAuthTypes
 
 --------------------------------------------------------------------------------
+NumRequests == numRequests # 10
+
+--------------------------------------------------------------------------------
 
 \* View == <<grantStore>>
 

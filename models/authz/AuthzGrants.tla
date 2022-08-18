@@ -7,8 +7,7 @@ CONSTANTS
     \* @type: Set(ADDRESS);
     Address
 
--------------------------------------------------------------------------------
-
+--------------------------------------------------------------------------------
 CONSTANTS 
     \* @typeAlias: MSG_TYPE_URL = Str;
     \* @type: Set(MSG_TYPE_URL);
@@ -17,6 +16,7 @@ CONSTANTS
     \* @type: Set(COINS);
     Coins
 
+--------------------------------------------------------------------------------
 Generic == INSTANCE GenericAuthorization
 Send == INSTANCE SendAuthorization
 Stake == INSTANCE StakeAuthorization

@@ -2,7 +2,7 @@
 (******************************************************************************)
 
 (******************************************************************************)
-EXTENDS AuthzGrants, Maps
+EXTENDS AuthzGrants, Maps, Integers
 
 VARIABLES
     \* @type: GRANT_ID -> GRANT;  
@@ -14,7 +14,10 @@ VARIABLES
     lastEvent,
 
     \* @type: RESPONSE_MSG;
-    lastResponse
+    lastResponse,
+
+    \* @type: Int;
+    numRequests
 
 -------------------------------------------------------------------------------
 \* @type: (GRANT_ID) => Bool;
@@ -38,28 +41,6 @@ Accept(auth, msg) ==
         Send!Accept(auth, msg)
       [] msg.typeUrl \in Stake!MsgTypeUrls -> 
         Stake!Accept(auth, msg)
-
---------------------------------------------------------------------------------
-(******************************************************************************)
-(* Operators that model processing of request messages. *)
-(******************************************************************************)
-
-\* The interface that includes the three operations below:
-\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L331
-
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L14
-\* @type: (MSG_GRANT) => RESPONSE_GRANT;
-CallGrant(msgGrant) == 
-    IF msgGrant.granter = msgGrant.grantee THEN 
-        [type |-> "grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
-    ELSE IF msgGrant.grant.expirationTime = "past" THEN 
-        [type |-> "grant", ok |-> FALSE, error |-> "authorization-expired"]
-    ELSE 
-        [type |-> "grant", ok |-> TRUE, error |-> "none"]
-
---------------------------------------------------------------------------------
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
-CallRevoke(msgRevoke) == CHOOSE response \in MsgRevokeResponses: response.ok
 
 --------------------------------------------------------------------------------
 AcceptErrors == {
@@ -92,6 +73,29 @@ AcceptResponse == [
     error: AcceptErrors
 ]
 
+--------------------------------------------------------------------------------
+(******************************************************************************)
+(* Operators that model processing of request messages. *)
+(******************************************************************************)
+
+\* The interface that includes the three operations below:
+\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L331
+
+\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L14
+\* @type: (MSG_GRANT) => RESPONSE_GRANT;
+CallGrant(msgGrant) == 
+    IF msgGrant.granter = msgGrant.grantee THEN 
+        [type |-> "grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
+    ELSE IF msgGrant.grant.expirationTime = "past" THEN 
+        [type |-> "grant", ok |-> FALSE, error |-> "authorization-expired"]
+    ELSE 
+        [type |-> "grant", ok |-> TRUE, error |-> "none"]
+
+--------------------------------------------------------------------------------
+\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
+CallRevoke(msgRevoke) == CHOOSE response \in MsgRevokeResponses: response.ok
+
+--------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
 \* @type: (ADDRESS, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
@@ -136,11 +140,13 @@ TypeOK ==
     /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
     /\ lastEvent \in RequestMessages \cup ExpireEvents \cup {NoEvent}
     /\ lastResponse \in Responses \cup {NoResponse}
+    /\ numRequests \in Nat
 
 Init ==
     /\ grantStore = EmptyStore
     /\ lastEvent = NoEvent
     /\ lastResponse = NoResponse
+    /\ numRequests = 0
 
 (*****************************************************************************)
 (* An authorization grant is created using the MsgGrant message. If there is
@@ -172,6 +178,7 @@ RequestGrant(granter, grantee, grant) ==
                     grantStore' = MapPut(grantStore, g, grant)
                 ELSE
                     UNCHANGED grantStore
+    /\ numRequests' = numRequests + 1
 
 (*****************************************************************************)
 (* Request to revoke an existing active grant. *)
@@ -189,6 +196,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
                 ELSE 
                     UNCHANGED grantStore
             /\ lastResponse' = response
+    /\ numRequests' = numRequests + 1
 
 \* @type: (ADDRESS, Set(SDK_MSG), ACCEPT_RESPONSE) => Bool;
 PostProcessExec(grantee, msgs, acceptResponse) == 
@@ -217,6 +225,7 @@ RequestExec(grantee, msgs) ==
     /\ lastEvent' = request
     /\ lastResponse' = responses[1]
     /\ PostProcessExec(grantee, msgs, responses[2])
+    /\ numRequests' = numRequests + 1
 
 (*****************************************************************************)
 (* Timeout being reached is abstracted away by the action Expire. What is
@@ -232,7 +241,7 @@ Expire(g) ==
     /\ grantStore' = [grantStore EXCEPT ![g].expirationTime = "past"]
     /\ LET event == [type |-> "expire", g |-> g] IN
         lastEvent' = event
-    /\ UNCHANGED <<lastResponse>>
+    /\ UNCHANGED <<lastResponse, numRequests>>
 
 --------------------------------------------------------------------------------
 

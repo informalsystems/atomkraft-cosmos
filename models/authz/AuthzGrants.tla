@@ -11,7 +11,7 @@ CONSTANTS
 
 CONSTANTS 
     \* @typeAlias: MSG_TYPE_URL = Str;
-    \* @type: Set(MSG_TYPE_URL);
+    \* @type: MSG_TYPE_URL;
     GenericMsgTypeUrl,
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
@@ -111,7 +111,7 @@ grantIdOfRevoke(msgRevoke) == [
 \* A signer of the message corresponds to the granter of the 
 \* authorization. A message implements an Authorization interface (methods 
 \* MsgTypeURL and Accept).
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 \* @typeAlias: SDK_MSG = [signer: ADDRESS, msgTypeUrl: MSG_TYPE_URL, content: SDK_MSG_CONTENT];
 \* @type: Set(SDK_MSG);
 GenericSdkMsgs == [signer: Address, msgTypeUrl: Generic!MsgTypeUrls, content: Generic!SdkMsgContent]

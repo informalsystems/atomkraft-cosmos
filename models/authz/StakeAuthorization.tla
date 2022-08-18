@@ -25,8 +25,7 @@ ASSUME Coins \in SUBSET Int
 NoMax == -1
 
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.

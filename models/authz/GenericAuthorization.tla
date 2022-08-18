@@ -14,9 +14,6 @@ CONSTANT
 
 AuthorizationTypes == { GenericMsgTypeUrl }
 
-\* @ typeAlias: SDK_MSG_CONTENT = [type: MSG_TYPE_URL];
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
-\* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == [type: {GenericMsgTypeUrl}]
 
 \* Types of messages allowed to be granted permission
@@ -47,6 +44,7 @@ NoAuthorization == [ type |-> "NoAuthorization" ]
 MsgTypeURL(auth) == auth.msg
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L22
+\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == [
     accept |-> TRUE, 

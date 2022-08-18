@@ -23,7 +23,6 @@ SendMsgTypeURL == "send"
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, type: MSG_TYPE_URL];
 \* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == 
@@ -67,10 +66,8 @@ MsgTypeURL(auth) ==
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
-        \* @type: SDK_MSG_CONTENT;
-        content == msg.content
         \* @type: COINS;
-        amount == content.amount
+        amount == msg.content.amount
     IN
     IF amount < auth.spendLimit THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "insufficient-amount"]

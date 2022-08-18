@@ -65,6 +65,7 @@ MsgBeginRedelegate == [
 	amount: Coins
 ]
 
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
 
@@ -76,11 +77,9 @@ MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 
 \* The authorization for delegate/undelegate/redelegate.
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
-\* @typeAlias: AUTH = [type: Str, maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
-    type: { "stake" },
-
 	\* Specifies the maximum amount of tokens can be delegate to a validator. If
 	\* it is empty, there is no spend limit and any amount of coins can be
 	\* delegated.
@@ -106,6 +105,7 @@ Authorization == [
 MsgTypeURL(auth) ==
     auth.authorizationType
 
+\* @type: (SDK_MSG_CONTENT) => ADDRESS;
 ValidatorAddressOf(msg) ==
     CASE msg.typeUrl = DELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 

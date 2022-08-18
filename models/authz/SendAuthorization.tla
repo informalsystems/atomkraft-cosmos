@@ -21,32 +21,32 @@ ASSUME Coins \in SUBSET Int
 \* @type: MSG_TYPE_URL;
 LOCAL SEND_MSG_TYPE_URL == "send"
 
+\* Types of messages allowed to be granted permission
+\* @type: Set(MSG_TYPE_URL);
+MsgTypeUrls == { SEND_MSG_TYPE_URL }
+
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
 \* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == 
     LET Msgs == [
-        typeUrl: { SEND_MSG_TYPE_URL },
+        typeUrl: MsgTypeUrls,
         fromAddress: Address,
         toAddress: Address,
         amount: Coins
     ] IN 
     { msg \in Msgs: msg.fromAddress # msg.toAddress /\ msg.amount > 0 }
 
-\* Types of messages allowed to be granted permission
-\* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { SEND_MSG_TYPE_URL }
-
 --------------------------------------------------------------------------------
 
 \* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
-\* @typeAlias: AUTH = [type: Str, spendLimit: COINS];
+\* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL, spendLimit: COINS];
 \* @type: Set(AUTH);
 Authorization == [
-    type: { "send" },
+    authorizationType: MsgTypeUrls,
     spendLimit: { c \in Coins: c > 0 }
 ]
 
@@ -54,8 +54,8 @@ Authorization == [
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
 \* @type: (AUTH) => MSG_TYPE_URL;
-MsgTypeURL(auth) ==
-    SEND_MSG_TYPE_URL
+MsgTypeURL(auth) == 
+    auth.authorizationType
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];

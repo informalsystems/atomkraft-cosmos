@@ -27,9 +27,9 @@ IsExpired(g) ==
 
 --------------------------------------------------------------------------------
 MsgTypeURL(auth) ==
-    CASE auth.type = "generic" -> Generic!MsgTypeURL(auth)
-      [] auth.type = "send" -> Send!MsgTypeURL(auth)
-      [] auth.type = "stake" -> Stake!MsgTypeURL(auth)
+    CASE auth.authorizationType \in Generic!MsgTypeUrls -> Generic!MsgTypeURL(auth)
+      [] auth.authorizationType \in Send!MsgTypeUrls -> Send!MsgTypeURL(auth)
+      [] auth.authorizationType \in Stake!MsgTypeUrls -> Stake!MsgTypeURL(auth)
 
 Accept(auth, msg) ==
     CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
@@ -190,10 +190,14 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
                     UNCHANGED grantStore
             /\ lastResponse' = response
 
-\* @type: (REQUEST_MSG, ACCEPT_RESPONSE) => Bool;
-PostProcessExec(request, acceptResponse) == 
-    LET msg == CHOOSE m \in request.msgs: TRUE IN
-    LET g == [granter |-> msg.signer, grantee |-> request.grantee, msgTypeUrl |-> msg.content.typeUrl] IN
+\* @type: (ADDRESS, Set(SDK_MSG), ACCEPT_RESPONSE) => Bool;
+PostProcessExec(grantee, msgs, acceptResponse) == 
+    LET 
+        \* @type: SDK_MSG;
+        msg == CHOOSE m \in msgs: TRUE
+        \* @type: GRANT_ID;
+        g == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
+    IN
     IF acceptResponse.delete THEN
         grantStore' = MapRemove(grantStore, g)
     ELSE IF acceptResponse.accept /\ acceptResponse.updated # NoUpdate THEN
@@ -212,7 +216,7 @@ RequestExec(grantee, msgs) ==
     LET responses == CallExec(request) IN
     /\ lastEvent' = request
     /\ lastResponse' = responses[1]
-    /\ PostProcessExec(request, responses[2])
+    /\ PostProcessExec(grantee, msgs, responses[2])
 
 (*****************************************************************************)
 (* Timeout being reached is abstracted away by the action Expire. What is

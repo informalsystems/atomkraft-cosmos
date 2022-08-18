@@ -21,33 +21,33 @@ EXTENDS Authz, FiniteSets, Integers
 --------------------------------------------------------------------------------
 
 GrantSuccess ==
-    /\ lastRequest.type = "grant"
+    /\ lastEvent.type = "grant"
     /\ lastResponse.ok = TRUE
 
 NotGrantSuccess == ~ GrantSuccess
 
 GrantFailedSameAddress ==
-    /\ lastRequest.type = "grant"
+    /\ lastEvent.type = "grant"
     /\ lastResponse.ok = FALSE
     /\ lastResponse.error = "granter-equal-grantee"
 
 NotGrantFailedSameAddress == ~ GrantFailedSameAddress
 
 GrantFailedAuthExpired ==
-    /\ lastRequest.type = "grant"
+    /\ lastEvent.type = "grant"
     /\ lastResponse.ok = FALSE
     /\ lastResponse.error = "authorization-expired"
 
 NotGrantFailedAuthExpired == ~ GrantFailedAuthExpired
 
 RevokeSuccess ==
-    /\ lastRequest.type = "revoke"
+    /\ lastEvent.type = "revoke"
     /\ lastResponse.ok = TRUE
 
 NotRevokeSuccess == ~ RevokeSuccess
 
 --------------------------------------------------------------------------------
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastRequest: REQUEST_MSG, lastResponse: RESPONSE_MSG];
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastResponse: RESPONSE_MSG];
 \* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailure(trace) ==
     \E i, j \in DOMAIN trace: j = i + 1 /\
@@ -67,7 +67,7 @@ ExpireRevokeFailureSameGrant(trace) ==
         /\ state1.lastEvent.type = "expire"
         /\ state2.lastEvent.type = "revoke" 
         /\ state2.lastResponse.ok = FALSE
-        /\ state1.lastEvent.g = grantIdOfRevoke(state2.lastRequest)
+        /\ state1.lastEvent.g = grantIdOfRevoke(state2.lastEvent)
 
 NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
 

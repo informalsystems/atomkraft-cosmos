@@ -11,8 +11,8 @@ CONSTANTS
 
 CONSTANTS 
     \* @typeAlias: MSG_TYPE_URL = Str;
-    \* @type: MSG_TYPE_URL;
-    GenericMsgTypeUrl,
+    \* @type: Set(MSG_TYPE_URL);
+    GenericAuthTypes,
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
     Coins
@@ -23,6 +23,9 @@ Stake == INSTANCE StakeAuthorization
 
 MsgTypeUrls == Generic!MsgTypeUrls \cup Send!MsgTypeUrls \cup Stake!MsgTypeUrls
 Authorization == Generic!Authorization \cup Send!Authorization \cup Stake!Authorization
+
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+SdkMsgContent == Generic!SdkMsgContent \cup Send!SdkMsgContent \cup Stake!SdkMsgContent
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -111,14 +114,9 @@ of a message depends on the implementation of the authorization logic. A signer
 of the message corresponds to the granter of the authorization. A message
 implements an Authorization interface (methods MsgTypeURL and Accept). *)
 (******************************************************************************)
-\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @typeAlias: SDK_MSG = [signer: ADDRESS, content: SDK_MSG_CONTENT];
 \* @type: Set(SDK_MSG);
-GenericSdkMsgs == [signer: Address, content: Generic!SdkMsgContent]
-SendSdkMsgs == [signer: Address, content: Send!SdkMsgContent]
-StakeSdkMsgs == [signer: Address, content: Stake!SdkMsgContent]
-
-SdkMsgs == GenericSdkMsgs \cup SendSdkMsgs \cup StakeSdkMsgs
+SdkMsgs == [signer: Address, content: SdkMsgContent]
 
 (******************************************************************************)
 (* MsgExec attempts to execute the provided messages using authorizations

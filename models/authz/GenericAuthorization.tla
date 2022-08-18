@@ -9,36 +9,36 @@ CONSTANT
     \* @type: Set(ADDRESS);
     Address, 
     \* @typeAlias: MSG_TYPE_URL = Str;
-    \* @type: MSG_TYPE_URL;
-    GenericMsgTypeUrl
+    \* @type: Set(MSG_TYPE_URL);
+    GenericAuthTypes
 
-AuthorizationTypes == { GenericMsgTypeUrl }
-
-SdkMsgContent == [typeUrl: {GenericMsgTypeUrl}]
+\* @type: Set(SDK_MSG_CONTENT);
+SdkMsgContent == [ typeUrl: GenericAuthTypes ]
 
 \* Types of messages allowed to be granted permission
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { GenericMsgTypeUrl }
+MsgTypeUrls == GenericAuthTypes
 
 --------------------------------------------------------------------------------
 
 \* GenericAuthorization gives the grantee unrestricted permissions to execute
 \* the provided method on behalf of the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L34
-\* @typeAlias: AUTH = [type: Str, msg: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [
-    type: {"generic"},
-    
-    \* Msg, identified by it's type URL, to grant unrestricted permissions to execute.
-    msg: MsgTypeUrls
+    \* In the code this field is called Msg. The message type, identified by it's type
+    \* URL, to grant unrestricted permissions to execute.
+    authorizationType: MsgTypeUrls
 ]
 
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L17
 \* @type: (AUTH) => MSG_TYPE_URL;
-MsgTypeURL(auth) == auth.msg
+MsgTypeURL(auth) == 
+    auth.authorizationType
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L22
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];

@@ -1,20 +1,7 @@
------------------------------- MODULE AuthzBase --------------------------------
+--------------------------------- MODULE Maps ----------------------------------
+(******************************************************************************)
 (******************************************************************************)
 
-(******************************************************************************)
-
-
-CONSTANTS
-    \* @typeAlias: ADDRESS = Str;
-    \* @type: Set(ADDRESS);
-    Address
-
-\* @typeAlias: COINS = Int;
-\* @typeAlias: EXPIRATION_TIME = Str;
-\* @typeAlias: MSG_TYPE_URL = Str;
-
-
--------------------------------------------------------------------------------
 \* In TLA+ functions are total, that is, they are defined over all elements of
 \* their domain S. A map is a partial function over S, that is, a function 
 \* whose domain is a subset of S, or possibly S itself.

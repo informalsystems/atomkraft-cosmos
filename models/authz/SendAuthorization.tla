@@ -1,13 +1,16 @@
----------------------------- MODULE AuthzSend ----------------------------------
+------------------------- MODULE SendAuthorization -----------------------------
 (******************************************************************************)
 (* SendAuthorization implements the Authorization interface for the
 cosmos.bank.v1beta1.MsgSend Msg. It takes a SpendLimit that specifies the
 maximum amount of tokens the grantee can spend. The SpendLimit is updated as the
 tokens are spent. *)
 (******************************************************************************)
-EXTENDS AuthzBase, Integers
+EXTENDS Integers
 
 CONSTANT
+    \* @typeAlias: ADDRESS = Str;
+    \* @type: Set(ADDRESS);
+    Address, 
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
     Coins
@@ -20,7 +23,8 @@ SendMsgTypeURL == "send"
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == 
     LET Msgs == [
@@ -43,7 +47,7 @@ MsgTypeUrls == { SendMsgTypeURL }
 \* @typeAlias: AUTH = [type: Str, spendLimit: COINS];
 \* @type: Set(AUTH);
 Authorization == [  
-    type: {"SendAuthorization"},
+    type: {"send"},
 
 	spendLimit: Coins
 ]
@@ -59,9 +63,15 @@ MsgTypeURL(auth) ==
     SendMsgTypeURL
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
+\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
-    LET amount == msg.content.amount IN
+    LET 
+        \* @type: SDK_MSG_CONTENT;
+        content == msg.content
+        \* @type: COINS;
+        amount == content.amount
+    IN
     IF amount < auth.spendLimit THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "insufficient-amount"]
     ELSE [

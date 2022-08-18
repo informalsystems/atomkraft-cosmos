@@ -12,7 +12,7 @@ ConstInit ==
     /\ Coins = {0,1}
 
     \* For Generic authorizations
-    \* /\ GenericMsgTypeUrl = "generic/msg/type"
+    /\ GenericMsgTypeUrl = "generic/msg/type"
 
 --------------------------------------------------------------------------------
 

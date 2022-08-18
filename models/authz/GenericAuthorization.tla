@@ -1,17 +1,21 @@
--------------------------- MODULE AuthzGeneric ---------------------------------
+---------------------- MODULE GenericAuthorization -----------------------------
 (******************************************************************************)
 (* GenericAuthorization gives unrestricted permission to execute the provided
 Msg on behalf of granter's account. *)
 (******************************************************************************)
 
 CONSTANT
+    \* @typeAlias: ADDRESS = Str;
+    \* @type: Set(ADDRESS);
+    Address, 
     \* @typeAlias: MSG_TYPE_URL = Str;
     \* @type: MSG_TYPE_URL;
     GenericMsgTypeUrl
 
 AuthorizationTypes == { GenericMsgTypeUrl }
 
-\* @typeAlias: SDK_MSG_CONTENT = [type: MSG_TYPE_URL];
+\* @ typeAlias: SDK_MSG_CONTENT = [type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == [type: {GenericMsgTypeUrl}]
 
@@ -27,7 +31,7 @@ MsgTypeUrls == { GenericMsgTypeUrl }
 \* @typeAlias: AUTH = [type: Str, msg: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [
-    type: {"GenericAuthorization"},
+    type: {"generic"},
     
     \* Msg, identified by it's type URL, to grant unrestricted permissions to execute.
     msg: MsgTypeUrls
@@ -50,15 +54,6 @@ Accept(auth, msg) == [
     updated |-> auth, 
     error |-> "none"
 ]
-
---------------------------------------------------------------------------------
-
-\* INSTANCE Authz WITH 
-\*     MsgTypeUrls <- MsgTypeUrls,
-\*     SdkMsgContent <- SdkMsgContent,
-\*     Authorization <- Authorization,
-\*     MsgTypeURL <- MsgTypeURL,
-\*     Accept <- Accept
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

@@ -2,41 +2,8 @@
 (******************************************************************************)
 
 (******************************************************************************)
-EXTENDS AuthzBase, AuthzGrants
+EXTENDS AuthzGrants, Maps
 
-\* The following declarations of constants should be the preferred way of
-\* structuring the module. Then, for the different authorization logics, one could
-\* create a separate module that instantiate Authz with their own definitions of
-\* the constants. However, Apalache's parser does not accept the constant
-\* Accept(_,_), though its not clearly specified in the documentation 
-\* https://apalache.informal.systems/docs/apalache/features.html.
-
-\* \* The following constants are specific to each authorization logic.
-\* CONSTANTS
-\*     \* Abstract interface to an Authorization.
-\*     \* @type: Set(AUTH);
-\*     Authorization,
-
-\*     \* Types of messages allowed to be granted permission.
-\*     \* @type: Set(MSG_TYPE_URL);
-\*     MsgTypeUrls,
-
-\*     \* @type: (GRANT_ID, SDK_MDG) => ACCEPT_RESPONSE;
-\*     Accept(_,_),
-
-\*     \* Given an authorization returns the message type URL it handles.
-\*     \* @type: (AUTH) => MSG_TYPE_URL;
-\*     MsgTypeURL(_),
-    
-\*     \* @ type: MSG_TYPE_URL;
-\*     \* MsgTypeURL,
-
-\*     \* The content of the messages to be executed.
-\*     \* A set of, for example, Send messages or Stake messages
-\*     \* @type: Set(Str);
-\*     SdkMsgContent
-
---------------------------------------------------------------------------------
 VARIABLES
     \* @type: GRANT_ID -> GRANT;  
     grantStore, \* Representation of the KV store implemented by the authz 
@@ -112,6 +79,14 @@ AcceptResponse == [
     error: AcceptErrors
 ]
 
+Accept(auth, msg) ==
+    CASE msg.msgTypeUrl \in Generic!MsgTypeUrls -> 
+        Generic!Accept(auth, msg)
+    [] msg.msgTypeUrl \in Send!MsgTypeUrls -> 
+        Send!Accept(auth, msg)
+    [] msg.msgTypeUrl \in Stake!MsgTypeUrls -> 
+        Stake!Accept(auth, msg)
+
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
 \* @type: (ADDRESS, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
@@ -175,6 +150,11 @@ The message handling should fail if:
 - Authorization.MsgTypeURL() is not defined in the router (there is no defined
 handler in the app router to handle that Msg types). *)
 (*****************************************************************************)
+
+MsgTypeURL(auth) ==
+    CASE auth.type = "generic" -> Generic!MsgTypeURL(auth)
+    [] auth.type = "send" -> Send!MsgTypeURL(auth)
+    [] auth.type = "stake" -> Stake!MsgTypeURL(auth)
 
 \* @type: (ADDRESS, ADDRESS, GRANT) => Bool;
 RequestGrant(granter, grantee, grant) ==

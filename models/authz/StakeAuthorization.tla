@@ -1,4 +1,4 @@
----------------------------- MODULE AuthzStake ---------------------------------
+------------------------ MODULE StakeAuthorization -----------------------------
 (******************************************************************************)
 (* StakeAuthorization implements the Authorization interface for messages in the
 staking module. It takes an AuthorizationType to specify whether you want to
@@ -9,9 +9,12 @@ empty, the amount is unlimited. Additionally, this Msg takes an AllowList and a
 DenyList, which allows you to select which validators you allow grantees to
 stake with. *)
 (******************************************************************************)
-EXTENDS AuthzBase, Integers
+EXTENDS Integers
 
 CONSTANT
+    \* @typeAlias: ADDRESS = Str;
+    \* @type: Set(ADDRESS);
+    Address, 
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
     Coins
@@ -22,7 +25,8 @@ ASSUME Coins \in SUBSET Int
 NoMax == -1
 
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
@@ -72,7 +76,7 @@ MsgTypeUrls == { m.type: m \in SdkMsgContent }
 \* @typeAlias: AUTH = [type: Str, maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
-    type: {"StakeAuthorization"},
+    type: {"stake"},
 
 	\* Specifies the maximum amount of tokens can be delegate to a validator. If
 	\* it is empty, there is no spend limit and any amount of coins can be
@@ -96,7 +100,7 @@ Authorization == [
 NoAuthorization == [ type |-> "NoAuthorization" ]
 
 \* @type: (AUTH, COINS) => AUTH;
-UpdateMaxTokens(auth, maxTokens) == [
+LOCAL UpdateMaxTokens(auth, maxTokens) == [
     type |-> "StakeAuthorization",
     maxTokens |-> maxTokens,
     validators |-> auth.validators,

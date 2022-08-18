@@ -74,7 +74,6 @@ SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
 MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 
 --------------------------------------------------------------------------------
-
 \* The authorization for delegate/undelegate/redelegate.
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
 \* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
@@ -98,8 +97,24 @@ Authorization == [
     authorizationType: MsgTypeUrls
 ]
 
---------------------------------------------------------------------------------
+\* Apalache does not like the expression:
+\*      [auth EXCEPT !.maxTokens = auth.maxTokens - amount]
+\* Error message:         
+\*     The specification is malformed: An updated record has more fields than its
+\*     declared type: A record with the inferred type `[allow: Bool,
+\*     authorizationType: Str, maxTokens: Int, type: Str, validators: Set(Str)]`
+\*     has been updated with the key `validators` in an `EXCEPT` expression and the
+\*     updated record has more fields than are specified in its type annotation.
+\*     For details see
+\*     https://apalache.informal.systems/docs/apalache/known-issues.html#updating-records-with-excess-fields
+UpdateMaxTokens(auth, maxTokens) == [
+    maxTokens |-> maxTokens, 
+    validators |-> auth.validators, 
+    allow |-> auth.allow, 
+    authorizationType |-> auth.authorizationType
+]
 
+--------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L38
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) ==
@@ -112,6 +127,7 @@ ValidatorAddressOf(msg) ==
       [] msg.typeUrl = BEGIN_REDELEGATE_TYPE_URL -> msg.validatorDstAddress 
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L58
+\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG_CONTENT) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
@@ -128,7 +144,7 @@ Accept(auth, msg) ==
         accept |-> amount >= auth.maxTokens \/ auth.maxTokens = NoMax, 
         delete |-> amount <= auth.maxTokens, 
         updated |-> IF auth.maxTokens # NoMax /\ amount > auth.maxTokens 
-            THEN [auth EXCEPT !.maxTokens = auth.maxTokens - amount]
+            THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
             ELSE auth,
         error |-> "none"
     ]

@@ -63,15 +63,13 @@ Accept(auth, msg) ==
         \* @type: COINS;
         amount == msg.amount
     IN
-    IF amount < auth.spendLimit THEN
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "insufficient-amount"]
-    ELSE [
+    [
         accept |-> amount >= auth.spendLimit,
         delete |-> amount <= auth.spendLimit,
         updated |-> IF amount > auth.spendLimit
             THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
             ELSE auth,
-        error |-> "none"
+        error |-> IF amount < auth.spendLimit THEN "insufficient-amount" ELSE "none"
     ]
 
 ================================================================================

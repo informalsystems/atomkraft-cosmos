@@ -10,14 +10,11 @@ VARIABLES
                 \* module in the server, used to store mappings from grant 
                 \* triples to authorizations.
     
-    \* @type: REQUEST_MSG;
-    lastRequest,
+    \* @type: EVENT;
+    lastEvent,
 
     \* @type: RESPONSE_MSG;
-    lastResponse,
-
-    \* @type: EVENT;
-    lastEvent
+    lastResponse
 
 -------------------------------------------------------------------------------
 \* @type: (GRANT_ID) => Bool;
@@ -28,7 +25,21 @@ IsExpired(g) ==
     /\ HasGrant(g)
     /\ grantStore[g].expirationTime = "past"
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+MsgTypeURL(auth) ==
+    CASE auth.type = "generic" -> Generic!MsgTypeURL(auth)
+      [] auth.type = "send" -> Send!MsgTypeURL(auth)
+      [] auth.type = "stake" -> Stake!MsgTypeURL(auth)
+
+Accept(auth, msg) ==
+    CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
+        Generic!Accept(auth, msg)
+      [] msg.typeUrl \in Send!MsgTypeUrls -> 
+        Send!Accept(auth, msg)
+      [] msg.typeUrl \in Stake!MsgTypeUrls -> 
+        Stake!Accept(auth, msg)
+
+--------------------------------------------------------------------------------
 (******************************************************************************)
 (* Operators that model processing of request messages. *)
 (******************************************************************************)
@@ -46,9 +57,11 @@ CallGrant(msgGrant) ==
     ELSE 
         [type |-> "grant", ok |-> TRUE, error |-> "none"]
 
+--------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
 CallRevoke(msgRevoke) == CHOOSE response \in MsgRevokeResponses: response.ok
 
+--------------------------------------------------------------------------------
 AcceptErrors == {
     "none", 
     "validator-not-allowed",
@@ -79,20 +92,12 @@ AcceptResponse == [
     error: AcceptErrors
 ]
 
-Accept(auth, msg) ==
-    CASE msg.msgTypeUrl \in Generic!MsgTypeUrls -> 
-        Generic!Accept(auth, msg)
-    [] msg.msgTypeUrl \in Send!MsgTypeUrls -> 
-        Send!Accept(auth, msg)
-    [] msg.msgTypeUrl \in Stake!MsgTypeUrls -> 
-        Stake!Accept(auth, msg)
-
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
 \* @type: (ADDRESS, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
         granter == msg.signer \* Actually, granter is the first of the list of signers.
-        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.msgTypeUrl]
+        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl]
     IN
     IF granter = grantee THEN 
         [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
@@ -101,23 +106,25 @@ DispatchActionsOneMsg(grantee, msg) ==
     ELSE IF grantStore[grantId].expirationTime = "past" THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]
     ELSE 
-        Accept(grantStore[grantId].authorization, msg)
+        Accept(grantStore[grantId].authorization, msg.content)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
 CallExec(msgExec) == 
-    LET msg == CHOOSE m \in msgExec.msgs: TRUE IN
-    LET acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msg) IN 
-    LET execResponse == [
-        type |-> "exec", 
-        ok |-> acceptResponse.accept, 
-        error |-> acceptResponse.error
-    ] IN 
+    LET 
+        \* NB: We model requests execution of only one message per call.
+        msg == CHOOSE m \in msgExec.msgs: TRUE 
+        acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msg)
+        execResponse == [
+            type |-> "exec", 
+            ok |-> acceptResponse.accept, 
+            error |-> acceptResponse.error
+        ] 
+    IN 
     <<execResponse, acceptResponse>>
 
 -------------------------------------------------------------------------------
 \* Only for the initial state.
-NoRequest == [type |-> "NoRequest"]
 NoResponse == [type |-> "NoResponse"]
 NoEvent == [type |-> "NoEvent"]
 
@@ -126,16 +133,14 @@ NoEvent == [type |-> "NoEvent"]
 EmptyStore == [x \in {} |-> NoGrant]
 
 TypeOK == 
-    /\ IsMap(grantStore, ValidGrantIds, Grants)
-    /\ lastRequest \in RequestMessages \cup {NoRequest}
-    /\ lastResponse \in Responses \cup {NoResponse}
+    /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
     /\ lastEvent \in RequestMessages \cup ExpireEvents \cup {NoEvent}
+    /\ lastResponse \in Responses \cup {NoResponse}
 
 Init ==
     /\ grantStore = EmptyStore
-    /\ lastRequest = NoRequest
-    /\ lastResponse = NoResponse
     /\ lastEvent = NoEvent
+    /\ lastResponse = NoResponse
 
 (*****************************************************************************)
 (* An authorization grant is created using the MsgGrant message. If there is
@@ -151,11 +156,6 @@ The message handling should fail if:
 handler in the app router to handle that Msg types). *)
 (*****************************************************************************)
 
-MsgTypeURL(auth) ==
-    CASE auth.type = "generic" -> Generic!MsgTypeURL(auth)
-    [] auth.type = "send" -> Send!MsgTypeURL(auth)
-    [] auth.type = "stake" -> Stake!MsgTypeURL(auth)
-
 \* @type: (ADDRESS, ADDRESS, GRANT) => Bool;
 RequestGrant(granter, grantee, grant) ==
     LET 
@@ -166,7 +166,6 @@ RequestGrant(granter, grantee, grant) ==
     /\ ~ HasGrant(g) \/ IsExpired(g)
     /\ LET msg == [type |-> "grant", granter |-> granter, grantee |-> grantee, grant |-> grant] IN
         /\ lastEvent' = msg
-        /\ lastRequest' = msg
         /\ LET response == CallGrant(msg) IN
             /\ lastResponse' = response
             /\ IF response.ok THEN
@@ -184,7 +183,6 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
     /\ HasGrant(g)
     /\ LET msg == [type |-> "revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
         /\ lastEvent' = msg
-        /\ lastRequest' = msg
         /\ LET response == CallRevoke(msg) IN
             /\ IF response.ok THEN
                     grantStore' = MapRemove(grantStore, g)
@@ -195,7 +193,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
 \* @type: (REQUEST_MSG, ACCEPT_RESPONSE) => Bool;
 PostProcessExec(request, acceptResponse) == 
     LET msg == CHOOSE m \in request.msgs: TRUE IN
-    LET g == [granter |-> msg.signer, grantee |-> request.grantee, msgTypeUrl |-> msg.msgTypeUrl] IN
+    LET g == [granter |-> msg.signer, grantee |-> request.grantee, msgTypeUrl |-> msg.content.typeUrl] IN
     IF acceptResponse.delete THEN
         grantStore' = MapRemove(grantStore, g)
     ELSE IF acceptResponse.accept /\ acceptResponse.updated # NoUpdate THEN
@@ -213,7 +211,6 @@ RequestExec(grantee, msgs) ==
     LET request == [type |-> "exec", grantee |-> grantee, msgs |-> msgs] IN
     LET responses == CallExec(request) IN
     /\ lastEvent' = request
-    /\ lastRequest' = request
     /\ lastResponse' = responses[1]
     /\ PostProcessExec(request, responses[2])
 
@@ -231,7 +228,7 @@ Expire(g) ==
     /\ grantStore' = [grantStore EXCEPT ![g].expirationTime = "past"]
     /\ LET event == [type |-> "expire", g |-> g] IN
         lastEvent' = event
-    /\ UNCHANGED <<lastRequest, lastResponse>>
+    /\ UNCHANGED <<lastResponse>>
 
 --------------------------------------------------------------------------------
 
@@ -242,7 +239,7 @@ Next ==
         RequestRevoke(g.granter, g.grantee, g.msgTypeUrl)
     \/ \E g \in ValidGrantIds: 
         Expire(g)
-    \* NB: We model requests execution of only one message at a time.
+    \* NB: We model requests execution of only one message per call.
     \/ \E grantee \in Address, msg \in SdkMsgs: 
         RequestExec(grantee, {msg})
 

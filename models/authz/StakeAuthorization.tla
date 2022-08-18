@@ -9,7 +9,7 @@ empty, the amount is unlimited. Additionally, this Msg takes an AllowList and a
 DenyList, which allows you to select which validators you allow grantees to
 stake with. *)
 (******************************************************************************)
-EXTENDS Integers
+EXTENDS Integers, TLC
 
 CONSTANT
     \* @typeAlias: ADDRESS = Str;
@@ -24,15 +24,19 @@ ASSUME Coins \in SUBSET Int
 \* @type: COINS;
 NoMax == -1
 
+LOCAL DELEGATE_TYPE_URL == "delegate"
+LOCAL UNDELEGATE_TYPE_URL == "undelegate"
+LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
+
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L205
 \* @type: Set(SDK_MSG_CONTENT);
 MsgDelegate == [
-    type: {"delegate"},
+    typeUrl: { DELEGATE_TYPE_URL },
 	delegatorAddress: Address,
 	validatorAddress: Address,
 	amount: Coins
@@ -43,7 +47,7 @@ MsgDelegate == [
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L370
 \* @type: Set(SDK_MSG_CONTENT);
 MsgUndelegate == [
-    type: {"undelegate"},
+    typeUrl: { UNDELEGATE_TYPE_URL},
 	delegatorAddress: Address,
 	validatorAddress: Address,
 	amount: Coins
@@ -54,7 +58,7 @@ MsgUndelegate == [
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L283
 \* @type: Set(SDK_MSG_CONTENT);
 MsgBeginRedelegate == [
-    type: {"beginRedelegate"},
+    typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
 	delegatorAddress: Address,
 	validatorSrcAddress: Address,
 	validatorDstAddress: Address,
@@ -66,7 +70,7 @@ SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
 
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { m.type: m \in SdkMsgContent }
+MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 
 --------------------------------------------------------------------------------
 
@@ -75,7 +79,7 @@ MsgTypeUrls == { m.type: m \in SdkMsgContent }
 \* @typeAlias: AUTH = [type: Str, maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
-    type: {"stake"},
+    type: { "stake" },
 
 	\* Specifies the maximum amount of tokens can be delegate to a validator. If
 	\* it is empty, there is no spend limit and any amount of coins can be
@@ -114,41 +118,32 @@ LOCAL UpdateMaxTokens(auth, maxTokens) == [
 MsgTypeURL(auth) ==
     auth.authorizationType
 
+ValidatorAddressOf(msg) ==
+    CASE msg.typeUrl = DELEGATE_TYPE_URL -> msg.validatorAddress 
+      [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 
+      [] msg.typeUrl = BEGIN_REDELEGATE_TYPE_URL -> msg.validatorDstAddress 
+
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L58
-\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG_CONTENT) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
         \* @type: COINS;
-        amount == msg.content.amount
+        amount == msg.amount
         \* @type: ADDRESS;
-        validatorAddress == 
-        CASE msg.msgTypeUrl = "delegate" -> msg.content.validatorAddress 
-        [] msg.msgTypeUrl = "undelegate" -> msg.content.validatorAddress 
-        [] msg.msgTypeUrl = "redelegate" -> msg.content.validatorDstAddress 
+        validatorAddress == ValidatorAddressOf(msg)
     IN
-    IF msg.allow /\ validatorAddress \notin auth.validators THEN
+    IF auth.allow /\ validatorAddress \notin auth.validators THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
-    ELSE IF ~ msg.allow /\ validatorAddress \in auth.validators THEN
+    ELSE IF ~ auth.allow /\ validatorAddress \in auth.validators THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
-    ELSE IF auth.maxTokens = NoMax THEN
-        [accept |-> TRUE, delete |-> FALSE, updated |-> UpdateMaxTokens(auth, NoMax), error |-> "none"]
     ELSE [ 
-        accept |-> amount >= auth.maxTokens, 
+        accept |-> amount >= auth.maxTokens \/ auth.maxTokens = NoMax, 
         delete |-> amount <= auth.maxTokens, 
-        updated |-> IF amount > auth.maxTokens 
+        updated |-> IF auth.maxTokens # NoMax /\ amount > auth.maxTokens 
             THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
             ELSE NoAuthorization,
         error |-> "none"
     ]
-
---------------------------------------------------------------------------------
-
-\* INSTANCE Authz WITH 
-\*     MsgTypeUrls <- MsgTypeUrls,
-\*     SdkMsgContent <- SdkMsgContent,
-\*     Authorization <- Authorization,
-\*     MsgTypeURL <- MsgTypeURL,
-\*     Accept <- Accept
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

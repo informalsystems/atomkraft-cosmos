@@ -105,18 +105,18 @@ grantIdOfRevoke(msgRevoke) == [
     msgTypeUrl |-> msgRevoke.msgTypeUrl
 ]
 
-\* Messages to be executed, such as Send messages or Stake messages. The
-\* content of a message depends on the implementation of the authorization 
-\* logic. 
-\* A signer of the message corresponds to the granter of the 
-\* authorization. A message implements an Authorization interface (methods 
-\* MsgTypeURL and Accept).
-\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
-\* @typeAlias: SDK_MSG = [signer: ADDRESS, msgTypeUrl: MSG_TYPE_URL, content: SDK_MSG_CONTENT];
+(******************************************************************************)
+(* Messages to be executed, such as Send messages or Stake messages. The content
+of a message depends on the implementation of the authorization logic. A signer
+of the message corresponds to the granter of the authorization. A message
+implements an Authorization interface (methods MsgTypeURL and Accept). *)
+(******************************************************************************)
+\* @ typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG = [signer: ADDRESS, content: SDK_MSG_CONTENT];
 \* @type: Set(SDK_MSG);
-GenericSdkMsgs == [signer: Address, msgTypeUrl: Generic!MsgTypeUrls, content: Generic!SdkMsgContent]
-SendSdkMsgs == [signer: Address, msgTypeUrl: Send!MsgTypeUrls, content: Send!SdkMsgContent]
-StakeSdkMsgs == [signer: Address, msgTypeUrl: Stake!MsgTypeUrls, content: Stake!SdkMsgContent]
+GenericSdkMsgs == [signer: Address, content: Generic!SdkMsgContent]
+SendSdkMsgs == [signer: Address, content: Send!SdkMsgContent]
+StakeSdkMsgs == [signer: Address, content: Stake!SdkMsgContent]
 
 SdkMsgs == GenericSdkMsgs \cup SendSdkMsgs \cup StakeSdkMsgs
 

@@ -14,7 +14,7 @@ CONSTANT
 
 AuthorizationTypes == { GenericMsgTypeUrl }
 
-SdkMsgContent == [type: {GenericMsgTypeUrl}]
+SdkMsgContent == [typeUrl: {GenericMsgTypeUrl}]
 
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);

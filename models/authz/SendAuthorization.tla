@@ -19,15 +19,15 @@ ASSUME Coins \in SUBSET Int
 
 \* @typeAlias: MSG_TYPE_URL = Str;
 \* @type: MSG_TYPE_URL;
-SendMsgTypeURL == "send"
+LOCAL SEND_MSG_TYPE_URL == "send"
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, type: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == 
     LET Msgs == [
-        type: {"MsgSend"},
+        typeUrl: { SEND_MSG_TYPE_URL },
         fromAddress: Address,
         toAddress: Address,
         amount: Coins
@@ -36,7 +36,7 @@ SdkMsgContent ==
 
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { SendMsgTypeURL }
+MsgTypeUrls == { SEND_MSG_TYPE_URL }
 
 --------------------------------------------------------------------------------
 
@@ -45,10 +45,9 @@ MsgTypeUrls == { SendMsgTypeURL }
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
 \* @typeAlias: AUTH = [type: Str, spendLimit: COINS];
 \* @type: Set(AUTH);
-Authorization == [  
-    type: {"send"},
-
-	spendLimit: Coins
+Authorization == [
+    type: { "send" },
+    spendLimit: { c \in Coins: c > 0 }
 ]
 
 \* @type: AUTH;
@@ -59,15 +58,15 @@ NoAuthorization == [ type |-> "NoAuthorization" ]
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) ==
-    SendMsgTypeURL
+    SEND_MSG_TYPE_URL
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG_CONTENT) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
         \* @type: COINS;
-        amount == msg.content.amount
+        amount == msg.amount
     IN
     IF amount < auth.spendLimit THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "insufficient-amount"]
@@ -79,15 +78,6 @@ Accept(auth, msg) ==
             ELSE NoAuthorization,
         error |-> "none"
     ]
-
---------------------------------------------------------------------------------
-
-\* INSTANCE Authz WITH 
-\*     MsgTypeUrls <- MsgTypeUrls,
-\*     SdkMsgContent <- SdkMsgContent,
-\*     Authorization <- Authorization,
-\*     MsgTypeURL <- MsgTypeURL,
-\*     Accept <- Accept
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

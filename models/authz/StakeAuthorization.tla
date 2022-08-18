@@ -99,18 +99,6 @@ Authorization == [
     authorizationType: MsgTypeUrls
 ]
 
-\* @type: AUTH;
-NoAuthorization == [ type |-> "NoAuthorization" ]
-
-\* @type: (AUTH, COINS) => AUTH;
-LOCAL UpdateMaxTokens(auth, maxTokens) == [
-    type |-> "StakeAuthorization",
-    maxTokens |-> maxTokens,
-    validators |-> auth.validators,
-    allow |-> auth.allow,
-    authorizationType |-> auth.authorizationType
-]
-
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L38
@@ -140,8 +128,8 @@ Accept(auth, msg) ==
         accept |-> amount >= auth.maxTokens \/ auth.maxTokens = NoMax, 
         delete |-> amount <= auth.maxTokens, 
         updated |-> IF auth.maxTokens # NoMax /\ amount > auth.maxTokens 
-            THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
-            ELSE NoAuthorization,
+            THEN [auth EXCEPT !.maxTokens = auth.maxTokens - amount]
+            ELSE auth,
         error |-> "none"
     ]
 

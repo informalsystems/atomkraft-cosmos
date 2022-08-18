@@ -50,9 +50,6 @@ Authorization == [
     spendLimit: { c \in Coins: c > 0 }
 ]
 
-\* @type: AUTH;
-NoAuthorization == [ type |-> "NoAuthorization" ]
-
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
@@ -75,7 +72,7 @@ Accept(auth, msg) ==
         delete |-> amount <= auth.spendLimit,
         updated |-> IF amount > auth.spendLimit
             THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
-            ELSE NoAuthorization,
+            ELSE auth,
         error |-> "none"
     ]
 

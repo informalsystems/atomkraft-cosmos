@@ -155,9 +155,9 @@ RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 MsgGrantResponseErrors == {
     "none", 
     "granter-equal-grantee", 
-    "authorization-expired", 
-    "authorization-not-implemented", 
-    "msgTypeURL-not-defined"
+    "authorization-expired"
+    \* "authorization-not-implemented", 
+    \* "msgTypeURL-not-defined"
 }
 
 \* @typeAlias: RESPONSE_GRANT = [error: Str, ok: Bool, type: Str];
@@ -170,11 +170,13 @@ MsgGrantResponses == [
 
 MsgExecResponseErrors == {
     "none", 
-    "granter-equal-grantee", 
     "grant-not-found", 
     "authorization-expired", 
-    "authorization-not-implemented", 
-    "msgTypeURL-not-defined"
+    \* From SendAuthorization:
+    "insufficient-amount",
+    \* From StakeAuthorization:
+    "validator-not-allowed",
+    "validator-denied"
 }
 
 \* @typeAlias: RESPONSE_EXEC = [error: Str, ok: Bool, type: Str];

@@ -45,7 +45,7 @@ SdkMsgContent ==
 \* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL, spendLimit: COINS];
 \* @type: Set(AUTH);
 Authorization == [
-    authorizationType: MsgTypeUrls,
+    authorizationType: MsgTypeUrls, \* Not present in the code.
     spendLimit: { c \in Coins: c > 0 }
 ]
 

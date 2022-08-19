@@ -30,9 +30,12 @@ IsExpired(g) ==
 
 --------------------------------------------------------------------------------
 MsgTypeURL(auth) ==
-    CASE auth.authorizationType \in Generic!MsgTypeUrls -> Generic!MsgTypeURL(auth)
-      [] auth.authorizationType \in Send!MsgTypeUrls -> Send!MsgTypeURL(auth)
-      [] auth.authorizationType \in Stake!MsgTypeUrls -> Stake!MsgTypeURL(auth)
+    CASE auth.authorizationType \in Generic!MsgTypeUrls -> 
+        Generic!MsgTypeURL(auth)
+      [] auth.authorizationType \in Send!MsgTypeUrls -> 
+        Send!MsgTypeURL(auth)
+      [] auth.authorizationType \in Stake!MsgTypeUrls -> 
+        Stake!MsgTypeURL(auth)
 
 Accept(auth, msg) ==
     CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
@@ -75,7 +78,7 @@ AcceptResponse == [
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Operators that model processing of request messages. *)
+(* Operators that model processing of request messages.                       *)
 (******************************************************************************)
 
 \* The interface that includes the three operations below:
@@ -117,9 +120,7 @@ DispatchActionsOneMsg(grantee, msg) ==
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
 CallExec(msgExec) == 
     LET 
-        \* NB: We model requests execution of only one message per call.
-        msg == CHOOSE m \in msgExec.msgs: TRUE 
-        acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msg)
+        acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msgExec.msg)
         execResponse == [
             type |-> "exec", 
             ok |-> acceptResponse.accept, 
@@ -128,7 +129,7 @@ CallExec(msgExec) ==
     IN 
     <<execResponse, acceptResponse>>
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 \* Only for the initial state.
 NoResponse == [type |-> "NoResponse"]
 NoEvent == [type |-> "NoEvent"]
@@ -149,11 +150,22 @@ Init ==
     /\ lastResponse = NoResponse
     /\ numRequests = 0
 
-(*****************************************************************************)
-(* An authorization grant is created using the MsgGrant message. If there is
-already a grant for the (granter, grantee, Authorization) triple, then the new
-grant overwrites the previous one. To update or extend an existing grant, a new
-grant with the same (granter, grantee, Authorization) triple should be created.
+--------------------------------------------------------------------------------
+\* @type: (MSG_GRANT) => GRANT_ID;
+grantIdOfMsgGrant(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.granter,
+    msgTypeUrl |-> MsgTypeURL(msg.grant.authorization)
+]
+
+(******************************************************************************)
+(* Request to give a grant from a granter to a grantee.                       *)
+(*                                                                            *)
+(* From the code: "An authorization grant is created using the MsgGrant message.
+If there is already a grant for the (granter, grantee, Authorization) triple,
+then the new grant overwrites the previous one. To update or extend an existing
+grant, a new grant with the same (granter, grantee, Authorization) triple should
+be created."
 
 The message handling should fail if:
 - both granter and grantee have the same address.
@@ -161,29 +173,27 @@ The message handling should fail if:
 - provided Grant.Authorization is not implemented.
 - Authorization.MsgTypeURL() is not defined in the router (there is no defined
 handler in the app router to handle that Msg types). *)
-(*****************************************************************************)
-
+(******************************************************************************)
 \* @type: (ADDRESS, ADDRESS, GRANT) => Bool;
 RequestGrant(granter, grantee, grant) ==
     LET 
-        msgTypeUrl == MsgTypeURL(grant.authorization)
-        g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl]
+        msg == [type |-> "grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
+        g == grantIdOfMsgGrant(msg)
     IN
     /\ IsValid(g)
     /\ ~ HasGrant(g) \/ IsExpired(g)
-    /\ LET msg == [type |-> "grant", granter |-> granter, grantee |-> grantee, grant |-> grant] IN
-        /\ lastEvent' = msg
-        /\ LET response == CallGrant(msg) IN
-            /\ lastResponse' = response
-            /\ IF response.ok THEN
-                    grantStore' = MapPut(grantStore, g, grant)
-                ELSE
-                    UNCHANGED grantStore
+    /\ LET response == CallGrant(msg) IN
+        /\ IF response.ok THEN
+                grantStore' = MapPut(grantStore, g, grant)
+            ELSE
+                UNCHANGED grantStore
+        /\ lastResponse' = response
+    /\ lastEvent' = msg
     /\ numRequests' = numRequests + 1
 
-(*****************************************************************************)
-(* Request to revoke an existing active grant. *)
-(*****************************************************************************)
+(******************************************************************************)
+(* Request to revoke a grant.                                                 *)
+(******************************************************************************)
 \* @type: (ADDRESS, ADDRESS, MSG_TYPE_URL) => Bool;
 RequestRevoke(granter, grantee, msgTypeUrl) == 
     LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
@@ -200,11 +210,9 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
     /\ numRequests' = numRequests + 1
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
-\* @type: (ADDRESS, Set(SDK_MSG), ACCEPT_RESPONSE) => Bool;
-PostProcessExec(grantee, msgs, acceptResponse) == 
+\* @type: (ADDRESS, SDK_MSG, ACCEPT_RESPONSE) => Bool;
+PostProcessExec(grantee, msg, acceptResponse) == 
     LET 
-        \* @type: SDK_MSG;
-        msg == CHOOSE m \in msgs: TRUE
         \* @type: GRANT_ID;
         g == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
     IN
@@ -215,30 +223,28 @@ PostProcessExec(grantee, msgs, acceptResponse) ==
     ELSE
         UNCHANGED <<grantStore>>
 
-(*****************************************************************************)
-(* The predicate which models the execution of a message. It checks whether
-there is an appropriate grant for the execution message, but does not model the
-actual execution and whether or not the execution itself fails. *)
-(*****************************************************************************)
-\* @type: (ADDRESS, Set(SDK_MSG)) => Bool;
-RequestExec(grantee, msgs) ==
+(******************************************************************************)
+(* Request to execute a message on behalf of a grantee.                       *)
+(******************************************************************************)
+\* @type: (ADDRESS, SDK_MSG) => Bool;
+RequestExec(grantee, msg) ==
     LET 
-        request == [type |-> "exec", grantee |-> grantee, msgs |-> msgs]
+        request == [type |-> "exec", grantee |-> grantee, msg |-> msg]
         responses == CallExec(request) 
     IN
     /\ lastEvent' = request
     /\ lastResponse' = responses[1]
-    /\ PostProcessExec(grantee, msgs, responses[2])
+    /\ PostProcessExec(grantee, msg, responses[2])
     /\ numRequests' = numRequests + 1
 
-(*****************************************************************************)
+(******************************************************************************)
 (* Timeout being reached is abstracted away by the action Expire. What is
 lost then is the relation between different grants and their expirations (in
 real life, there could be a dependency: if A expires, then definitely B and C
 have to expire). This action is a pure environment action and thus it does not
 remove the grant from a set of active grants (the system will do so once it
 notices that the grant expired, upon running the Execute function). *)
-(*****************************************************************************)
+(******************************************************************************)
 Expire(g) ==
     /\ HasGrant(g)
     /\ ~ IsExpired(g)
@@ -256,9 +262,11 @@ Next ==
         RequestRevoke(g.granter, g.grantee, g.msgTypeUrl)
     \/ \E g \in ValidGrantIds: 
         Expire(g)
-    \* NB: We model requests execution of only one message per call.
+    
+    \* NB: The implementation allows to send more than one message in an Exec
+    \* request. We model execution requests of only one message per call.
     \/ \E grantee \in Address, msg \in SdkMsgs: 
-        RequestExec(grantee, {msg})
+        RequestExec(grantee, msg)
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

@@ -102,10 +102,10 @@ MsgRevoke == [
 ]
 
 \* @type: (MSG_REVOKE) => GRANT_ID;
-grantIdOfRevoke(msgRevoke) == [
-    grantee |-> msgRevoke.grantee,
-    granter |-> msgRevoke.granter,
-    msgTypeUrl |-> msgRevoke.msgTypeUrl
+grantIdOfMsgRevoke(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.granter,
+    msgTypeUrl |-> msg.msgTypeUrl
 ]
 
 (******************************************************************************)
@@ -124,7 +124,7 @@ granted to the grantee. Each message should have only one signer corresponding
 to the granter of the authorization. *)
 (******************************************************************************)
 \* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L116
-\* @typeAlias: MSG_EXEC = [grantee: ADDRESS, msgs: Set(SDK_MSG), type: Str];
+\* @typeAlias: MSG_EXEC = [grantee: ADDRESS, msg: SDK_MSG, type: Str];
 \* @type: Set(MSG_EXEC);
 MsgExec == [
     type: {"exec"},
@@ -134,7 +134,7 @@ MsgExec == [
 	\* Each message must implement an Authorization interface. The x/authz module
 	\* will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
 	\* triple and validate it.
-    msgs: SUBSET SdkMsgs \ {{}}
+    msg: SdkMsgs
 ]
 
 \* @typeAlias: EVENT = [g: GRANT_ID, type: Str];

@@ -1,10 +1,12 @@
 --------------------------------- MODULE Maps ----------------------------------
 (******************************************************************************)
+(* This module provides maps as a representation of partial functions.
+
+In TLA+ functions are total, that is, they are defined over all elements of
+their domain S. A map represents a partial function over S, that is, a function
+whose domain is a subset of S, or possibly S itself. *)
 (******************************************************************************)
 
-\* In TLA+ functions are total, that is, they are defined over all elements of
-\* their domain S. A map is a partial function over S, that is, a function 
-\* whose domain is a subset of S, or possibly S itself.
 IsMap(f, S, T) ==
     /\ f = [x \in DOMAIN f |-> f[x]]
     /\ DOMAIN f \subseteq S

@@ -93,7 +93,8 @@ CallGrant(msgGrant) ==
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
-CallRevoke(msgRevoke) == CHOOSE response \in MsgRevokeResponses: response.ok
+CallRevoke(msgRevoke) == 
+    CHOOSE response \in MsgRevokeResponses: response.ok
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
@@ -198,6 +199,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
             /\ lastResponse' = response
     /\ numRequests' = numRequests + 1
 
+\* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
 \* @type: (ADDRESS, Set(SDK_MSG), ACCEPT_RESPONSE) => Bool;
 PostProcessExec(grantee, msgs, acceptResponse) == 
     LET 
@@ -208,7 +210,7 @@ PostProcessExec(grantee, msgs, acceptResponse) ==
     IN
     IF acceptResponse.delete THEN
         grantStore' = MapRemove(grantStore, g)
-    ELSE IF acceptResponse.accept /\ acceptResponse.updated # NoUpdate THEN
+    ELSE IF acceptResponse.updated # NoUpdate THEN
         grantStore' = [grantStore EXCEPT ![g].authorization = acceptResponse.updated]
     ELSE
         UNCHANGED <<grantStore>>
@@ -220,8 +222,10 @@ actual execution and whether or not the execution itself fails. *)
 (*****************************************************************************)
 \* @type: (ADDRESS, Set(SDK_MSG)) => Bool;
 RequestExec(grantee, msgs) ==
-    LET request == [type |-> "exec", grantee |-> grantee, msgs |-> msgs] IN
-    LET responses == CallExec(request) IN
+    LET 
+        request == [type |-> "exec", grantee |-> grantee, msgs |-> msgs]
+        responses == CallExec(request) 
+    IN
     /\ lastEvent' = request
     /\ lastResponse' = responses[1]
     /\ PostProcessExec(grantee, msgs, responses[2])

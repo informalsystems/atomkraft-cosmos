@@ -22,6 +22,7 @@ EXTENDS Authz, FiniteSets, Integers
 
 GrantSuccess ==
     /\ lastEvent.type = "grant"
+    /\ lastEvent.granter # lastEvent.grantee
     /\ expectedResponse.ok = TRUE
 
 NotGrantSuccess == ~ GrantSuccess
@@ -70,6 +71,31 @@ ExpireRevokeFailureSameGrant(trace) ==
         /\ state1.lastEvent.g = grantIdOfMsgRevoke(state2.lastEvent)
 
 NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
+
+\* @type: Seq(TRACE) => Bool;
+GrantExpireExec(trace) ==
+    LET 
+        state1 == trace[1] 
+        g1 == grantIdOfMsgGrant(state1.lastEvent)
+    IN
+    /\ state1.lastEvent.type = "grant"
+    /\ state1.expectedResponse.ok = TRUE
+    /\ \E j, k \in DOMAIN trace: 
+        /\ 1 < j 
+        /\ j < k 
+        /\  LET 
+                state2 == trace[j]
+                state3 == trace[k] 
+            IN
+            /\ state2.lastEvent.type = "expire"
+            /\ g1 = grantIdOfMsgRevoke(state2.lastEvent)
+            /\ state3.lastEvent.type = "exec" 
+            /\ LET 
+                \* @type: SDK_MSG;
+                msg == CHOOSE m \in state3.lastEvent.msgs: TRUE IN
+                g1.msgTypeUrl = msg.content.typeUrl
+
+NotGrantExpireExec(trace) == ~ GrantExpireExec(trace)
 
 \* \* 3. MIREL Test Case: testing grant failures and then successful creation of grant
 \* \* @type: Seq(STATE) => Bool;

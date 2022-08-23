@@ -50,7 +50,7 @@ IsValid(g) == g.granter # g.grantee
 ValidGrantIds == { g \in GrantIds: IsValid(g) }
 
 \* Time when the grant will expire with respect to the moment when the related
-\* event happens. If none, then the grant doesn't have an expiration time and 
+\* event happens. If "none", then the grant doesn't have an expiration time and 
 \* other conditions in the authorization may apply to invalidate it.
 \* @typeAlias: EXPIRATION_TIME = Str;
 \* @type: Set(EXPIRATION_TIME);
@@ -170,8 +170,10 @@ MsgExecResponseErrors == {
     "none", 
     "grant-not-found", 
     "authorization-expired", 
+    
     \* From SendAuthorization:
     "insufficient-amount",
+    
     \* From StakeAuthorization:
     "validator-not-allowed",
     "validator-denied"
@@ -188,13 +190,30 @@ MsgExecResponses == [
 \* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];
 \* @type: Set(RESPONSE_REVOKE);
 MsgRevokeResponses == [
-    type: {"MsgRevokeResponses"}, 
+    type: {"revoke"}, 
     ok: BOOLEAN
 ]
 
 \* @typeAlias: RESPONSE_MSG = [error: Str, ok: Bool, type: Str];
 \* @type: Set(RESPONSE_MSG);
 Responses == MsgGrantResponses \cup MsgExecResponses \cup MsgRevokeResponses
+
+--------------------------------------------------------------------------------
+MsgTypeURL(auth) ==
+    CASE auth.authorizationType \in Generic!MsgTypeUrls -> 
+        Generic!MsgTypeURL(auth)
+      [] auth.authorizationType \in Send!MsgTypeUrls -> 
+        Send!MsgTypeURL(auth)
+      [] auth.authorizationType \in Stake!MsgTypeUrls -> 
+        Stake!MsgTypeURL(auth)
+
+Accept(auth, msg) ==
+    CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
+        Generic!Accept(auth, msg)
+      [] msg.typeUrl \in Send!MsgTypeUrls -> 
+        Send!Accept(auth, msg)
+      [] msg.typeUrl \in Stake!MsgTypeUrls -> 
+        Stake!Accept(auth, msg)
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

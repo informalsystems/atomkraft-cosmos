@@ -14,7 +14,7 @@ VARIABLES
     lastEvent,
 
     \* @type: RESPONSE_MSG;
-    lastResponse,
+    expectedResponse,
 
     \* @type: Int;
     numRequests
@@ -27,23 +27,6 @@ HasGrant(g) == g \in DOMAIN grantStore
 IsExpired(g) == 
     /\ HasGrant(g)
     /\ grantStore[g].expirationTime = "past"
-
---------------------------------------------------------------------------------
-MsgTypeURL(auth) ==
-    CASE auth.authorizationType \in Generic!MsgTypeUrls -> 
-        Generic!MsgTypeURL(auth)
-      [] auth.authorizationType \in Send!MsgTypeUrls -> 
-        Send!MsgTypeURL(auth)
-      [] auth.authorizationType \in Stake!MsgTypeUrls -> 
-        Stake!MsgTypeURL(auth)
-
-Accept(auth, msg) ==
-    CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
-        Generic!Accept(auth, msg)
-      [] msg.typeUrl \in Send!MsgTypeUrls -> 
-        Send!Accept(auth, msg)
-      [] msg.typeUrl \in Stake!MsgTypeUrls -> 
-        Stake!Accept(auth, msg)
 
 --------------------------------------------------------------------------------
 AcceptErrors == {
@@ -141,13 +124,13 @@ EmptyStore == [x \in {} |-> NoGrant]
 TypeOK == 
     /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
     /\ lastEvent \in RequestMessages \cup ExpireEvents \cup {NoEvent}
-    /\ lastResponse \in Responses \cup {NoResponse}
+    /\ expectedResponse \in Responses \cup {NoResponse}
     /\ numRequests \in Nat
 
 Init ==
     /\ grantStore = EmptyStore
     /\ lastEvent = NoEvent
-    /\ lastResponse = NoResponse
+    /\ expectedResponse = NoResponse
     /\ numRequests = 0
 
 --------------------------------------------------------------------------------
@@ -187,7 +170,7 @@ RequestGrant(granter, grantee, grant) ==
                 grantStore' = MapPut(grantStore, g, grant)
             ELSE
                 UNCHANGED grantStore
-        /\ lastResponse' = response
+        /\ expectedResponse' = response
     /\ lastEvent' = msg
     /\ numRequests' = numRequests + 1
 
@@ -206,7 +189,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
                     grantStore' = MapRemove(grantStore, g)
                 ELSE 
                     UNCHANGED grantStore
-            /\ lastResponse' = response
+            /\ expectedResponse' = response
     /\ numRequests' = numRequests + 1
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
@@ -233,7 +216,7 @@ RequestExec(grantee, msg) ==
         responses == CallExec(request) 
     IN
     /\ lastEvent' = request
-    /\ lastResponse' = responses[1]
+    /\ expectedResponse' = responses[1]
     /\ PostProcessExec(grantee, msg, responses[2])
     /\ numRequests' = numRequests + 1
 
@@ -251,18 +234,21 @@ Expire(g) ==
     /\ grantStore' = [grantStore EXCEPT ![g].expirationTime = "past"]
     /\ LET event == [type |-> "expire", g |-> g] IN
         lastEvent' = event
-    /\ UNCHANGED <<lastResponse, numRequests>>
+    /\ UNCHANGED <<expectedResponse, numRequests>>
 
 --------------------------------------------------------------------------------
-
-Next == 
+\* We keep action RequestExec separated from the other actions to be able to 
+\* check properties on grants without executing them. 
+NextA == 
     \/ \E granter, grantee \in Address, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
     \/ \E g \in GrantIds: 
         RequestRevoke(g.granter, g.grantee, g.msgTypeUrl)
     \/ \E g \in ValidGrantIds: 
         Expire(g)
-    
+
+Next == 
+    \/ NextA
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
     \/ \E grantee \in Address, msg \in SdkMsgs: 

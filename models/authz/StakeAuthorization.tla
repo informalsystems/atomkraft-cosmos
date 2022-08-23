@@ -29,7 +29,7 @@ LOCAL UNDELEGATE_TYPE_URL == "undelegate"
 LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
 
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.

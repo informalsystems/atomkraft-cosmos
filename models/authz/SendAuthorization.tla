@@ -64,12 +64,12 @@ Accept(auth, msg) ==
         amount == msg.amount
     IN
     [
-        accept |-> amount >= auth.spendLimit,
-        delete |-> amount <= auth.spendLimit,
-        updated |-> IF amount > auth.spendLimit
+        accept |-> amount <= auth.spendLimit,
+        delete |-> amount = auth.spendLimit,
+        updated |-> IF amount < auth.spendLimit
             THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
             ELSE auth,
-        error |-> IF amount < auth.spendLimit THEN "insufficient-amount" ELSE "none"
+        error |-> IF amount > auth.spendLimit THEN "insufficient-amount" ELSE "none"
     ]
 
 ================================================================================

@@ -22,32 +22,32 @@ EXTENDS Authz, FiniteSets, Integers
 
 GrantSuccess ==
     /\ lastEvent.type = "grant"
-    /\ lastResponse.ok = TRUE
+    /\ expectedResponse.ok = TRUE
 
 NotGrantSuccess == ~ GrantSuccess
 
 GrantFailedSameAddress ==
     /\ lastEvent.type = "grant"
-    /\ lastResponse.ok = FALSE
-    /\ lastResponse.error = "granter-equal-grantee"
+    /\ expectedResponse.ok = FALSE
+    /\ expectedResponse.error = "granter-equal-grantee"
 
 NotGrantFailedSameAddress == ~ GrantFailedSameAddress
 
 GrantFailedAuthExpired ==
     /\ lastEvent.type = "grant"
-    /\ lastResponse.ok = FALSE
-    /\ lastResponse.error = "authorization-expired"
+    /\ expectedResponse.ok = FALSE
+    /\ expectedResponse.error = "authorization-expired"
 
 NotGrantFailedAuthExpired == ~ GrantFailedAuthExpired
 
 RevokeSuccess ==
     /\ lastEvent.type = "revoke"
-    /\ lastResponse.ok = TRUE
+    /\ expectedResponse.ok = TRUE
 
 NotRevokeSuccess == ~ RevokeSuccess
 
 --------------------------------------------------------------------------------
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, lastResponse: RESPONSE_MSG, numRequests: Int];
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, expectedResponse: RESPONSE_MSG, numRequests: Int];
 \* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailure(trace) ==
     \E i, j \in DOMAIN trace: j = i + 1 /\
@@ -55,7 +55,7 @@ ExpireRevokeFailure(trace) ==
         LET state2 == trace[j] IN
         /\ state1.lastEvent.type = "expire"
         /\ state2.lastEvent.type = "revoke" 
-        /\ state2.lastResponse.ok = FALSE
+        /\ state2.expectedResponse.ok = FALSE
 
 NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
 
@@ -66,8 +66,8 @@ ExpireRevokeFailureSameGrant(trace) ==
         LET state2 == trace[j] IN
         /\ state1.lastEvent.type = "expire"
         /\ state2.lastEvent.type = "revoke" 
-        /\ state2.lastResponse.ok = FALSE
-        /\ state1.lastEvent.g = grantIdOfRevoke(state2.lastEvent)
+        /\ state2.expectedResponse.ok = FALSE
+        /\ state1.lastEvent.g = grantIdOfMsgRevoke(state2.lastEvent)
 
 NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
 

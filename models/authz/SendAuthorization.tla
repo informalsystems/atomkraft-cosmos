@@ -5,7 +5,7 @@ cosmos.bank.v1beta1.MsgSend Msg. It takes a SpendLimit that specifies the
 maximum amount of tokens the grantee can spend. The SpendLimit is updated as the
 tokens are spent. *)
 (******************************************************************************)
-EXTENDS Integers
+LOCAL INSTANCE Integers
 
 CONSTANT
     \* @typeAlias: ADDRESS = Str;
@@ -15,7 +15,11 @@ CONSTANT
     \* @type: Set(COINS);
     Coins
 
-ASSUME Coins \in SUBSET Int
+\* We want our model of Coins to include some negative number.
+ASSUME \E min, max \in Int: 
+    /\ min < 0
+    /\ max > 0 
+    /\ Coins = min .. max
 
 \* @typeAlias: MSG_TYPE_URL = Str;
 \* @type: MSG_TYPE_URL;
@@ -46,7 +50,7 @@ SdkMsgContent ==
 \* @type: Set(AUTH);
 Authorization == [
     authorizationType: MsgTypeUrls, \* Not present in the code.
-    spendLimit: { c \in Coins: c > 0 }
+    spendLimit: Coins
 ]
 
 --------------------------------------------------------------------------------

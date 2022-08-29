@@ -9,7 +9,7 @@ empty, the amount is unlimited. Additionally, this Msg takes an AllowList and a
 DenyList, which allows you to select which validators you allow grantees to
 stake with. *)
 (******************************************************************************)
-EXTENDS Integers, TLC
+LOCAL INSTANCE Integers
 
 CONSTANT
     \* @typeAlias: ADDRESS = Str;
@@ -19,10 +19,15 @@ CONSTANT
     \* @type: Set(COINS);
     Coins
 
-ASSUME Coins \in SUBSET Int
+\* We want our model of Coins to include some negative number.
+ASSUME \E min, max \in Int: 
+    /\ min < 0
+    /\ max > 0 
+    /\ Coins = min .. max
 
 \* @type: COINS;
-NoMax == -1
+NoMax == -10
+ASSUME NoMax \in Int /\ NoMax \notin Coins
 
 LOCAL DELEGATE_TYPE_URL == "delegate"
 LOCAL UNDELEGATE_TYPE_URL == "undelegate"

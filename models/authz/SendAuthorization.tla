@@ -50,7 +50,13 @@ SdkMsgContent ==
 \* @type: Set(AUTH);
 Authorization == [
     authorizationType: MsgTypeUrls, \* Not present in the code.
-    spendLimit: Coins
+    
+    spendLimit: Coins,
+    
+    \* Specifies an optional list of addresses to whom the grantee can send
+	\* tokens on behalf of the granter. If omitted, any recipient is allowed.
+    \* Since cosmos-sdk 0.47
+	allowList: SUBSET Address
 ]
 
 --------------------------------------------------------------------------------
@@ -67,11 +73,13 @@ Accept(auth, msg) ==
         \* @type: COINS;
         amount == msg.amount
     IN
-    [
+    IF auth.allowList # {} /\ msg.toAddress \notin auth.allowList THEN
+        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
+    ELSE [
         accept |-> amount <= auth.spendLimit,
         delete |-> amount = auth.spendLimit,
         updated |-> IF amount < auth.spendLimit
-            THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
+            THEN [type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
             ELSE auth,
         error |-> IF amount <= auth.spendLimit THEN "none" ELSE "insufficient-amount"
     ]

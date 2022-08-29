@@ -1,10 +1,15 @@
+import asyncio
 import time
 from datetime import datetime, timedelta
 
 import pytest
+from grpclib.client import Channel
 from modelator.pytest.decorators import step
 from munch import Munch
+from terra_proto.cosmos.auth.v1beta1 import BaseAccount
+from terra_proto.cosmos.auth.v1beta1 import QueryStub as AuthQueryStub
 from terra_proto.cosmos.staking.v1beta1 import AuthorizationType
+from terra_proto.cosmos.tx.v1beta1 import BroadcastMode, ServiceStub
 from terra_sdk.client.lcd import LCDClient
 from terra_sdk.client.lcd.api.tx import CreateTxOptions
 from terra_sdk.core import Coin
@@ -182,13 +187,8 @@ def give_grant(testnet, state, action_taken, outcome_status):
 
     msg = MsgGrantAuthorization(granter, grantee, grant)
 
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
-    )
+    lcdclient = LCDClient("ip", chain_id="phoenix-1")
+    lcdclient.chain_id = testnet.chain_id
 
     granter_wallet = lcdclient.wallet(
         MnemonicKey(
@@ -198,11 +198,36 @@ def give_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
+    print(granter_wallet.lcd.chain_id)
+
+    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
+    channel = Channel(host=grpc_ip, port=int(grpc_port))
+
+    stub = AuthQueryStub(channel)
+    result = asyncio.run(stub.account(address=granter))
+    account_info = BaseAccount().parse(result.account.value)
+    account_number = account_info.account_number
+    sequence = account_info.sequence
+
     tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
+        CreateTxOptions(
+            msgs=[msg],
+            fee=Fee(20000000, f"2000000{testnet.denom}"),
+            account_number=account_number,
+            sequence=sequence,
+        )
     )
 
-    result = lcdclient.tx.broadcast(tx)
+    service = ServiceStub(channel)
+    result = asyncio.run(
+        service.broadcast_tx(
+            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
+        )
+    ).tx_response
+
+    channel.close()
+
+    # result = lcdclient.tx.broadcast(tx)
 
     print("[MSG]", msg)
     print("[RES]", result)
@@ -214,7 +239,7 @@ def give_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
-    time.sleep(5)
+    time.sleep(1)
 
 
 @step("expire grant")
@@ -259,13 +284,8 @@ def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
 
         msg = MsgGrantAuthorization(granter, grantee, grant)
 
-        rest_endpoint = testnet.get_validator_port(0, "lcd")
-        lcdclient = LCDClient(
-            url=rest_endpoint,
-            chain_id=testnet.chain_id,
-            gas_prices=f"10{testnet.denom}",
-            gas_adjustment=0.1,
-        )
+        lcdclient = LCDClient("ip", chain_id="phoenix-1")
+        lcdclient.chain_id = testnet.chain_id
 
         granter_wallet = lcdclient.wallet(
             MnemonicKey(
@@ -275,11 +295,34 @@ def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
             )
         )
 
+        grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
+        channel = Channel(host=grpc_ip, port=int(grpc_port))
+
+        stub = AuthQueryStub(channel)
+        result = asyncio.run(stub.account(address=granter))
+        account_info = BaseAccount().parse(result.account.value)
+        account_number = account_info.account_number
+        sequence = account_info.sequence
+
         tx = granter_wallet.create_and_sign_tx(
-            CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
+            CreateTxOptions(
+                msgs=[msg],
+                fee=Fee(20000000, f"2000000{testnet.denom}"),
+                account_number=account_number,
+                sequence=sequence,
+            )
         )
 
-        result = lcdclient.tx.broadcast(tx)
+        service = ServiceStub(channel)
+        result = asyncio.run(
+            service.broadcast_tx(
+                tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
+            )
+        ).tx_response
+
+        channel.close()
+
+        # result = lcdclient.tx.broadcast(tx)
 
         print("[MSG]", msg)
         print("[RES]", result)
@@ -291,7 +334,7 @@ def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
             )
         )
 
-        time.sleep(5)
+        time.sleep(1)
 
         # this sleep is to wait for the grant expiration
         time.sleep(10)
@@ -312,13 +355,8 @@ def revoke_grant(testnet, state, action_taken, outcome_status):
     msg_type_url = MSG_TYPE[action_taken.grant.sdk_message_type]
     msg = MsgRevokeAuthorization(granter, grantee, msg_type_url)
 
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
-    )
+    lcdclient = LCDClient("ip", chain_id="phoenix-1")
+    lcdclient.chain_id = testnet.chain_id
 
     granter_wallet = lcdclient.wallet(
         MnemonicKey(
@@ -328,11 +366,34 @@ def revoke_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
+    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
+    channel = Channel(host=grpc_ip, port=int(grpc_port))
+
+    stub = AuthQueryStub(channel)
+    result = asyncio.run(stub.account(address=granter))
+    account_info = BaseAccount().parse(result.account.value)
+    account_number = account_info.account_number
+    sequence = account_info.sequence
+
     tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
+        CreateTxOptions(
+            msgs=[msg],
+            fee=Fee(20000000, f"2000000{testnet.denom}"),
+            account_number=account_number,
+            sequence=sequence,
+        )
     )
 
-    result = lcdclient.tx.broadcast(tx)
+    service = ServiceStub(channel)
+    result = asyncio.run(
+        service.broadcast_tx(
+            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
+        )
+    ).tx_response
+
+    channel.close()
+
+    # result = lcdclient.tx.broadcast(tx)
 
     print("[MSG]", msg)
     print("[RES]", result)
@@ -344,7 +405,7 @@ def revoke_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
-    time.sleep(5)
+    time.sleep(1)
 
 
 @step("execute grant")
@@ -389,13 +450,8 @@ def execute_grant(testnet, state, action_taken, outcome_status):
 
     msg = MsgExecAuthorized(grantee, [exec_msg])
 
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
-    )
+    lcdclient = LCDClient("ip", chain_id="phoenix-1")
+    lcdclient.chain_id = testnet.chain_id
 
     grantee_wallet = lcdclient.wallet(
         MnemonicKey(
@@ -405,11 +461,34 @@ def execute_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
+    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
+    channel = Channel(host=grpc_ip, port=int(grpc_port))
+
+    stub = AuthQueryStub(channel)
+    result = asyncio.run(stub.account(address=grantee))
+    account_info = BaseAccount().parse(result.account.value)
+    account_number = account_info.account_number
+    sequence = account_info.sequence
+
     tx = grantee_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
+        CreateTxOptions(
+            msgs=[msg],
+            fee=Fee(20000000, f"2000000{testnet.denom}"),
+            account_number=account_number,
+            sequence=sequence,
+        )
     )
 
-    result = lcdclient.tx.broadcast(tx)
+    service = ServiceStub(channel)
+    result = asyncio.run(
+        service.broadcast_tx(
+            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
+        )
+    ).tx_response
+
+    channel.close()
+
+    # result = lcdclient.tx.broadcast(tx)
 
     print("[MSG]", msg)
     print("[RES]", result)
@@ -421,4 +500,4 @@ def execute_grant(testnet, state, action_taken, outcome_status):
         )
     )
 
-    time.sleep(5)
+    time.sleep(1)

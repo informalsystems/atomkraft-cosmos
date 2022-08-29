@@ -7,8 +7,6 @@ authors = ["Ranadeep Biswas <mail@rnbguy.at>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 grpclib = "^0.4.3"
-terra-sdk = "^3.0.1"
-terra-proto = "^2.1.0"
 atomkraft = "^0.0.9"
 
 [tool.poetry.dev-dependencies]

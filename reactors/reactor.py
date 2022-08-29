@@ -1,17 +1,14 @@
-import asyncio
+from cgi import test
+import logging
 import time
 from datetime import datetime, timedelta
 
 import pytest
-from grpclib.client import Channel
+from atomkraft.chain import Testnet
+from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 from munch import Munch
-from terra_proto.cosmos.auth.v1beta1 import BaseAccount
-from terra_proto.cosmos.auth.v1beta1 import QueryStub as AuthQueryStub
 from terra_proto.cosmos.staking.v1beta1 import AuthorizationType
-from terra_proto.cosmos.tx.v1beta1 import BroadcastMode, ServiceStub
-from terra_sdk.client.lcd import LCDClient
-from terra_sdk.client.lcd.api.tx import CreateTxOptions
 from terra_sdk.core import Coin
 from terra_sdk.core.authz import (
     AuthorizationGrant,
@@ -24,9 +21,7 @@ from terra_sdk.core.authz import (
 )
 from terra_sdk.core.authz.data import StakeAuthorizationValidators
 from terra_sdk.core.bank import MsgSend
-from terra_sdk.core.fee import Fee
 from terra_sdk.core.staking import MsgBeginRedelegate, MsgDelegate, MsgUndelegate
-from terra_sdk.key.mnemonic import MnemonicKey
 from terra_sdk.util.converter import to_isoformat
 
 MSG_TYPE = {
@@ -75,7 +70,7 @@ status = lambda ok: "OK" if ok else "FAIL"
 
 
 def create_give_grant_auth(
-    testnet,
+    testnet: Testnet,
     state,
     grant_message_type,
     authorization_logic,
@@ -100,22 +95,12 @@ def create_give_grant_auth(
                 max_tokens = Coin.from_str(spend_limit)
 
             if allow_list_tla:
-                address = [
-                    testnet.validators[state.validators.index(tla_id)].address(
-                        testnet.prefix
-                    )
-                    for tla_id in allow_list_tla
-                ]
+                address = [testnet.val_addr(tla_id) for tla_id in allow_list_tla]
                 allow_list = StakeAuthorizationValidators(address)
             else:
                 allow_list = None
             if deny_list_tla:
-                address = [
-                    testnet.validators[state.validators.index(tla_id)].address(
-                        testnet.prefix
-                    )
-                    for tla_id in deny_list_tla
-                ]
+                address = [testnet.val_addr(tla_id) for tla_id in deny_list_tla]
                 deny_list = StakeAuthorizationValidators(address)
             else:
                 deny_list = None
@@ -143,35 +128,36 @@ Validators = ["X", "Y", "Z"]
 
 # Mirel's traces use empty string for init step
 @step("")
-def init(testnet, state):
-    print("Step: init")
+def init(testnet: Testnet, state):
+    logging.info("Step: init")
 
     state.accounts = list(Identifiers)
     state.validators = list(Validators)
 
     # testnet is configured at this step
-    testnet.n_account = len(Identifiers)
-    testnet.n_validator = len(Validators)
+    testnet.set_accounts(Identifiers)
+    testnet.set_validators(Validators)
     testnet.verbose = True
 
     # variables in the initial TLA state can be used to dynamically configure a testnet
 
     # testnet is started from this point
     testnet.oneshot()
+
     time.sleep(10)
+
+    with TmEventSubscribe({"tm.event": "NewBlock"}):
+        logging.info("blockhain is producing blocks")
 
 
 @step("give grant")
-def give_grant(testnet, state, action_taken, outcome_status):
-    print("Step: give grant")
+def give_grant(testnet: Testnet, state, action_taken, outcome_status):
+    logging.info("Step: give grant")
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
+    grantee_id = action_taken.grant.grantee
+    granter_id = action_taken.grant.granter
 
     # prepare transaction
-
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
 
     grant = create_give_grant_auth(
         testnet,
@@ -185,69 +171,34 @@ def give_grant(testnet, state, action_taken, outcome_status):
         action_taken.grant.expiration_time,
     )
 
-    msg = MsgGrantAuthorization(granter, grantee, grant)
-
-    lcdclient = LCDClient("ip", chain_id="phoenix-1")
-    lcdclient.chain_id = testnet.chain_id
-
-    granter_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[granter_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
+    msg = MsgGrantAuthorization(
+        testnet.acc_addr(granter_id), testnet.acc_addr(grantee_id), grant
     )
 
-    print(granter_wallet.lcd.chain_id)
-
-    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
-    channel = Channel(host=grpc_ip, port=int(grpc_port))
-
-    stub = AuthQueryStub(channel)
-    result = asyncio.run(stub.account(address=granter))
-    account_info = BaseAccount().parse(result.account.value)
-    account_number = account_info.account_number
-    sequence = account_info.sequence
-
-    tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(
-            msgs=[msg],
-            fee=Fee(20000000, f"2000000{testnet.denom}"),
-            account_number=account_number,
-            sequence=sequence,
-        )
+    result = testnet.broadcast_transaction(
+        granter_id, msg, gas=20000000, fee_amount=2000000
     )
 
-    service = ServiceStub(channel)
-    result = asyncio.run(
-        service.broadcast_tx(
-            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
-        )
-    ).tx_response
-
-    channel.close()
-
-    # result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
+    logging.info(f"\t[MSG] {msg}")
+    if result.code != 0:
+        logging.info(f"\t[RES] Failed: {result.raw_log}")
+    logging.info(
+        "\t[CMP] Expected {} ({}), Got {}".format(
             status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
             outcome_status,
             status(result.code == 0),
         )
     )
 
-    time.sleep(1)
+    time.sleep(0.5)
 
 
 @step("expire grant")
-def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
-    print("Step: expire grant")
+def expire_grant(testnet: Testnet, state, action_taken, active_grants, outcome_status):
+    logging.info("Step: expire grant")
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
+    grantee_id = action_taken.grant.grantee
+    granter_id = action_taken.grant.granter
 
     if len(active_grants) > 0:
         for active_grant, active_grant_detail in active_grants.items():
@@ -267,9 +218,6 @@ def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
 
         # prepare transaction
 
-        grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-        granter = testnet.accounts[granter_id].address(testnet.prefix)
-
         grant = create_give_grant_auth(
             testnet,
             state,
@@ -282,157 +230,85 @@ def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
             "EXPIRE_SOON",
         )
 
-        msg = MsgGrantAuthorization(granter, grantee, grant)
-
-        lcdclient = LCDClient("ip", chain_id="phoenix-1")
-        lcdclient.chain_id = testnet.chain_id
-
-        granter_wallet = lcdclient.wallet(
-            MnemonicKey(
-                mnemonic=testnet.accounts[granter_id].mnemonic,
-                coin_type=testnet.coin_type,
-                prefix=testnet.prefix,
-            )
+        msg = MsgGrantAuthorization(
+            testnet.acc_addr(granter_id), testnet.acc_addr(grantee_id), grant
         )
 
-        grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
-        channel = Channel(host=grpc_ip, port=int(grpc_port))
-
-        stub = AuthQueryStub(channel)
-        result = asyncio.run(stub.account(address=granter))
-        account_info = BaseAccount().parse(result.account.value)
-        account_number = account_info.account_number
-        sequence = account_info.sequence
-
-        tx = granter_wallet.create_and_sign_tx(
-            CreateTxOptions(
-                msgs=[msg],
-                fee=Fee(20000000, f"2000000{testnet.denom}"),
-                account_number=account_number,
-                sequence=sequence,
-            )
+        result = testnet.broadcast_transaction(
+            granter_id, msg, gas=20000000, fee_amount=2000000
         )
 
-        service = ServiceStub(channel)
-        result = asyncio.run(
-            service.broadcast_tx(
-                tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
-            )
-        ).tx_response
-
-        channel.close()
-
-        # result = lcdclient.tx.broadcast(tx)
-
-        print("[MSG]", msg)
-        print("[RES]", result)
-        print(
-            "[CMP] Expected {} ({}), Got {}".format(
+        logging.info(f"\t[MSG] {msg}")
+        if result.code != 0:
+            logging.info(f"\t[RES] Failed: {result.raw_log}")
+        logging.info(
+            "\t[CMP] Expected {} ({}), Got {}".format(
                 status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
                 outcome_status,
                 status(result.code == 0),
             )
         )
 
-        time.sleep(1)
+        time.sleep(0.5)
 
         # this sleep is to wait for the grant expiration
         time.sleep(10)
 
 
 @step("revoke grant")
-def revoke_grant(testnet, state, action_taken, outcome_status):
-    print("Step: revoke grant")
+def revoke_grant(testnet: Testnet, state, action_taken, outcome_status):
+    logging.info("Step: revoke grant")
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
+    grantee_id = action_taken.grant.grantee
+    granter_id = action_taken.grant.granter
 
     # prepare transaction
 
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
-
     msg_type_url = MSG_TYPE[action_taken.grant.sdk_message_type]
-    msg = MsgRevokeAuthorization(granter, grantee, msg_type_url)
-
-    lcdclient = LCDClient("ip", chain_id="phoenix-1")
-    lcdclient.chain_id = testnet.chain_id
-
-    granter_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[granter_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
+    msg = MsgRevokeAuthorization(
+        testnet.acc_addr(granter_id), testnet.acc_addr(grantee_id), msg_type_url
     )
 
-    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
-    channel = Channel(host=grpc_ip, port=int(grpc_port))
-
-    stub = AuthQueryStub(channel)
-    result = asyncio.run(stub.account(address=granter))
-    account_info = BaseAccount().parse(result.account.value)
-    account_number = account_info.account_number
-    sequence = account_info.sequence
-
-    tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(
-            msgs=[msg],
-            fee=Fee(20000000, f"2000000{testnet.denom}"),
-            account_number=account_number,
-            sequence=sequence,
-        )
+    result = testnet.broadcast_transaction(
+        granter_id, msg, gas=20000000, fee_amount=2000000
     )
 
-    service = ServiceStub(channel)
-    result = asyncio.run(
-        service.broadcast_tx(
-            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
-        )
-    ).tx_response
-
-    channel.close()
-
-    # result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
+    logging.info(f"\t[MSG] {msg}")
+    if result.code != 0:
+        logging.info(f"\t[RES] Failed: {result.raw_log}")
+    logging.info(
+        "\t[CMP] Expected {} ({}), Got {}".format(
             status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
             outcome_status,
             status(result.code == 0),
         )
     )
 
-    time.sleep(1)
+    time.sleep(0.5)
 
 
 @step("execute grant")
-def execute_grant(testnet, state, action_taken, outcome_status):
-    print("Step: execute grant")
+def execute_grant(testnet: Testnet, state, action_taken, outcome_status):
+    logging.info("Step: execute grant")
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
-    for e in range(len(state.accounts)):
+    grantee_id = action_taken.grant.grantee
+    granter_id = action_taken.grant.granter
+    for e in state.accounts:
         if e not in [grantee_id, granter_id]:
             receiver_id = e
 
-    validator_id = 0
-    for e in range(len(state.validators)):
+    validator_id = state.validators[0]
+    for e in state.validators:
         if e not in [validator_id]:
             dst_validator_id = e
 
     # prepare transaction
 
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
-    receiver = testnet.accounts[receiver_id].address(testnet.prefix)
+    grantee = testnet.acc_addr(grantee_id)
+    granter = testnet.acc_addr(granter_id)
 
-    validator = testnet.validators[validator_id].validator_address(testnet.prefix)
-    dst_validator = testnet.validators[dst_validator_id].validator_address(
-        testnet.prefix
-    )
+    validator = testnet.val_addr(validator_id)
+    dst_validator = testnet.val_addr(dst_validator_id)
 
     amount = f"{int(action_taken.exec_message.amount)}{testnet.denom}"
 
@@ -440,7 +316,7 @@ def execute_grant(testnet, state, action_taken, outcome_status):
         case "msg_delegate":
             exec_msg = MsgDelegate(granter, validator, amount)
         case "msg_send":
-            exec_msg = MsgSend(granter, receiver, amount)
+            exec_msg = MsgSend(granter, testnet.acc_addr(receiver_id), amount)
         case "msg_undelegate":
             exec_msg = MsgUndelegate(granter, validator, amount)
         case "msg_redelegate":
@@ -450,54 +326,19 @@ def execute_grant(testnet, state, action_taken, outcome_status):
 
     msg = MsgExecAuthorized(grantee, [exec_msg])
 
-    lcdclient = LCDClient("ip", chain_id="phoenix-1")
-    lcdclient.chain_id = testnet.chain_id
-
-    grantee_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[grantee_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
+    result = testnet.broadcast_transaction(
+        grantee_id, msg, gas=20000000, fee_amount=2000000
     )
 
-    grpc_ip, grpc_port = testnet.get_validator_port(0, "grpc").split(":", 1)
-    channel = Channel(host=grpc_ip, port=int(grpc_port))
-
-    stub = AuthQueryStub(channel)
-    result = asyncio.run(stub.account(address=grantee))
-    account_info = BaseAccount().parse(result.account.value)
-    account_number = account_info.account_number
-    sequence = account_info.sequence
-
-    tx = grantee_wallet.create_and_sign_tx(
-        CreateTxOptions(
-            msgs=[msg],
-            fee=Fee(20000000, f"2000000{testnet.denom}"),
-            account_number=account_number,
-            sequence=sequence,
-        )
-    )
-
-    service = ServiceStub(channel)
-    result = asyncio.run(
-        service.broadcast_tx(
-            tx_bytes=bytes(tx.to_proto()), mode=BroadcastMode.BROADCAST_MODE_BLOCK
-        )
-    ).tx_response
-
-    channel.close()
-
-    # result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
+    logging.info(f"\t[MSG] {msg}")
+    if result.code != 0:
+        logging.info(f"\t[RES] Failed: {result.raw_log}")
+    logging.info(
+        "\t[CMP] Expected {} ({}), Got {}".format(
             status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
             outcome_status,
             status(result.code == 0),
         )
     )
 
-    time.sleep(1)
+    time.sleep(0.5)

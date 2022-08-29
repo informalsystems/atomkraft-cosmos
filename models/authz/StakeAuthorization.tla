@@ -150,10 +150,10 @@ Accept(auth, msg) ==
     ELSE [ 
         accept |-> amount <= auth.maxTokens \/ auth.maxTokens = NoMax, 
         delete |-> amount = auth.maxTokens, 
-        updated |-> IF auth.maxTokens # NoMax /\ amount < auth.maxTokens 
+        updated |-> IF amount < auth.maxTokens /\ auth.maxTokens # NoMax
             THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
             ELSE auth,
-        error |-> "none"
+        error |-> IF amount <= auth.maxTokens THEN "none" ELSE "insufficient-amount"
     ]
 
 ================================================================================

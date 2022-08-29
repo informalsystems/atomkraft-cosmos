@@ -73,7 +73,7 @@ Accept(auth, msg) ==
         updated |-> IF amount < auth.spendLimit
             THEN [ type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
             ELSE auth,
-        error |-> IF amount > auth.spendLimit THEN "insufficient-amount" ELSE "none"
+        error |-> IF amount <= auth.spendLimit THEN "none" ELSE "insufficient-amount"
     ]
 
 ================================================================================

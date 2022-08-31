@@ -27,13 +27,6 @@ git submodule update --init --recursive
 atomkraft chain config prefix cosmos
 atomkraft chain config binary ./cosmos-sdk/build/simd
 
-# prefix for few popular chain binaries
-# cosmos-sdk (simd) : cosmos
-# cosmoshub (gaiad) : cosmos
-# cosmwasm (wasmd) : wasm
-# osmosis (osmosisd) : osmo
-# juno (junod) : juno
-
 # install python dependencies; requires `poetry`
 poetry update
 

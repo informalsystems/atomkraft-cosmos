@@ -54,9 +54,9 @@ Authorization == [
     spendLimit: Coins,
     
     \* Specifies an optional list of addresses to whom the grantee can send
-	\* tokens on behalf of the granter. If omitted, any recipient is allowed.
+    \* tokens on behalf of the granter. If omitted, any recipient is allowed.
     \* Since cosmos-sdk 0.47
-	allowList: SUBSET Address
+    allowList: SUBSET Address
 ]
 
 --------------------------------------------------------------------------------

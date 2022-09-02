@@ -63,9 +63,9 @@ MsgExec == [
 
     grantee: Address,
 
-	\* Each message must implement an Authorization interface. The x/authz module
-	\* will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
-	\* triple and validate it.
+    \* Each message must implement an Authorization interface. The x/authz module
+    \* will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
+    \* triple and validate it.
     msg: SdkMsgs
 ]
 

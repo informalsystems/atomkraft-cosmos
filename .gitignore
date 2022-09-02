@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Modelator
+.model.pickle
+
+# Apalache
+_apalache-out/
+*_TTrace_*.tla

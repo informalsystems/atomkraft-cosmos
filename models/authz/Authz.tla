@@ -47,12 +47,12 @@ is accepted and if it should be updated or deleted. *)
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: Set(ACCEPT_RESPONSE);
 AcceptResponse == [
-	\* If Accept=true, the controller can accept and authorization and handle the update.
-	accept: BOOLEAN,
-	
+    \* If Accept=true, the controller can accept and authorization and handle the update.
+    accept: BOOLEAN,
+    
     \* If Delete=true, the controller must delete the authorization object and release storage resources.
-	delete: BOOLEAN,
-	
+    delete: BOOLEAN,
+    
     \* Controller, who is calling Authorization.Accept must check if `Updated !=
     \* nil`. If yes, it must use the updated version and handle the update on the
     \* storage level.

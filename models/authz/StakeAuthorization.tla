@@ -42,9 +42,9 @@ LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
 \* @type: Set(SDK_MSG_CONTENT);
 MsgDelegate == [
     typeUrl: { DELEGATE_TYPE_URL },
-	delegatorAddress: Address,
-	validatorAddress: Address,
-	amount: Coins
+    delegatorAddress: Address,
+    validatorAddress: Address,
+    amount: Coins
 ]
 
 \* MsgUndelegate defines a SDK message for performing an undelegation from a
@@ -53,9 +53,9 @@ MsgDelegate == [
 \* @type: Set(SDK_MSG_CONTENT);
 MsgUndelegate == [
     typeUrl: { UNDELEGATE_TYPE_URL},
-	delegatorAddress: Address,
-	validatorAddress: Address,
-	amount: Coins
+    delegatorAddress: Address,
+    validatorAddress: Address,
+    amount: Coins
 ]
 
 \* MsgBeginRedelegate defines a SDK message for performing a redelegation of
@@ -64,10 +64,10 @@ MsgUndelegate == [
 \* @type: Set(SDK_MSG_CONTENT);
 MsgBeginRedelegate == [
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
-	delegatorAddress: Address,
-	validatorSrcAddress: Address,
-	validatorDstAddress: Address,
-	amount: Coins
+    delegatorAddress: Address,
+    validatorSrcAddress: Address,
+    validatorDstAddress: Address,
+    amount: Coins
 ]
 
 \* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
@@ -85,12 +85,12 @@ MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 \* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
-	\* Specifies the maximum amount of tokens can be delegate to a validator. If
-	\* it is empty, there is no spend limit and any amount of coins can be
-	\* delegated.
-	maxTokens: Coins \cup {NoMax},
+    \* Specifies the maximum amount of tokens can be delegate to a validator. If
+    \* it is empty, there is no spend limit and any amount of coins can be
+    \* delegated.
+    maxTokens: Coins \cup {NoMax},
 
-	\* A set of validator addresses to whom delegation of tokens is either
+    \* A set of validator addresses to whom delegation of tokens is either
     \* allowed or denied.
     validators: SUBSET Address,
 
@@ -99,7 +99,7 @@ Authorization == [
     \* If FALSE, validators is a list of address that should not be granted delegation.
     allow: BOOLEAN,
 
-	\* Specifies one of three authorization types.
+    \* Specifies one of three authorization types.
     authorizationType: MsgTypeUrls
 ]
 

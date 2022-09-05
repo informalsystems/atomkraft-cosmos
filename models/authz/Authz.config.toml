@@ -5,7 +5,8 @@ next = "Next"
 examples = ["NotExpireRevokeFailure"]
 
 [Constants]
-Address = "instance_Address"
+Accounts = "instance_Accounts"
+Validators = "instance_Validators"
 GenericAuthTypes = "instance_GenericAuthTypes"
 Coins = "instance_Coins"
 

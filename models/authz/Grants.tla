@@ -3,10 +3,13 @@
 
 (******************************************************************************)
 CONSTANTS
-    \* @typeAlias: ADDRESS = Str;
-    \* @type: Set(ADDRESS);
-    Address
+    \* @typeAlias: ACCOUNT = Str;
+    \* @type: Set(ACCOUNT);
+    Accounts,
 
+    \* @typeAlias: VALIDATOR = Str;
+    \* @type: Set(VALIDATOR);
+    Validators
 --------------------------------------------------------------------------------
 CONSTANTS 
     \* @typeAlias: MSG_TYPE_URL = Str;
@@ -31,7 +34,7 @@ Authorization ==
     Send!Authorization \cup 
     Stake!Authorization
 
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
 SdkMsgContent == 
     Generic!SdkMsgContent \cup 
     Send!SdkMsgContent \cup 
@@ -62,11 +65,11 @@ bytes of the granter), grantee address (the address bytes of the grantee)
 and Authorization type (its type URL). Hence we only allow one grant for 
 the (granter, grantee, Authorization) triple. *)
 (******************************************************************************)
-\* @typeAlias: GRANT_ID = [grantee: ADDRESS, granter: ADDRESS, msgTypeUrl: MSG_TYPE_URL];
+\* @typeAlias: GRANT_ID = [grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL];
 \* @type: Set(GRANT_ID);
 GrantIds == [
-    granter: Address,
-    grantee: Address,
+    granter: Accounts,
+    grantee: Accounts,
     msgTypeUrl: MsgTypeUrls
 ]
 

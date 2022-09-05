@@ -8,9 +8,9 @@ tokens are spent. *)
 LOCAL INSTANCE Integers
 
 CONSTANT
-    \* @typeAlias: ADDRESS = Str;
-    \* @type: Set(ADDRESS);
-    Address, 
+    \* @typeAlias: ACCOUNT = Str;
+    \* @type: Set(ACCOUNT);
+    Accounts, 
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
     Coins
@@ -31,13 +31,13 @@ MsgTypeUrls == { SEND_MSG_TYPE_URL }
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == 
     LET Msgs == [
         typeUrl: MsgTypeUrls,
-        fromAddress: Address,
-        toAddress: Address,
+        fromAddress: Accounts,
+        toAddress: Accounts,
         amount: Coins
     ] IN 
     { msg \in Msgs: msg.fromAddress # msg.toAddress /\ msg.amount > 0 }
@@ -56,7 +56,7 @@ Authorization == [
     \* Specifies an optional list of addresses to whom the grantee can send
     \* tokens on behalf of the granter. If omitted, any recipient is allowed.
     \* Since cosmos-sdk 0.47
-    allowList: SUBSET Address
+    allowList: SUBSET Accounts
 ]
 
 --------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Accept(auth, msg) ==
         amount == msg.amount
     IN
     IF auth.allowList # {} /\ msg.toAddress \notin auth.allowList THEN
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
+        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "account-not-allowed"]
     ELSE [
         accept |-> amount <= auth.spendLimit,
         delete |-> amount = auth.spendLimit,

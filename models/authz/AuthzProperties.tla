@@ -27,12 +27,12 @@ GrantSuccess ==
 
 NotGrantSuccess == ~ GrantSuccess
 
-GrantFailedSameAddress ==
+GrantFailedSameAccounts ==
     /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
     /\ expectedResponse.error = "granter-equal-grantee"
 
-NotGrantFailedSameAddress == ~ GrantFailedSameAddress
+NotGrantFailedSameAccounts == ~ GrantFailedSameAccounts
 
 GrantFailedAuthExpired ==
     /\ event.type = "request-grant"

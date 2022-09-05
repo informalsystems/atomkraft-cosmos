@@ -5,20 +5,23 @@ Msg on behalf of granter's account. *)
 (******************************************************************************)
 
 CONSTANT
-    \* @typeAlias: ADDRESS = Str;
-    \* @type: Set(ADDRESS);
-    Address, 
+    \* @typeAlias: ACCOUNT = Str;
+    \* @type: Set(ACCOUNT);
+    Accounts, 
+    \* @typeAlias: VALIDATOR = Str;
+    \* @type: Set(VALIDATOR);
+    Validators,
     \* @typeAlias: MSG_TYPE_URL = Str;
     \* @type: Set(MSG_TYPE_URL);
     GenericAuthTypes
 
-\* @type: Set(SDK_MSG_CONTENT);
-SdkMsgContent == [ typeUrl: GenericAuthTypes ]
-
 \* Types of messages allowed to be granted permission
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(MSG_TYPE_URL);
 MsgTypeUrls == GenericAuthTypes
+
+\* @typeAlias: SDK_MSG_CONTENT = [typeUrl: MSG_TYPE_URL];
+\* @type: Set(SDK_MSG_CONTENT);
+SdkMsgContent == [ typeUrl: GenericAuthTypes ]
 
 --------------------------------------------------------------------------------
 

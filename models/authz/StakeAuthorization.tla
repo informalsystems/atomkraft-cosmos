@@ -12,9 +12,9 @@ stake with. *)
 LOCAL INSTANCE Integers
 
 CONSTANT
-    \* @typeAlias: ADDRESS = Str;
-    \* @type: Set(ADDRESS);
-    Address, 
+    \* @typeAlias: VALIDATOR = Str;
+    \* @type: Set(VALIDATOR);
+    Validators,
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
     Coins
@@ -34,7 +34,7 @@ LOCAL UNDELEGATE_TYPE_URL == "undelegate"
 LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
 
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
@@ -42,8 +42,8 @@ LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
 \* @type: Set(SDK_MSG_CONTENT);
 MsgDelegate == [
     typeUrl: { DELEGATE_TYPE_URL },
-    delegatorAddress: Address,
-    validatorAddress: Address,
+    delegatorAddress: Validators,
+    validatorAddress: Validators,
     amount: Coins
 ]
 
@@ -53,8 +53,8 @@ MsgDelegate == [
 \* @type: Set(SDK_MSG_CONTENT);
 MsgUndelegate == [
     typeUrl: { UNDELEGATE_TYPE_URL},
-    delegatorAddress: Address,
-    validatorAddress: Address,
+    delegatorAddress: Validators,
+    validatorAddress: Validators,
     amount: Coins
 ]
 
@@ -64,13 +64,12 @@ MsgUndelegate == [
 \* @type: Set(SDK_MSG_CONTENT);
 MsgBeginRedelegate == [
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
-    delegatorAddress: Address,
-    validatorSrcAddress: Address,
-    validatorDstAddress: Address,
+    delegatorAddress: Validators,
+    validatorSrcAddress: Validators,
+    validatorDstAddress: Validators,
     amount: Coins
 ]
 
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ADDRESS, toAddress: ADDRESS, delegatorAddress: ADDRESS, validatorAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorSrcAddress: ADDRESS, validatorDstAddress: ADDRESS, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
 SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
 
@@ -82,7 +81,7 @@ MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
-\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(ADDRESS), allow: Bool, authorizationType: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
     \* Specifies the maximum amount of tokens can be delegate to a validator. If
@@ -92,7 +91,7 @@ Authorization == [
 
     \* A set of validator addresses to whom delegation of tokens is either
     \* allowed or denied.
-    validators: SUBSET Address,
+    validators: SUBSET Validators,
 
     \* Extra field not present in the code.
     \* If TRUE, validators is a list of allowed addresses. 
@@ -127,7 +126,7 @@ UpdateMaxTokens(auth, maxTokens) == [
 MsgTypeURL(auth) ==
     auth.authorizationType
 
-\* @type: (SDK_MSG_CONTENT) => ADDRESS;
+\* @type: (SDK_MSG_CONTENT) => VALIDATOR;
 ValidatorAddressOf(msg) ==
     CASE msg.typeUrl = DELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 
@@ -140,7 +139,7 @@ Accept(auth, msg) ==
     LET 
         \* @type: COINS;
         amount == msg.amount
-        \* @type: ADDRESS;
+        \* @type: VALIDATOR;
         validatorAddress == ValidatorAddressOf(msg)
     IN
     IF auth.allow /\ validatorAddress \notin auth.validators THEN

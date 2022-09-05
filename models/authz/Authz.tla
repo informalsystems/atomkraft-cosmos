@@ -87,7 +87,7 @@ CallRevoke(msgRevoke) ==
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
-\* @type: (ADDRESS, SDK_MSG) => ACCEPT_RESPONSE;
+\* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
         granter == msg.signer \* Actually, granter is the first of the list of signers.
@@ -160,7 +160,7 @@ The message handling should fail if:
 - Authorization.MsgTypeURL() is not defined in the router (there is no defined
 handler in the app router to handle that Msg types). *)
 (******************************************************************************)
-\* @type: (ADDRESS, ADDRESS, GRANT) => Bool;
+\* @type: (ACCOUNT, ACCOUNT, GRANT) => Bool;
 RequestGrant(granter, grantee, grant) ==
     LET 
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
@@ -180,7 +180,7 @@ RequestGrant(granter, grantee, grant) ==
 (******************************************************************************)
 (* Request to revoke a grant.                                                 *)
 (******************************************************************************)
-\* @type: (ADDRESS, ADDRESS, MSG_TYPE_URL) => Bool;
+\* @type: (ACCOUNT, ACCOUNT, MSG_TYPE_URL) => Bool;
 RequestRevoke(granter, grantee, msgTypeUrl) == 
     LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
     /\ IsValid(g)
@@ -196,7 +196,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
     /\ numRequests' = numRequests + 1
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
-\* @type: (ADDRESS, SDK_MSG, ACCEPT_RESPONSE) => Bool;
+\* @type: (ACCOUNT, SDK_MSG, ACCEPT_RESPONSE) => Bool;
 PostProcessExec(grantee, msg, acceptResponse) == 
     LET 
         \* @type: GRANT_ID;
@@ -212,7 +212,7 @@ PostProcessExec(grantee, msg, acceptResponse) ==
 (******************************************************************************)
 (* Request to execute a message on behalf of a grantee.                       *)
 (******************************************************************************)
-\* @type: (ADDRESS, SDK_MSG) => Bool;
+\* @type: (ACCOUNT, SDK_MSG) => Bool;
 RequestExec(grantee, msg) ==
     LET 
         request == [type |-> "request-execute", grantee |-> grantee, msg |-> msg]
@@ -242,7 +242,7 @@ Expire(grantId) ==
 \* We keep action RequestExec separated from the other actions to be able to 
 \* check properties on grants without executing them. 
 NextA == 
-    \/ \E granter, grantee \in Address, grant \in Grants: 
+    \/ \E granter, grantee \in Accounts, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
     \/ \E grantId \in GrantIds: 
         RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
@@ -253,7 +253,7 @@ Next ==
     \/ NextA
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
-    \/ \E grantee \in Address, msg \in SdkMsgs: 
+    \/ \E grantee \in Accounts, msg \in SdkMsgs: 
         RequestExec(grantee, msg)
 
 ================================================================================

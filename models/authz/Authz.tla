@@ -234,6 +234,7 @@ notices that the grant expired, upon running the Execute function). *)
 Expire(grantId) ==
     /\ HasGrant(grantId)
     /\ ~ IsExpired(grantId)
+    /\ grantStore[grantId].expirationTime # "none"
     /\ grantStore' = [grantStore EXCEPT ![grantId].expirationTime = "past"]
     /\ event' = [type |-> "expire", grantId |-> grantId]
     /\ UNCHANGED <<expectedResponse, numRequests>>

@@ -12,7 +12,7 @@ to the grantee on behalf of the granter with the provided expiration time. *)
 \* @typeAlias: MSG_GRANT = [grant: GRANT, grantee: ADDRESS, granter: ADDRESS, type: Str];
 \* @type: Set(MSG_GRANT);
 MsgGrant == [
-    type: {"grant"},
+    type: {"request-grant"},
     granter: Address,
     grantee: Address,
     grant: Grants
@@ -27,7 +27,7 @@ that has been granted to the grantee. *)
 \* @typeAlias: MSG_REVOKE = [grantee: ADDRESS, granter: ADDRESS, msgTypeUrl: MSG_TYPE_URL, type: Str];
 \* @type: Set(MSG_REVOKE);
 MsgRevoke == [
-    type: {"revoke"},
+    type: {"request-revoke"},
     granter: Address,
     grantee: Address,
     msgTypeUrl: MsgTypeUrls
@@ -59,7 +59,7 @@ to the granter of the authorization. *)
 \* @typeAlias: MSG_EXEC = [grantee: ADDRESS, msg: SDK_MSG, type: Str];
 \* @type: Set(MSG_EXEC);
 MsgExec == [
-    type: {"exec"},
+    type: {"request-execute"},
 
     grantee: Address,
 
@@ -71,7 +71,7 @@ MsgExec == [
 
 \* @typeAlias: EVENT = [g: GRANT_ID, type: Str];
 \* @type: Set(EVENT);
-ExpireEvents == [type: {"expire"}, g: ValidGrantIds]
+ExpireEvents == [type: {"expire"}, grantId: ValidGrantIds]
 
 \* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ADDRESS, granter: ADDRESS, msgTypeUrl: MSG_TYPE_URL, msgs: Set(SDK_MSG), type: Str];
 \* @type: Set(REQUEST_MSG);
@@ -93,7 +93,7 @@ MsgGrantResponseErrors == {
 \* @typeAlias: RESPONSE_GRANT = [error: Str, ok: Bool, type: Str];
 \* @type: Set(RESPONSE_GRANT);
 MsgGrantResponses == [
-    type: {"grant"}, 
+    type: {"response-grant"}, 
     ok: BOOLEAN, 
     error: MsgGrantResponseErrors
 ]
@@ -114,7 +114,7 @@ MsgExecResponseErrors == {
 \* @typeAlias: RESPONSE_EXEC = [error: Str, ok: Bool, type: Str];
 \* @type: Set(RESPONSE_EXEC);
 MsgExecResponses == [
-    type: {"exec"}, 
+    type: {"response-execute"}, 
     ok: BOOLEAN, 
     error: MsgExecResponseErrors
 ]
@@ -122,7 +122,7 @@ MsgExecResponses == [
 \* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];
 \* @type: Set(RESPONSE_REVOKE);
 MsgRevokeResponses == [
-    type: {"revoke"}, 
+    type: {"response-revoke"}, 
     ok: BOOLEAN
 ]
 

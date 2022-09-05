@@ -14,7 +14,7 @@ VARIABLES
                 \* triples to authorizations.
     
     \* @type: EVENT;
-    lastEvent,
+    event,
 
     \* @type: RESPONSE_MSG;
     expectedResponse,
@@ -74,11 +74,11 @@ AcceptResponse == [
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
 CallGrant(msgGrant) == 
     IF msgGrant.granter = msgGrant.grantee THEN 
-        [type |-> "grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
+        [type |-> "response-grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
     ELSE IF msgGrant.grant.expirationTime = "past" THEN 
-        [type |-> "grant", ok |-> FALSE, error |-> "authorization-expired"]
+        [type |-> "response-grant", ok |-> FALSE, error |-> "authorization-expired"]
     ELSE 
-        [type |-> "grant", ok |-> TRUE, error |-> "none"]
+        [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
@@ -108,7 +108,7 @@ CallExec(msgExec) ==
     LET 
         acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msgExec.msg)
         execResponse == [
-            type |-> "exec", 
+            type |-> "response-execute", 
             ok |-> acceptResponse.accept, 
             error |-> acceptResponse.error
         ] 
@@ -126,13 +126,13 @@ EmptyStore == [x \in {} |-> NoGrant]
 
 TypeOK == 
     /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
-    /\ lastEvent \in RequestMessages \cup ExpireEvents \cup {NoEvent}
+    /\ event \in RequestMessages \cup ExpireEvents \cup {NoEvent}
     /\ expectedResponse \in Responses \cup {NoResponse}
     /\ numRequests \in Nat
 
 Init ==
     /\ grantStore = EmptyStore
-    /\ lastEvent = NoEvent
+    /\ event = NoEvent
     /\ expectedResponse = NoResponse
     /\ numRequests = 0
 
@@ -163,7 +163,7 @@ handler in the app router to handle that Msg types). *)
 \* @type: (ADDRESS, ADDRESS, GRANT) => Bool;
 RequestGrant(granter, grantee, grant) ==
     LET 
-        msg == [type |-> "grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
+        msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
         g == grantIdOfMsgGrant(msg)
     IN
     /\ IsValid(g)
@@ -174,7 +174,7 @@ RequestGrant(granter, grantee, grant) ==
             ELSE
                 UNCHANGED grantStore
         /\ expectedResponse' = response
-    /\ lastEvent' = msg
+    /\ event' = msg
     /\ numRequests' = numRequests + 1
 
 (******************************************************************************)
@@ -185,8 +185,8 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
     LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
     /\ IsValid(g)
     /\ HasGrant(g)
-    /\ LET msg == [type |-> "revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
-        /\ lastEvent' = msg
+    /\ LET msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
+        /\ event' = msg
         /\ LET response == CallRevoke(msg) IN
             /\ IF response.ok THEN
                     grantStore' = MapRemove(grantStore, g)
@@ -215,10 +215,10 @@ PostProcessExec(grantee, msg, acceptResponse) ==
 \* @type: (ADDRESS, SDK_MSG) => Bool;
 RequestExec(grantee, msg) ==
     LET 
-        request == [type |-> "exec", grantee |-> grantee, msg |-> msg]
+        request == [type |-> "request-execute", grantee |-> grantee, msg |-> msg]
         responses == CallExec(request) 
     IN
-    /\ lastEvent' = request
+    /\ event' = request
     /\ expectedResponse' = responses[1]
     /\ PostProcessExec(grantee, msg, responses[2])
     /\ numRequests' = numRequests + 1
@@ -231,12 +231,11 @@ have to expire). This action is a pure environment action and thus it does not
 remove the grant from a set of active grants (the system will do so once it
 notices that the grant expired, upon running the Execute function). *)
 (******************************************************************************)
-Expire(g) ==
-    /\ HasGrant(g)
-    /\ ~ IsExpired(g)
-    /\ grantStore' = [grantStore EXCEPT ![g].expirationTime = "past"]
-    /\ LET event == [type |-> "expire", g |-> g] IN
-        lastEvent' = event
+Expire(grantId) ==
+    /\ HasGrant(grantId)
+    /\ ~ IsExpired(grantId)
+    /\ grantStore' = [grantStore EXCEPT ![grantId].expirationTime = "past"]
+    /\ event' = [type |-> "expire", grantId |-> grantId]
     /\ UNCHANGED <<expectedResponse, numRequests>>
 
 --------------------------------------------------------------------------------
@@ -245,10 +244,10 @@ Expire(g) ==
 NextA == 
     \/ \E granter, grantee \in Address, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
-    \/ \E g \in GrantIds: 
-        RequestRevoke(g.granter, g.grantee, g.msgTypeUrl)
-    \/ \E g \in ValidGrantIds: 
-        Expire(g)
+    \/ \E grantId \in GrantIds: 
+        RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
+    \/ \E grantId \in ValidGrantIds: 
+        Expire(grantId)
 
 Next == 
     \/ NextA

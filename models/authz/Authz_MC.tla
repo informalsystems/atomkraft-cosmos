@@ -9,7 +9,7 @@ instance_Address == {"a1", "a2"}
 instance_Coins == {0, 1}
 
 \* For Generic authorization
-instance_GenericAuthTypes == { "msg/type/1", "msg/type/2" }
+instance_GenericAuthTypes == { "msg_alpha" }
 
 --------------------------------------------------------------------------------
 (******************************************************************************)

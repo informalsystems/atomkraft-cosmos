@@ -21,41 +21,41 @@ EXTENDS Authz, FiniteSets, Integers
 --------------------------------------------------------------------------------
 
 GrantSuccess ==
-    /\ lastEvent.type = "grant"
-    /\ lastEvent.granter # lastEvent.grantee
+    /\ event.type = "request-grant"
+    /\ event.granter # event.grantee
     /\ expectedResponse.ok = TRUE
 
 NotGrantSuccess == ~ GrantSuccess
 
 GrantFailedSameAddress ==
-    /\ lastEvent.type = "grant"
+    /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
     /\ expectedResponse.error = "granter-equal-grantee"
 
 NotGrantFailedSameAddress == ~ GrantFailedSameAddress
 
 GrantFailedAuthExpired ==
-    /\ lastEvent.type = "grant"
+    /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
     /\ expectedResponse.error = "authorization-expired"
 
 NotGrantFailedAuthExpired == ~ GrantFailedAuthExpired
 
 RevokeSuccess ==
-    /\ lastEvent.type = "revoke"
+    /\ event.type = "request-revoke"
     /\ expectedResponse.ok = TRUE
 
 NotRevokeSuccess == ~ RevokeSuccess
 
 --------------------------------------------------------------------------------
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, lastEvent: EVENT, expectedResponse: RESPONSE_MSG, numRequests: Int];
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG, numRequests: Int];
 \* @type: Seq(TRACE) => Bool;
 ExpireRevokeFailure(trace) ==
     \E i, j \in DOMAIN trace: j = i + 1 /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
-        /\ state1.lastEvent.type = "expire"
-        /\ state2.lastEvent.type = "revoke" 
+        /\ state1.event.type = "expire"
+        /\ state2.event.type = "request-revoke" 
         /\ state2.expectedResponse.ok = FALSE
 
 NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
@@ -65,10 +65,10 @@ ExpireRevokeFailureSameGrant(trace) ==
     \E i, j \in DOMAIN trace: j = i + 1 /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
-        /\ state1.lastEvent.type = "expire"
-        /\ state2.lastEvent.type = "revoke" 
+        /\ state1.event.type = "expire"
+        /\ state2.event.type = "request-revoke" 
         /\ state2.expectedResponse.ok = FALSE
-        /\ state1.lastEvent.g = grantIdOfMsgRevoke(state2.lastEvent)
+        /\ state1.event.grantId = grantIdOfMsgRevoke(state2.event)
 
 NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
 
@@ -76,9 +76,9 @@ NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
 GrantExpireExec(trace) ==
     LET 
         state1 == trace[1] 
-        g1 == grantIdOfMsgGrant(state1.lastEvent)
+        g1 == grantIdOfMsgGrant(state1.event)
     IN
-    /\ state1.lastEvent.type = "grant"
+    /\ state1.event.type = "request-grant"
     /\ state1.expectedResponse.ok = TRUE
     /\ \E j, k \in DOMAIN trace: 
         /\ 1 < j 
@@ -87,12 +87,12 @@ GrantExpireExec(trace) ==
                 state2 == trace[j]
                 state3 == trace[k] 
             IN
-            /\ state2.lastEvent.type = "expire"
-            /\ g1 = grantIdOfMsgRevoke(state2.lastEvent)
-            /\ state3.lastEvent.type = "exec" 
+            /\ state2.event.type = "request-expire"
+            /\ g1 = grantIdOfMsgRevoke(state2.event)
+            /\ state3.event.type = "request-execute" 
             /\ LET 
                 \* @type: SDK_MSG;
-                msg == CHOOSE m \in state3.lastEvent.msgs: TRUE IN
+                msg == CHOOSE m \in state3.event.msgs: TRUE IN
                 g1.msgTypeUrl = msg.content.typeUrl
 
 NotGrantExpireExec(trace) == ~ GrantExpireExec(trace)

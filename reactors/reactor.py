@@ -147,7 +147,7 @@ def init(testnet: Testnet, state):
     time.sleep(10)
 
     with TmEventSubscribe({"tm.event": "NewBlock"}):
-        logging.info("blockhain is producing blocks")
+        logging.info("\t[RES] Blockhain is producing blocks")
 
 
 @step("give grant")

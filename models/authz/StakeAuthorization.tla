@@ -146,10 +146,12 @@ Accept(auth, msg) ==
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
     ELSE IF ~ auth.allow /\ validatorAddress \in auth.validators THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
+    ELSE IF auth.maxTokens = NoMax THEN 
+        [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
     ELSE [ 
-        accept |-> amount <= auth.maxTokens \/ auth.maxTokens = NoMax, 
+        accept |-> amount <= auth.maxTokens, 
         delete |-> amount = auth.maxTokens, 
-        updated |-> IF amount < auth.maxTokens /\ auth.maxTokens # NoMax
+        updated |-> IF amount < auth.maxTokens
             THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
             ELSE auth,
         error |-> IF amount <= auth.maxTokens THEN "none" ELSE "insufficient-amount"

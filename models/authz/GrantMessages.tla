@@ -103,11 +103,9 @@ MsgExecResponseErrors == {
     "grant-not-found", 
     "authorization-expired", 
     
-    \* From SendAuthorization:
+    \* For SendAuthorization and StakeAuthorization
     "insufficient-amount",
     "account-not-allowed",
-    
-    \* From StakeAuthorization:
     "validator-not-allowed",
     "validator-denied"
 }
@@ -124,7 +122,15 @@ MsgExecResponses == [
 \* @type: Set(RESPONSE_REVOKE);
 MsgRevokeResponses == [
     type: {"response-revoke"}, 
-    ok: BOOLEAN
+    ok: BOOLEAN,
+    error: {"none"}
+]
+
+\* For the initial state and expire events.
+NoResponse == [
+    type |-> "no-response",
+    ok |-> TRUE,
+    error |-> "none"
 ]
 
 \* @typeAlias: RESPONSE_MSG = [error: Str, ok: Bool, type: Str];

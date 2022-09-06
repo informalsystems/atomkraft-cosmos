@@ -9,6 +9,7 @@ empty, the amount is unlimited. Additionally, this Msg takes an AllowList and a
 DenyList, which allows you to select which validators you allow grantees to
 stake with. *)
 (******************************************************************************)
+LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE Integers
 
 CONSTANT
@@ -17,7 +18,9 @@ CONSTANT
     Validators,
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
-    Coins
+    Coins,
+    \* @type: COINS;
+    NoMaxCoins
 
 \* We want our model of Coins to include some negative number.
 ASSUME \E min, max \in Int: 
@@ -26,12 +29,7 @@ ASSUME \E min, max \in Int:
     /\ Coins = min .. max
 
 \* @type: COINS;
-NoMax == -10
-ASSUME NoMax \in Int /\ NoMax \notin Coins
-
-LOCAL DELEGATE_TYPE_URL == "delegate"
-LOCAL UNDELEGATE_TYPE_URL == "undelegate"
-LOCAL BEGIN_REDELEGATE_TYPE_URL == "redelegate"
+ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 
 \* @typeAlias: MSG_TYPE_URL = Str;
 \* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
@@ -87,7 +85,7 @@ Authorization == [
     \* Specifies the maximum amount of tokens can be delegate to a validator. If
     \* it is empty, there is no spend limit and any amount of coins can be
     \* delegated.
-    maxTokens: Coins \cup {NoMax},
+    maxTokens: Coins \cup {NoMaxCoins},
 
     \* A set of validator addresses to whom delegation of tokens is either
     \* allowed or denied.
@@ -146,7 +144,7 @@ Accept(auth, msg) ==
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
     ELSE IF ~ auth.allow /\ validatorAddress \in auth.validators THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
-    ELSE IF auth.maxTokens = NoMax THEN 
+    ELSE IF auth.maxTokens = NoMaxCoins THEN 
         [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
     ELSE [ 
         accept |-> amount <= auth.maxTokens, 

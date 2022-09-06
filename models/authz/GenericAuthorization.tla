@@ -3,6 +3,7 @@
 (* GenericAuthorization gives unrestricted permission to execute the provided
 Msg on behalf of granter's account. *)
 (******************************************************************************)
+EXTENDS MsgTypes
 
 CONSTANT
     \* @typeAlias: ACCOUNT = Str;
@@ -10,18 +11,15 @@ CONSTANT
     Accounts, 
     \* @typeAlias: VALIDATOR = Str;
     \* @type: Set(VALIDATOR);
-    Validators,
-    \* @typeAlias: MSG_TYPE_URL = Str;
-    \* @type: Set(MSG_TYPE_URL);
-    GenericAuthTypes
+    Validators
 
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == GenericAuthTypes
+MsgTypeUrls == MsgTypes
 
 \* @typeAlias: SDK_MSG_CONTENT = [typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG_CONTENT);
-SdkMsgContent == [ typeUrl: GenericAuthTypes ]
+SdkMsgContent == [ typeUrl: MsgTypes ]
 
 --------------------------------------------------------------------------------
 
@@ -31,8 +29,9 @@ SdkMsgContent == [ typeUrl: GenericAuthTypes ]
 \* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [
-    \* In the code this field is called Msg. The message type, identified by it's type
-    \* URL, to grant unrestricted permissions to execute.
+    \* In the code this field is called Msg. It's a message type, identified by
+    \* its type URL. The authorization grants unrestricted permission to
+    \* execute.
     authorizationType: MsgTypeUrls
 ]
 

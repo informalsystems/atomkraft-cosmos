@@ -39,7 +39,7 @@ AcceptErrors == {
     "insufficient-amount"
 }
 
-NoUpdate == [type |-> "NoUpdate"]
+NoUpdate == [type |-> "no-update"]
 
 (* AcceptResponse instruments the controller of an authz message if the request
 is accepted and if it should be updated or deleted. *)
@@ -117,8 +117,7 @@ CallExec(msgExec) ==
 
 --------------------------------------------------------------------------------
 \* Only for the initial state.
-NoResponse == [type |-> "NoResponse"]
-NoEvent == [type |-> "NoEvent"]
+NoEvent == [type |-> "no-event"]
 
 \* EmptyMap is not accepted by Apalache's typechecker.
 \* @type: GRANT_ID -> GRANT;
@@ -237,7 +236,8 @@ Expire(grantId) ==
     /\ grantStore[grantId].expirationTime # "none"
     /\ grantStore' = [grantStore EXCEPT ![grantId].expirationTime = "past"]
     /\ event' = [type |-> "expire", grantId |-> grantId]
-    /\ UNCHANGED <<expectedResponse, numRequests>>
+    /\ expectedResponse' = NoResponse
+    /\ UNCHANGED numRequests
 
 --------------------------------------------------------------------------------
 \* We keep action RequestExec separated from the other actions to be able to 

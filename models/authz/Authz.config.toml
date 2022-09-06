@@ -7,8 +7,8 @@ examples = ["NotExpireRevokeFailure"]
 [Constants]
 Accounts = "instance_Accounts"
 Validators = "instance_Validators"
-GenericAuthTypes = "instance_GenericAuthTypes"
 Coins = "instance_Coins"
+NoMaxCoins = "instance_NoMaxCoins"
 
 [Config]
 # location for the generated trace files

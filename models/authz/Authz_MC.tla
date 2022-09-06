@@ -10,8 +10,7 @@ instance_Validators == {"v1", "v2", "v3"}
 
 instance_Coins == {0, 1}
 
-\* For Generic authorization
-instance_GenericAuthTypes == { "msg_alpha" }
+instance_NoMaxCoins == -99
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -25,9 +24,7 @@ ConstInit ==
     
     \* For Send and Stake authorizations
     /\ Coins = instance_Coins
-
-    \* For Generic authorization
-    /\ GenericAuthTypes = instance_GenericAuthTypes
+    /\ NoMaxCoins = instance_NoMaxCoins
 
 --------------------------------------------------------------------------------
 NumRequests == numRequests # 10

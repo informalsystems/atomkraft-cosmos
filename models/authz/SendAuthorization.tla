@@ -5,6 +5,7 @@ cosmos.bank.v1beta1.MsgSend Msg. It takes a SpendLimit that specifies the
 maximum amount of tokens the grantee can spend. The SpendLimit is updated as the
 tokens are spent. *)
 (******************************************************************************)
+LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE Integers
 
 CONSTANT
@@ -21,13 +22,9 @@ ASSUME \E min, max \in Int:
     /\ max > 0 
     /\ Coins = min .. max
 
-\* @typeAlias: MSG_TYPE_URL = Str;
-\* @type: MSG_TYPE_URL;
-LOCAL SEND_MSG_TYPE_URL == "send"
-
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { SEND_MSG_TYPE_URL }
+MsgTypeUrls == { SEND_TYPE_URL }
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36

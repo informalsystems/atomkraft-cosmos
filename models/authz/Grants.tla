@@ -12,12 +12,11 @@ CONSTANTS
     Validators
 --------------------------------------------------------------------------------
 CONSTANTS 
-    \* @typeAlias: MSG_TYPE_URL = Str;
-    \* @type: Set(MSG_TYPE_URL);
-    GenericAuthTypes,
     \* @typeAlias: COINS = Int;
     \* @type: Set(COINS);
-    Coins
+    Coins,
+    \* @type: COINS;
+    NoMaxCoins
 
 --------------------------------------------------------------------------------
 Generic == INSTANCE GenericAuthorization

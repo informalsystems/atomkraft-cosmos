@@ -4,6 +4,7 @@ accounts = 2
 binary = "./cosmos-sdk/build/simd"
 hrp_prefix = "cosmos"
 denom = "stake"
+# denom = "uatom"
 coin_type = 118
 
 [config_node.app]

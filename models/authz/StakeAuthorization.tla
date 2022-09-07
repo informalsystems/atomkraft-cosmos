@@ -89,7 +89,7 @@ Authorization == [
 
     \* A set of validator addresses to whom delegation of tokens is either
     \* allowed or denied.
-    validators: SUBSET Validators,
+    validators: SUBSET Validators \ {{}},
 
     \* Extra field not present in the code.
     \* If TRUE, validators is a list of allowed addresses. 

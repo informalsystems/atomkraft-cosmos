@@ -17,10 +17,7 @@ VARIABLES
     event,
 
     \* @type: RESPONSE_MSG;
-    expectedResponse,
-
-    \* @type: Int;
-    numRequests
+    expectedResponse
 
 -------------------------------------------------------------------------------
 \* @type: (GRANT_ID) => Bool;
@@ -127,13 +124,11 @@ TypeOK ==
     /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
     /\ event \in RequestMessages \cup ExpireEvents \cup {NoEvent}
     /\ expectedResponse \in Responses \cup {NoResponse}
-    /\ numRequests \in Nat
 
 Init ==
     /\ grantStore = EmptyStore
     /\ event = NoEvent
     /\ expectedResponse = NoResponse
-    /\ numRequests = 0
 
 --------------------------------------------------------------------------------
 \* @type: (MSG_GRANT) => GRANT_ID;
@@ -163,18 +158,17 @@ handler in the app router to handle that Msg types). *)
 RequestGrant(granter, grantee, grant) ==
     LET 
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
-        g == grantIdOfMsgGrant(msg)
+        grantId == grantIdOfMsgGrant(msg)
     IN
-    /\ IsValid(g)
-    /\ ~ HasGrant(g) \/ IsExpired(g)
+    /\ IsValid(grantId)
+    /\ ~ HasGrant(grantId) \/ IsExpired(grantId)
     /\ LET response == CallGrant(msg) IN
         /\ IF response.ok THEN
-                grantStore' = MapPut(grantStore, g, grant)
+                grantStore' = MapPut(grantStore, grantId, grant)
             ELSE
                 UNCHANGED grantStore
         /\ expectedResponse' = response
     /\ event' = msg
-    /\ numRequests' = numRequests + 1
 
 (******************************************************************************)
 (* Request to revoke a grant.                                                 *)
@@ -192,7 +186,6 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
                 ELSE 
                     UNCHANGED grantStore
             /\ expectedResponse' = response
-    /\ numRequests' = numRequests + 1
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
 \* @type: (ACCOUNT, SDK_MSG, ACCEPT_RESPONSE) => Bool;
@@ -220,7 +213,6 @@ RequestExec(grantee, msg) ==
     /\ event' = request
     /\ expectedResponse' = responses[1]
     /\ PostProcessExec(grantee, msg, responses[2])
-    /\ numRequests' = numRequests + 1
 
 (******************************************************************************)
 (* Timeout being reached is abstracted away by the action Expire. What is
@@ -237,12 +229,11 @@ Expire(grantId) ==
     /\ grantStore' = [grantStore EXCEPT ![grantId].expirationTime = "past"]
     /\ event' = [type |-> "expire", grantId |-> grantId]
     /\ expectedResponse' = NoResponse
-    /\ UNCHANGED numRequests
 
 --------------------------------------------------------------------------------
 \* We keep action RequestExec separated from the other actions to be able to 
 \* check properties on grants without executing them. 
-NextA == 
+NextWithInvalidArguments == 
     \/ \E granter, grantee \in Accounts, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
     \/ \E grantId \in GrantIds: 
@@ -250,8 +241,20 @@ NextA ==
     \/ \E grantId \in ValidGrantIds: 
         Expire(grantId)
 
+NextWithValidArguments == 
+    \/ \E granter, grantee \in Accounts, grant \in Grants: 
+        /\ granter # grantee
+        /\ grant.expirationTime # "past"
+        /\ RequestGrant(granter, grantee, grant)
+    \/ \E grantId \in ValidGrantIds: 
+        /\ HasGrant(grantId)
+        /\ ~ IsExpired(grantId)
+        /\ RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
+    \/ \E grantId \in ValidGrantIds: 
+        Expire(grantId)
+
 Next == 
-    \/ NextA
+    \/ NextWithValidArguments
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsgs: 

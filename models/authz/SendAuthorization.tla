@@ -48,7 +48,8 @@ SdkMsgContent ==
 Authorization == [
     authorizationType: MsgTypeUrls, \* Not present in the code.
     
-    spendLimit: Coins,
+    \* Terra SDK: "spend limit must be positive" (error code=10)
+    spendLimit: { c \in Coins : c > 0 },
     
     \* Specifies an optional list of addresses to whom the grantee can send
     \* tokens on behalf of the granter. If omitted, any recipient is allowed.

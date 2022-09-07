@@ -1,114 +1,43 @@
 import logging
 from munch import unmunchify
 import time
+from timeit import default_timer as timer
 
 from atomkraft.chain import Testnet
 from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
-from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType
+from reactors import model_data as model
+from .map_to_reals import to_real_grant, MSG_TYPE, to_real_exec_msg
+
 from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
 from terra_sdk.core.authz import (
-    AuthorizationGrant,
-    GenericAuthorization,
     MsgExecAuthorized,
     MsgGrantAuthorization,
     MsgRevokeAuthorization,
-    SendAuthorization,
-    StakeAuthorization,
 )
-from terra_sdk.core.authz.data import StakeAuthorizationValidators
-from terra_sdk.core.bank import MsgSend
-from terra_sdk.core.coin import Coin
-from terra_sdk.core.staking import MsgBeginRedelegate, MsgDelegate, MsgUndelegate
-
-from reactors import model_data as model
-
-MSG_TYPE = {
-    "msg_alpha": "msg_alpha",
-    "send": MsgSend.type_url,
-    "delegate": MsgDelegate.type_url,
-    "undelegate": MsgUndelegate.type_url,
-    "redelegate": MsgBeginRedelegate.type_url,
-}
-
-STAKING_AUTH_TYPE = {
-    "delegate": StakingAuthType.AUTHORIZATION_TYPE_DELEGATE,
-    "undelegate": StakingAuthType.AUTHORIZATION_TYPE_UNDELEGATE,
-    "redelegate": StakingAuthType.AUTHORIZATION_TYPE_REDELEGATE,
-    "msg_alpha": StakingAuthType.AUTHORIZATION_TYPE_UNSPECIFIED,
-}
-
-
-def to_real_coins(testnet: Testnet, coins: int):
-    if coins == model.NO_MAX_COINS:
-        return None
-
-    # TODO: move to Testnet class
-    return Coin.from_str(f"{int(coins)}{testnet.denom}")
-
-
-# TODO: move to model.Grant class
-def to_real_grant(
-    testnet: Testnet,
-    grant: model.Grant,
-) -> AuthorizationGrant:
-    authorization = to_real_auth(testnet, grant.authorization)
-    logging.debug("🔹 authorization", authorization)
-    expiration = model.to_real_time(grant.expirationTime)
-    logging.debug("🔹 expiration", expiration)
-
-    return AuthorizationGrant(authorization, expiration)
-
-
-# TODO: move to model.Authorization class
-def to_real_auth(testnet: Testnet, auth: model.Authorization):
-    match auth.authorizationType:
-        case "send":
-            spend_limit = to_real_coins(testnet, auth.spendLimit)
-            return SendAuthorization(spend_limit)
-
-        case "delegate" | "undelegate" | "redelegate":
-            authorization_type = STAKING_AUTH_TYPE[auth.authorizationType]
-            logging.debug(f"🔸 auth_type {authorization_type}")
-
-            max_tokens = to_real_coins(testnet, auth.maxTokens)
-
-            addresses = [testnet.val_addr(address, True) for address in auth.validators]
-            if auth.allow:
-                allow_list = StakeAuthorizationValidators(addresses)
-                deny_list = None
-            else:
-                allow_list = None
-                deny_list = StakeAuthorizationValidators(addresses)
-            logging.debug(f"🔸 allow_list {allow_list}")
-            logging.debug(f"🔸 deny_list {deny_list}")
-
-            return StakeAuthorization(
-                authorization_type, max_tokens, allow_list, deny_list
-            )
-
-        case other:
-            msg = MSG_TYPE[other]
-            return GenericAuthorization(msg)
 
 
 def show_result(result: TxResponse, expectedResponse: model.Response):
     if result.code == 0:
-        logging.info("Status: Successful\n")
+        logging.info(f"Status: Successful")
     else:
         logging.info("Status: Error")
         logging.info(f"\tcode: {result.code}")
         logging.info(f"\tlog:  {result.raw_log}\n")
 
-    logging.debug("📌 result:", result)
-
     to_text = lambda ok: "OK" if ok else "FAIL"
-    result_ok = result.code == 0
-    logging.debug(
-        f"📌 expected {to_text(expectedResponse.ok)}"
-        f" (with error: {expectedResponse.error}), got {to_text(result_ok)}"
+    logging.info(
+        f"Expected {to_text(expectedResponse.ok)}, "
+        f"with error: {expectedResponse.error}\n"
     )
+
+
+def check_result(result: TxResponse, expectedResponse: model.Response):
+    assert (result.code == 0) == expectedResponse.ok
+
+
+WAIT_TIME = 0
 
 
 @step("no-event")
@@ -122,21 +51,28 @@ def init(testnet: Testnet):
     testnet.set_validators(model.validators)
     testnet.verbose = True
 
-    logging.info(f"Starting tesnet...")
     # testnet.oneshot()
+    logging.info(f"Preparing testnet...")
+    start_time = timer()
     testnet.prepare()
-    logging.info(f"..")
+    logging.info(f"Prapare time: {(timer() - start_time):.2f} seconds")
+
+    logging.info(f"Spinup testnet...")
+    start_time = timer()
     testnet.spinup()
-    logging.info(f"Waiting to be ready...")
+    logging.info(f"Spinup time: {(timer() - start_time):.2f} seconds")
+
+    logging.info(f"Wait for testnet to be ready...")
+    start_time = timer()
     with TmEventSubscribe({"tm.event": "NewBlock"}):
-        logging.info("Status: Testnet launched\n")
+        logging.info(f"Waiting time: {(timer() - start_time):.2f} seconds")
+        logging.info("Testnet launched! 🚀\n")
 
 
 @step("request-grant")
 def request_grant(
     testnet: Testnet,
-    # event: model.MsgGrant,
-    event: model.Event,
+    event: model.MsgGrant,
     expectedResponse: model.Response,
 ):
     logging.info("🔶 Step: request grant")
@@ -159,15 +95,15 @@ def request_grant(
         event.granter, msg, gas=200000, fee_amount=20000
     )
     show_result(result, expectedResponse)
+    check_result(result, expectedResponse)
 
-    time.sleep(10)
+    time.sleep(WAIT_TIME)
 
 
 @step("request-revoke")
 def request_revoke(
     testnet: Testnet,
-    # event: model.MsgRevoke,
-    event: model.Event,
+    event: model.MsgRevoke,
     expectedResponse: model.Response,
 ):
     logging.info("🔶 Step: revoke grant")
@@ -188,17 +124,18 @@ def request_revoke(
     )
 
     show_result(result, expectedResponse)
-    time.sleep(10)
+    check_result(result, expectedResponse)
+
+    time.sleep(WAIT_TIME)
 
 
 @step("request-execute")
 def request_execute(
     testnet: Testnet,
-    # event: model.MsgExec,
-    event: model.Event,
+    event: model.MsgExec,
     expectedResponse: model.Response,
 ):
-    logging.debug("🔶 Step: execute grant")
+    logging.info("🔶 Step: execute grant")
     assert event.type == "request-execute"
 
     grantee = testnet.acc_addr(event.grantee)
@@ -206,66 +143,26 @@ def request_execute(
 
     # there's only one exec message in this model
     sdk_msg = event.msg
-    logging.info(f"‣ sdk msg: {sdk_msg}")
+    logging.info(f"‣ sdk msg: {unmunchify(sdk_msg)}")
 
-    granter = testnet.acc_addr(sdk_msg.signer)
-    logging.info(f"‣ sdk msg granter: {granter}")
-    amount = to_real_coins(testnet, sdk_msg.content.amount)
-
-    match sdk_msg.content.typeUrl:
-        case "send":
-            exec_msg = MsgSend(
-                from_address=testnet.val_addr(event.msg.content.fromAddress, True),
-                to_address=testnet.val_addr(event.msg.content.toAddress, True),
-                amount=amount,
-            )
-        case "delegate":
-            exec_msg = MsgDelegate(
-                delegator_address=granter,
-                validator_address=testnet.val_addr(
-                    event.msg.content.validatorAddress, True
-                ),
-                amount=amount,
-            )
-        case "undelegate":
-            exec_msg = MsgUndelegate(
-                delegator_address=granter,
-                validator_address=testnet.val_addr(
-                    event.msg.content.validatorAddress, True
-                ),
-                amount=amount,
-            )
-        case "redelegate":
-            exec_msg = MsgBeginRedelegate(
-                delegator_address=granter,
-                validator_src_address=testnet.val_addr(
-                    event.msg.content.validatorSrcAddress, True
-                ),
-                validator_dst_address=testnet.val_addr(
-                    event.msg.content.validatorDstAddress, True
-                ),
-                amount=amount,
-            )
-        case "msg_alpha":
-            # TODO: ??
-            pass
-
+    exec_msg = to_real_exec_msg(testnet, sdk_msg)
+    logging.info(f"‣ exec_msg: ${exec_msg}")
     msg = MsgExecAuthorized(grantee=grantee, msgs=[exec_msg])
-    logging.debug(f"‣ msg: ${msg}")
+    logging.info(f"‣ msg: ${msg}")
 
     result = testnet.broadcast_transaction(
         sdk_msg.signer, msg, gas=200000, fee_amount=20000
     )
     show_result(result, expectedResponse)
+    check_result(result, expectedResponse)
 
-    time.sleep(10)
+    time.sleep(WAIT_TIME)
 
 
 @step("expire")
 def expire(
     testnet: Testnet,
-    # event: model.ExpireEvent,
-    event: model.Event,
+    event: model.ExpireEvent,
     grantStore: model.GrantStore,
     expectedResponse: model.Response,
 ):
@@ -291,7 +188,9 @@ def expire(
         event.grantId.granter, msg, gas=200000, fee_amount=20000
     )
     show_result(result, expectedResponse)
+    check_result(result, expectedResponse)
 
-    time.sleep(10)
+    time.sleep(WAIT_TIME)
+
     # this sleep is to wait for the grant expiration
-    time.sleep(5)
+    time.sleep(model.EXPIRES_SOON_TIME)

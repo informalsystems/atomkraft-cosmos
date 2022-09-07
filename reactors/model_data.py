@@ -1,16 +1,6 @@
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Union
 
-from terra_sdk.core import authz as terra
-from terra_sdk.util.converter import to_isoformat
-
-# STAKE_AUTH_TYPE = {
-#     "msg_delegate": AuthorizationType.AUTHORIZATION_TYPE_DELEGATE,
-#     "msg_undelegate": AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE,
-#     "msg_redelegate": AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE,
-#     "msg_alpha": AuthorizationType.AUTHORIZATION_TYPE_UNSPECIFIED,
-# }
 
 accounts = ["a1", "a2", "a3"]
 validators = ["v1", "v2", "v3"]
@@ -36,24 +26,14 @@ class ExpirationTime(Enum):
     expire_soon = 4
 
 
-def to_real_time(expiration_time: ExpirationTime):
-    match expiration_time:
-        case "past":
-            return to_isoformat(datetime.now() - timedelta(seconds=100))
-        case "future":
-            return to_isoformat(datetime.now() + timedelta(seconds=100))
-        case "expire_soon":
-            return to_isoformat(datetime.now() + timedelta(seconds=10))
-        case "none":
-            # terra.py client requires a concrete timestamp
-            return to_isoformat(datetime.now() + timedelta(seconds=10000))
+EXPIRES_SOON_TIME = 5
 
 
 class GenericAuthorization:
     authorizationType: MsgTypeUrls
 
-    def mk_grant(self, testnet) -> terra.AuthorizationGrant:
-        return terra.GenericAuthorization(msg="msg_alpha")
+    # def to_real(self):
+    #     return GenericAuthorization(msg=MSG_TYPE[self.authorizationType])
 
 
 class GenericSdkMsgContent:
@@ -65,6 +45,9 @@ class SendAuthorization:
     spendLimit: Coins
     allowList: List[Address]
 
+    # def to_real(self, testnet: Testnet):
+    #     return SendAuthorization(spend_limit=to_real_coins(testnet, self.spendLimit))
+
 
 class SendSdkMsgContent:
     typeUrl: MsgTypeUrls  # .send
@@ -72,12 +55,36 @@ class SendSdkMsgContent:
     toAddress: Address
     amount: Coins
 
+    # def to_real(self, testnet: Testnet):
+    #     return TerraBank.MsgSend(
+    #         from_address=testnet.val_addr(self.fromAddress, True),
+    #         to_address=testnet.val_addr(self.toAddress, True),
+    #         amount=to_real_coins(testnet, self.amount),
+    #     )
+
+
+Validators = List[Address]
+
+
+# def validators_to_real(validators: Validators, testnet: Testnet):
+#     addresses = [testnet.val_addr(address, True) for address in validators]
+#     return StakeAuthorizationValidators(addresses)
+
 
 class StakeAuthorization:
     maxTokens: Optional[Coins]
     validators: List[Address]
     allow: bool
     authorizationType: MsgTypeUrls
+
+    # def to_real(self, testnet: Testnet):
+    #     validators = validators_to_real(self.validators, testnet)
+    #     return StakeAuthorization(
+    #         authorization_type=STAKING_AUTH_TYPE[self.authorizationType],
+    #         max_tokens=to_real_coins(testnet, self.maxTokens),
+    #         allow_list=validators if self.allow else None,
+    #         deny_list=validators if not self.allow else None,
+    #     )
 
 
 class MsgDelegate:
@@ -107,9 +114,27 @@ StakeSdkMsgContent = Union[MsgDelegate, MsgUndelegate, MsgBeginRedelegate]
 Authorization = Union[GenericAuthorization, SendAuthorization, StakeAuthorization]
 
 
+# def authorization_to_real(auth: Authorization, testnet: Testnet):
+#     return auth.to_real(testnet)
+# match auth.authorizationType:
+#     case MsgTypeUrls.send:
+#         # auth: SendAuthorization = auth
+#         return auth.to_real(testnet)
+#     case MsgTypeUrls.delegate | MsgTypeUrls.undelegate | MsgTypeUrls.redelegate:
+#         return to_real_stake_auth(testnet, auth)
+#     case _:
+#         return to_real_generic_auth(auth)
+
+
 class Grant:
     authorization: Authorization
     expirationTime: ExpirationTime
+
+    # def to_real(self, testnet: Testnet):
+    #     return terra.AuthorizationGrant(
+    #         authorization=authorization_to_real(self.authorization, testnet),
+    #         expiration=to_real_time(self.expirationTime),
+    #     )
 
 
 SdkMsgContent = Union[GenericSdkMsgContent, SendSdkMsgContent, StakeSdkMsgContent]
@@ -140,6 +165,54 @@ class SdkMsgs:
     content: SdkMsgContent
 
 
+#     def to_real_msg_send(self, testnet: Testnet):
+#         return TerraBank.MsgSend(
+#             from_address=testnet.val_addr(self.content.fromAddress, True),
+#             to_address=testnet.val_addr(self.content.toAddress, True),
+#             amount=to_real_coins(testnet, self.content.amount),
+#         )
+
+#     def to_real_msg_delegate(self, testnet: Testnet):
+#         return TerraStaking.MsgDelegate(
+#             delegator_address=testnet.acc_addr(self.signer),
+#             validator_address=testnet.val_addr(self.content.validatorAddress, True),
+#             amount=to_real_coins(testnet, self.content.amount),
+#         )
+
+#     def to_real_msg_undelegate(self, testnet: Testnet):
+#         return TerraStaking.MsgUndelegate(
+#             delegator_address=testnet.acc_addr(self.signer),
+#             validator_address=testnet.val_addr(self.content.validatorAddress, True),
+#             amount=to_real_coins(testnet, self.content.amount),
+#         )
+
+#     def to_real_msg_redelegate(self, testnet: Testnet):
+#         return TerraStaking.MsgBeginRedelegate(
+#             delegator_address=testnet.acc_addr(self.signer),
+#             validator_src_address=testnet.val_addr(
+#                 self.content.validatorSrcAddress, True
+#             ),
+#             validator_dst_address=testnet.val_addr(
+#                 self.content.validatorDstAddress, True
+#             ),
+#             amount=to_real_coins(testnet, self.content.amount),
+#         )
+
+
+# def sdk_msg_to_real(sdk_msg: SdkMsgs, testnet: Testnet):
+#     match sdk_msg.content.typeUrl:
+#         case "send":
+#             return sdk_msg.to_real_msg_send(testnet)
+#         case "delegate":
+#             return sdk_msg.to_real_msg_delegate(testnet)
+#         case "undelegate":
+#             return sdk_msg.to_real_msg_undelegate(testnet)
+#         case "redelegate":
+#             return sdk_msg.to_real_msg_redelegate(testnet)
+#         case _:
+#             raise ValueError(f"message type not supported {sdk_msg.content.typeUrl}")
+
+
 class MsgExec:
     type: str = "exec"
     grantee: Address
@@ -159,15 +232,17 @@ Event = Union[RequestMessages, ExpireEvent]
 GrantStore = Dict[GrantIds, Grant]
 
 
-def get_grant(grantStore: GrantStore, grantId: GrantIds):
+def get_grant(grantStore: GrantStore, grantId: GrantIds) -> Grant:
     for k, v in grantStore.items():
-        if k == grantId:
+        if (
+            k.grantee == grantId.grantee
+            and k.granter == grantId.granter
+            and k.msgTypeUrl == grantId.msgTypeUrl
+        ):
             return v
 
-    return None
+    raise ("There is an error in the model!")
 
-
-## Responses
 
 MsgResponseErrors = str
 

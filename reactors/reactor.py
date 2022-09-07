@@ -1,4 +1,3 @@
-from cgi import test
 import logging
 import time
 from datetime import datetime, timedelta
@@ -144,8 +143,6 @@ def init(testnet: Testnet, state):
     # testnet is started from this point
     testnet.oneshot()
 
-    time.sleep(10)
-
     with TmEventSubscribe({"tm.event": "NewBlock"}):
         logging.info("\t[RES] Blockhain is producing blocks")
 
@@ -189,8 +186,6 @@ def give_grant(testnet: Testnet, state, action_taken, outcome_status):
             status(result.code == 0),
         )
     )
-
-    time.sleep(0.5)
 
 
 @step("expire grant")
@@ -249,8 +244,6 @@ def expire_grant(testnet: Testnet, state, action_taken, active_grants, outcome_s
             )
         )
 
-        time.sleep(0.5)
-
         # this sleep is to wait for the grant expiration
         time.sleep(10)
 
@@ -283,8 +276,6 @@ def revoke_grant(testnet: Testnet, state, action_taken, outcome_status):
             status(result.code == 0),
         )
     )
-
-    time.sleep(0.5)
 
 
 @step("execute grant")
@@ -340,5 +331,3 @@ def execute_grant(testnet: Testnet, state, action_taken, outcome_status):
             status(result.code == 0),
         )
     )
-
-    time.sleep(0.5)

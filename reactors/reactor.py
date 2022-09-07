@@ -1,13 +1,13 @@
+import logging
+from munch import unmunchify
 import time
-from datetime import datetime, timedelta
 
-import pytest
+from atomkraft.chain import Testnet
+from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
-from munch import Munch
-from terra_proto.cosmos.staking.v1beta1 import AuthorizationType
-from terra_sdk.client.lcd import LCDClient
-from terra_sdk.client.lcd.api.tx import CreateTxOptions
-from terra_sdk.core import Coin
+
+from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType
+from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
 from terra_sdk.core.authz import (
     AuthorizationGrant,
     GenericAuthorization,
@@ -19,406 +19,279 @@ from terra_sdk.core.authz import (
 )
 from terra_sdk.core.authz.data import StakeAuthorizationValidators
 from terra_sdk.core.bank import MsgSend
-from terra_sdk.core.fee import Fee
+from terra_sdk.core.coin import Coin
 from terra_sdk.core.staking import MsgBeginRedelegate, MsgDelegate, MsgUndelegate
-from terra_sdk.key.mnemonic import MnemonicKey
-from terra_sdk.util.converter import to_isoformat
+
+from reactors import model_data as model
 
 MSG_TYPE = {
-    "msg_delegate": MsgDelegate.type_url,
-    "msg_send": MsgSend.type_url,
-    "msg_undelegate": MsgUndelegate.type_url,
-    "msg_redelegate": MsgBeginRedelegate.type_url,
     "msg_alpha": "msg_alpha",
+    "send": MsgSend.type_url,
+    "delegate": MsgDelegate.type_url,
+    "undelegate": MsgUndelegate.type_url,
+    "redelegate": MsgBeginRedelegate.type_url,
+}
+
+STAKING_AUTH_TYPE = {
+    "delegate": StakingAuthType.AUTHORIZATION_TYPE_DELEGATE,
+    "undelegate": StakingAuthType.AUTHORIZATION_TYPE_UNDELEGATE,
+    "redelegate": StakingAuthType.AUTHORIZATION_TYPE_REDELEGATE,
+    "msg_alpha": StakingAuthType.AUTHORIZATION_TYPE_UNSPECIFIED,
 }
 
 
-STAKE_AUTH_TYPE = {
-    "msg_delegate": AuthorizationType.AUTHORIZATION_TYPE_DELEGATE,
-    "msg_undelegate": AuthorizationType.AUTHORIZATION_TYPE_UNDELEGATE,
-    "msg_redelegate": AuthorizationType.AUTHORIZATION_TYPE_REDELEGATE,
-    "msg_alpha": AuthorizationType.AUTHORIZATION_TYPE_UNSPECIFIED,
-}
+def to_real_coins(testnet: Testnet, coins: int):
+    if coins == model.NO_MAX_COINS:
+        return None
 
-AUTHZ_FAILURE_OUTCOME = {
-    "inappropriate_auth",  # INAPPROPRIATE_AUTH
-    "inappropriate_auth_generic",  # INAPPROPRIATE_AUTH_GENERIC
-    "inappropriate_auth_send",  # INAPPROPRIATE_AUTH_SEND
-    "inappropriate_auth_stake_not_allow",  # INAPPROPRIATE_AUTH_STAKE_NOT_ALLOW
-    "inappropriate_auth_stake_deny",  # INAPPROPRIATE_AUTH_STAKE_DENY
-    "message_not_supported_by_the_authorization",  # INAPPROPRIATE_AUTH_FOR_MESSAGE
-    "insufficient_auth_exec",  # INSUFFICIENT_GRANT_EXEC
-    "non_existent_auth",  # NONEXISTENT_GRANT_EXEC
-    # "expired_grant", #EXPIRED_GRANT
-    "tried to execute an expired grant",  # EXPIRED_AUTH_EXEC
-    "grant_failed",  #
-    "give grant failed: granter and grantee are the same",  # INVALID_GRANTEE_AND_GRANTER
-    "give grant failed: invalid spending limit",  # INVALID_SPENDING_LIMIT
-    "give grant failed: invalid validator lists",  # INVALID_VALIDATOR_LISTS
-    "give grant failed: expiration time is in the past",  # INVALID_EXPIRATION_TIME_IN_PAST
-    "revoke_failed",  # REVOKE_FAILED
-    # , #
-}
+    # TODO: move to Testnet class
+    return Coin.from_str(f"{int(coins)}{testnet.denom}")
 
 
-@pytest.fixture
-def state():
-    return Munch()
+# TODO: move to model.Grant class
+def to_real_grant(
+    testnet: Testnet,
+    grant: model.Grant,
+) -> AuthorizationGrant:
+    authorization = to_real_auth(testnet, grant.authorization)
+    logging.debug("🔹 authorization", authorization)
+    expiration = model.to_real_time(grant.expirationTime)
+    logging.debug("🔹 expiration", expiration)
+
+    return AuthorizationGrant(authorization, expiration)
 
 
-status = lambda ok: "OK" if ok else "FAIL"
-
-
-def create_give_grant_auth(
-    testnet,
-    state,
-    grant_message_type,
-    authorization_logic,
-    spend_limit,
-    no_limits,
-    allow_list_tla,
-    deny_list_tla,
-    exp_time,
-):
-    match authorization_logic:
+# TODO: move to model.Authorization class
+def to_real_auth(testnet: Testnet, auth: model.Authorization):
+    match auth.authorizationType:
         case "send":
-            authorization = SendAuthorization(spend_limit)
-        case "generic":
-            msg_type = MSG_TYPE[grant_message_type]
-            authorization = GenericAuthorization(msg=msg_type)
-        case "stake":
-            authorization_type = STAKE_AUTH_TYPE[grant_message_type]
-            # INFINITY check for staking type
-            if no_limits == "inf":
-                max_tokens = None
-            else:
-                max_tokens = Coin.from_str(spend_limit)
+            spend_limit = to_real_coins(testnet, auth.spendLimit)
+            return SendAuthorization(spend_limit)
 
-            if allow_list_tla:
-                address = [
-                    testnet.validators[state.validators.index(tla_id)].address(
-                        testnet.prefix
-                    )
-                    for tla_id in allow_list_tla
-                ]
-                allow_list = StakeAuthorizationValidators(address)
+        case "delegate" | "undelegate" | "redelegate":
+            authorization_type = STAKING_AUTH_TYPE[auth.authorizationType]
+            logging.debug(f"🔸 auth_type {authorization_type}")
+
+            max_tokens = to_real_coins(testnet, auth.maxTokens)
+
+            addresses = [testnet.val_addr(address, True) for address in auth.validators]
+            if auth.allow:
+                allow_list = StakeAuthorizationValidators(addresses)
+                deny_list = None
             else:
                 allow_list = None
-            if deny_list_tla:
-                address = [
-                    testnet.validators[state.validators.index(tla_id)].address(
-                        testnet.prefix
-                    )
-                    for tla_id in deny_list_tla
-                ]
-                deny_list = StakeAuthorizationValidators(address)
-            else:
-                deny_list = None
-            authorization = StakeAuthorization(
+                deny_list = StakeAuthorizationValidators(addresses)
+            logging.debug(f"🔸 allow_list {allow_list}")
+            logging.debug(f"🔸 deny_list {deny_list}")
+
+            return StakeAuthorization(
                 authorization_type, max_tokens, allow_list, deny_list
             )
 
-    match exp_time:
-        case "past":
-            expiration = datetime.now() - timedelta(seconds=100)
-        case "future":
-            expiration = datetime.now() + timedelta(seconds=100)
-        case "EXPIRE_SOON":
-            expiration = datetime.now() + timedelta(seconds=10)
-        case "infinite":
-            # terra.py client requires a concrete timestamp
-            expiration = datetime.now() + timedelta(seconds=10000)
-
-    return AuthorizationGrant(authorization, to_isoformat(expiration))
+        case other:
+            msg = MSG_TYPE[other]
+            return GenericAuthorization(msg)
 
 
-Identifiers = ["A", "B", "C"]
-Validators = ["X", "Y", "Z"]
+def show_result(result: TxResponse, expectedResponse: model.Response):
+    if result.code == 0:
+        logging.info("Status: Successful\n")
+    else:
+        logging.info("Status: Error")
+        logging.info(f"\tcode: {result.code}")
+        logging.info(f"\tlog:  {result.raw_log}\n")
+
+    logging.debug("📌 result:", result)
+
+    to_text = lambda ok: "OK" if ok else "FAIL"
+    result_ok = result.code == 0
+    logging.debug(
+        f"📌 expected {to_text(expectedResponse.ok)}"
+        f" (with error: {expectedResponse.error}), got {to_text(result_ok)}"
+    )
 
 
-# Mirel's traces use empty string for init step
-@step("")
-def init(testnet, state):
-    print("Step: init")
+@step("no-event")
+def init(testnet: Testnet):
+    logging.info("🔶 Step: init")
 
-    state.accounts = list(Identifiers)
-    state.validators = list(Validators)
+    logging.info(f"model accounts: {model.accounts}")
+    logging.info(f"model validators: {model.validators}")
 
-    # testnet is configured at this step
-    testnet.n_account = len(Identifiers)
-    testnet.n_validator = len(Validators)
+    testnet.set_accounts(model.accounts)
+    testnet.set_validators(model.validators)
     testnet.verbose = True
 
-    # variables in the initial TLA state can be used to dynamically configure a testnet
+    logging.info(f"Starting tesnet...")
+    # testnet.oneshot()
+    testnet.prepare()
+    logging.info(f"..")
+    testnet.spinup()
+    logging.info(f"Waiting to be ready...")
+    with TmEventSubscribe({"tm.event": "NewBlock"}):
+        logging.info("Status: Testnet launched\n")
 
-    # testnet is started from this point
-    testnet.oneshot()
+
+@step("request-grant")
+def request_grant(
+    testnet: Testnet,
+    # event: model.MsgGrant,
+    event: model.Event,
+    expectedResponse: model.Response,
+):
+    logging.info("🔶 Step: request grant")
+    assert event.type == "request-grant"
+
+    granter = testnet.acc_addr(event.granter)
+    grantee = testnet.acc_addr(event.grantee)
+    logging.info(f"‣ granter: {event.granter} ({granter})")
+    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
+    logging.info(f"‣ grant.authorization: {unmunchify(event.grant.authorization)}")
+    logging.info(f"‣ grant.expirationTime: {event.grant.expirationTime}")
+
+    grant = to_real_grant(testnet, event.grant)
+    logging.debug(f"‣ grant: ${grant}")
+
+    msg = MsgGrantAuthorization(granter, grantee, grant)
+    logging.debug(f"‣ msg: ${msg}")
+
+    result = testnet.broadcast_transaction(
+        event.granter, msg, gas=200000, fee_amount=20000
+    )
+    show_result(result, expectedResponse)
+
     time.sleep(10)
 
 
-@step("give grant")
-def give_grant(testnet, state, action_taken, outcome_status):
-    print("Step: give grant")
+@step("request-revoke")
+def request_revoke(
+    testnet: Testnet,
+    # event: model.MsgRevoke,
+    event: model.Event,
+    expectedResponse: model.Response,
+):
+    logging.info("🔶 Step: revoke grant")
+    assert event.type == "request-revoke"
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
+    granter = testnet.acc_addr(event.granter)
+    grantee = testnet.acc_addr(event.grantee)
+    msg_type_url = MSG_TYPE[event.msgTypeUrl]
+    logging.info(f"‣ granter: {event.granter} ({granter})")
+    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
+    logging.info(f"‣ msgTypeUrl: {event.msgTypeUrl} ({msg_type_url})")
 
-    # prepare transaction
-
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
-
-    grant = create_give_grant_auth(
-        testnet,
-        state,
-        action_taken.grant.sdk_message_type,
-        action_taken.grant_payload.authorization_logic,
-        f"{int(action_taken.grant_payload.limit)}{testnet.denom}",
-        action_taken.grant_payload.special_value,
-        action_taken.grant_payload.allow_list,
-        action_taken.grant_payload.deny_list,
-        action_taken.grant.expiration_time,
-    )
-
-    msg = MsgGrantAuthorization(granter, grantee, grant)
-
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
-    )
-
-    granter_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[granter_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
-    )
-
-    tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
-    )
-
-    result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
-            status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
-            outcome_status,
-            status(result.code == 0),
-        )
-    )
-
-    time.sleep(5)
-
-
-@step("expire grant")
-def expire_grant(testnet, state, action_taken, active_grants, outcome_status):
-    print("Step: expire grant")
-
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
-
-    if len(active_grants) > 0:
-        for active_grant, active_grant_detail in active_grants.items():
-            if (
-                active_grant.grantee == action_taken.grant.grantee
-                and active_grant.granter == action_taken.grant.granter
-                and active_grant.sdk_message_type == action_taken.grant.sdk_message_type
-            ):
-                exp_grant_authorization_logic = active_grant_detail.authorization_logic
-                exp_grant_allow_list = active_grant_detail.allow_list
-                exp_grant_deny_list = active_grant_detail.deny_list
-                exp_grant_spend_limit = (
-                    f"{int(active_grant_detail.limit)}{testnet.denom}"
-                )
-                exp_grant_no_limits = active_grants[active_grant].special_value
-                break
-
-        # prepare transaction
-
-        grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-        granter = testnet.accounts[granter_id].address(testnet.prefix)
-
-        grant = create_give_grant_auth(
-            testnet,
-            state,
-            action_taken.grant.sdk_message_type,
-            exp_grant_authorization_logic,
-            exp_grant_spend_limit,
-            exp_grant_no_limits,
-            exp_grant_allow_list,
-            exp_grant_deny_list,
-            "EXPIRE_SOON",
-        )
-
-        msg = MsgGrantAuthorization(granter, grantee, grant)
-
-        rest_endpoint = testnet.get_validator_port(0, "lcd")
-        lcdclient = LCDClient(
-            url=rest_endpoint,
-            chain_id=testnet.chain_id,
-            gas_prices=f"10{testnet.denom}",
-            gas_adjustment=0.1,
-        )
-
-        granter_wallet = lcdclient.wallet(
-            MnemonicKey(
-                mnemonic=testnet.accounts[granter_id].mnemonic,
-                coin_type=testnet.coin_type,
-                prefix=testnet.prefix,
-            )
-        )
-
-        tx = granter_wallet.create_and_sign_tx(
-            CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
-        )
-
-        result = lcdclient.tx.broadcast(tx)
-
-        print("[MSG]", msg)
-        print("[RES]", result)
-        print(
-            "[CMP] Expected {} ({}), Got {}".format(
-                status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
-                outcome_status,
-                status(result.code == 0),
-            )
-        )
-
-        time.sleep(5)
-
-        # this sleep is to wait for the grant expiration
-        time.sleep(10)
-
-
-@step("revoke grant")
-def revoke_grant(testnet, state, action_taken, outcome_status):
-    print("Step: revoke grant")
-
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
-
-    # prepare transaction
-
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
-
-    msg_type_url = MSG_TYPE[action_taken.grant.sdk_message_type]
     msg = MsgRevokeAuthorization(granter, grantee, msg_type_url)
+    logging.debug(f"‣ msg: ${msg}")
 
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
+    result = testnet.broadcast_transaction(
+        event.granter, msg, gas=200000, fee_amount=20000
     )
 
-    granter_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[granter_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
-    )
-
-    tx = granter_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
-    )
-
-    result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
-            status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
-            outcome_status,
-            status(result.code == 0),
-        )
-    )
-
-    time.sleep(5)
+    show_result(result, expectedResponse)
+    time.sleep(10)
 
 
-@step("execute grant")
-def execute_grant(testnet, state, action_taken, outcome_status):
-    print("Step: execute grant")
+@step("request-execute")
+def request_execute(
+    testnet: Testnet,
+    # event: model.MsgExec,
+    event: model.Event,
+    expectedResponse: model.Response,
+):
+    logging.debug("🔶 Step: execute grant")
+    assert event.type == "request-execute"
 
-    grantee_id = state.accounts.index(action_taken.grant.grantee)
-    granter_id = state.accounts.index(action_taken.grant.granter)
-    for e in range(len(state.accounts)):
-        if e not in [grantee_id, granter_id]:
-            receiver_id = e
+    grantee = testnet.acc_addr(event.grantee)
+    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
 
-    validator_id = 0
-    for e in range(len(state.validators)):
-        if e not in [validator_id]:
-            dst_validator_id = e
+    # there's only one exec message in this model
+    sdk_msg = event.msg
+    logging.info(f"‣ sdk msg: {sdk_msg}")
 
-    # prepare transaction
+    granter = testnet.acc_addr(sdk_msg.signer)
+    logging.info(f"‣ sdk msg granter: {granter}")
+    amount = to_real_coins(testnet, sdk_msg.content.amount)
 
-    grantee = testnet.accounts[grantee_id].address(testnet.prefix)
-    granter = testnet.accounts[granter_id].address(testnet.prefix)
-    receiver = testnet.accounts[receiver_id].address(testnet.prefix)
-
-    validator = testnet.validators[validator_id].validator_address(testnet.prefix)
-    dst_validator = testnet.validators[dst_validator_id].validator_address(
-        testnet.prefix
-    )
-
-    amount = f"{int(action_taken.exec_message.amount)}{testnet.denom}"
-
-    match action_taken.exec_message.message_type:
-        case "msg_delegate":
-            exec_msg = MsgDelegate(granter, validator, amount)
-        case "msg_send":
-            exec_msg = MsgSend(granter, receiver, amount)
-        case "msg_undelegate":
-            exec_msg = MsgUndelegate(granter, validator, amount)
-        case "msg_redelegate":
-            exec_msg = MsgBeginRedelegate(granter, validator, dst_validator, amount)
+    match sdk_msg.content.typeUrl:
+        case "send":
+            exec_msg = MsgSend(
+                from_address=testnet.val_addr(event.msg.content.fromAddress, True),
+                to_address=testnet.val_addr(event.msg.content.toAddress, True),
+                amount=amount,
+            )
+        case "delegate":
+            exec_msg = MsgDelegate(
+                delegator_address=granter,
+                validator_address=testnet.val_addr(
+                    event.msg.content.validatorAddress, True
+                ),
+                amount=amount,
+            )
+        case "undelegate":
+            exec_msg = MsgUndelegate(
+                delegator_address=granter,
+                validator_address=testnet.val_addr(
+                    event.msg.content.validatorAddress, True
+                ),
+                amount=amount,
+            )
+        case "redelegate":
+            exec_msg = MsgBeginRedelegate(
+                delegator_address=granter,
+                validator_src_address=testnet.val_addr(
+                    event.msg.content.validatorSrcAddress, True
+                ),
+                validator_dst_address=testnet.val_addr(
+                    event.msg.content.validatorDstAddress, True
+                ),
+                amount=amount,
+            )
         case "msg_alpha":
+            # TODO: ??
             pass
 
-    msg = MsgExecAuthorized(grantee, [exec_msg])
+    msg = MsgExecAuthorized(grantee=grantee, msgs=[exec_msg])
+    logging.debug(f"‣ msg: ${msg}")
 
-    rest_endpoint = testnet.get_validator_port(0, "lcd")
-    lcdclient = LCDClient(
-        url=rest_endpoint,
-        chain_id=testnet.chain_id,
-        gas_prices=f"10{testnet.denom}",
-        gas_adjustment=0.1,
+    result = testnet.broadcast_transaction(
+        sdk_msg.signer, msg, gas=200000, fee_amount=20000
     )
+    show_result(result, expectedResponse)
 
-    grantee_wallet = lcdclient.wallet(
-        MnemonicKey(
-            mnemonic=testnet.accounts[grantee_id].mnemonic,
-            coin_type=testnet.coin_type,
-            prefix=testnet.prefix,
-        )
+    time.sleep(10)
+
+
+@step("expire")
+def expire(
+    testnet: Testnet,
+    # event: model.ExpireEvent,
+    event: model.Event,
+    grantStore: model.GrantStore,
+    expectedResponse: model.Response,
+):
+    logging.info("🔶 Step: expire grant")
+    assert event.type == "expire"
+
+    granter = testnet.acc_addr(event.grantId.granter)
+    grantee = testnet.acc_addr(event.grantId.grantee)
+    msg_type_url = MSG_TYPE[event.grantId.msgTypeUrl]
+    logging.info(f"‣ granter: {event.grantId.granter} ({granter})")
+    logging.info(f"‣ grantee: {event.grantId.grantee} ({grantee})")
+    logging.info(f"‣ msgTypeUrl: {event.grantId.msgTypeUrl} ({msg_type_url})")
+
+    grant = model.get_grant(grantStore, event.grantId)
+    if grant.expirationTime != "none":
+        grant.expirationTime = model.ExpirationTime.expire_soon.name
+    logging.info(f"‣ grant': {grant}")
+
+    msg = MsgGrantAuthorization(granter, grantee, grant)
+    logging.debug(f"‣ msg: ${msg}")
+
+    result = testnet.broadcast_transaction(
+        event.grantId.granter, msg, gas=200000, fee_amount=20000
     )
+    show_result(result, expectedResponse)
 
-    tx = grantee_wallet.create_and_sign_tx(
-        CreateTxOptions(msgs=[msg], fee=Fee(20000000, f"2000000{testnet.denom}"))
-    )
-
-    result = lcdclient.tx.broadcast(tx)
-
-    print("[MSG]", msg)
-    print("[RES]", result)
-    print(
-        "[CMP] Expected {} ({}), Got {}".format(
-            status(outcome_status not in AUTHZ_FAILURE_OUTCOME),
-            outcome_status,
-            status(result.code == 0),
-        )
-    )
-
+    time.sleep(10)
+    # this sleep is to wait for the grant expiration
     time.sleep(5)

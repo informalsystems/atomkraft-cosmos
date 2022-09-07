@@ -7,7 +7,7 @@ authors = ["Ranadeep Biswas <mail@rnbguy.at>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 grpclib = "^0.4.3"
-atomkraft = "^0.0.9"
+atomkraft = "^0.0.10"
 
 [tool.poetry.dev-dependencies]
 

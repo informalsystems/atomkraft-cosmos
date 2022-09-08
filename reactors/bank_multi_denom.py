@@ -60,6 +60,8 @@ def transfer(testnet: Testnet, action, balances, outcome):
         stub = QueryStub(channel)
         for e_acc in balances:
             result = asyncio.run(stub.all_balances(address=testnet.acc_addr(e_acc)))
-            assert balances[e_acc].toDict() == {
-                e.denom: int(e.amount) for e in result.balances
-            }
+
+            observed = {e.denom: int(e.amount) for e in result.balances}
+
+            for e_denom in balances[e_acc]:
+                assert balances[e_acc][e_denom] == observed.get(e_denom, 0)

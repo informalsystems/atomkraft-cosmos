@@ -1,0 +1,624 @@
+{
+  "#meta": {
+    "format": "ITF",
+    "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
+    "description": "Created by Apalache on Wed Sep 07 19:09:38 CEST 2022"
+  },
+  "params": [
+    "Validators",
+    "Coins",
+    "NoMaxCoins",
+    "Accounts"
+  ],
+  "vars": [
+    "numRequests",
+    "grantStore",
+    "event",
+    "expectedResponse"
+  ],
+  "states": [
+    {
+      "#meta": {
+        "index": 0
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "type": "no-event"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "no-response"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      },
+      "numRequests": 0
+    },
+    {
+      "#meta": {
+        "index": 1
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allowList": {
+              "#set": [
+                "a1"
+              ]
+            },
+            "authorizationType": "send",
+            "spendLimit": 1
+          },
+          "expirationTime": "past"
+        },
+        "grantee": "a2",
+        "granter": "a3",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "authorization-expired",
+        "ok": false,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      },
+      "numRequests": 1
+    },
+    {
+      "#meta": {
+        "index": 2
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allowList": {
+              "#set": [
+                "a1",
+                "a3"
+              ]
+            },
+            "authorizationType": "send",
+            "spendLimit": 1
+          },
+          "expirationTime": "future"
+        },
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a1",
+                    "a3"
+                  ]
+                },
+                "authorizationType": "send",
+                "spendLimit": 1
+              },
+              "expirationTime": "future"
+            }
+          ]
+        ]
+      },
+      "numRequests": 2
+    },
+    {
+      "#meta": {
+        "index": 3
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "authorizationType": "redelegate",
+            "maxTokens": -99,
+            "validators": {
+              "#set": [
+                "v2"
+              ]
+            }
+          },
+          "expirationTime": "future"
+        },
+        "grantee": "a2",
+        "granter": "a3",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a1",
+                    "a3"
+                  ]
+                },
+                "authorizationType": "send",
+                "spendLimit": 1
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": -99,
+                "validators": {
+                  "#set": [
+                    "v2"
+                  ]
+                }
+              },
+              "expirationTime": "future"
+            }
+          ]
+        ]
+      },
+      "numRequests": 3
+    },
+    {
+      "#meta": {
+        "index": 4
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "authorizationType": "redelegate",
+            "maxTokens": 0,
+            "validators": {
+              "#set": [
+                "v2",
+                "v3"
+              ]
+            }
+          },
+          "expirationTime": "none"
+        },
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a1",
+                    "a3"
+                  ]
+                },
+                "authorizationType": "send",
+                "spendLimit": 1
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": -99,
+                "validators": {
+                  "#set": [
+                    "v2"
+                  ]
+                }
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": 0,
+                "validators": {
+                  "#set": [
+                    "v2",
+                    "v3"
+                  ]
+                }
+              },
+              "expirationTime": "none"
+            }
+          ]
+        ]
+      },
+      "numRequests": 4
+    },
+    {
+      "#meta": {
+        "index": 5
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "authorizationType": "delegate",
+            "maxTokens": 1,
+            "validators": {
+              "#set": [
+                "v1",
+                "v2",
+                "v3"
+              ]
+            }
+          },
+          "expirationTime": "past"
+        },
+        "grantee": "a2",
+        "granter": "a1",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "authorization-expired",
+        "ok": false,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a1",
+                    "a3"
+                  ]
+                },
+                "authorizationType": "send",
+                "spendLimit": 1
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": -99,
+                "validators": {
+                  "#set": [
+                    "v2"
+                  ]
+                }
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": 0,
+                "validators": {
+                  "#set": [
+                    "v2",
+                    "v3"
+                  ]
+                }
+              },
+              "expirationTime": "none"
+            }
+          ]
+        ]
+      },
+      "numRequests": 5
+    },
+    {
+      "#meta": {
+        "index": 6
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "authorizationType": "redelegate"
+          },
+          "expirationTime": "past"
+        },
+        "grantee": "a3",
+        "granter": "a2",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "authorization-expired",
+        "ok": false,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": -99,
+                "validators": {
+                  "#set": [
+                    "v2"
+                  ]
+                }
+              },
+              "expirationTime": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "authorizationType": "redelegate",
+                "maxTokens": 0,
+                "validators": {
+                  "#set": [
+                    "v2",
+                    "v3"
+                  ]
+                }
+              },
+              "expirationTime": "none"
+            }
+          ],
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a1",
+                    "a3"
+                  ]
+                },
+                "authorizationType": "send",
+                "spendLimit": 1
+              },
+              "expirationTime": "future"
+            }
+          ]
+        ]
+      },
+      "numRequests": 6
+    }
+  ]
+}

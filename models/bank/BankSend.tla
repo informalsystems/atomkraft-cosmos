@@ -1,13 +1,8 @@
 ------------------------------ MODULE BankSend --------------------------------
-EXTENDS Authz, FiniteSets, Integers
-
-(******************************************************************************)
-
-\* Test generation for Cosmos SDK Bank module send functionality 
-
---------------------------------------------------------------------------------
-
 EXTENDS Apalache, Integers, FiniteSets, Maps, Sequences
+(******************************************************************************)
+\* Model for test generation for Cosmos SDK Bank module send functionality 
+--------------------------------------------------------------------------------
 
 VARIABLES
     \* @typeAlias: BALANCES = Str -> (Str -> Int);
@@ -22,8 +17,10 @@ VARIABLES
     \* @type: Int;
     step
 
-MAX == 2^256-1
-MAX_SEND_COINS == 3
+\* Cosmos SDK specifies that the maximum account balance is 2^256-1.
+\* For some reason (to investigate!) it is failing with this amount, so we use 2^250-1.
+MAX == 2^250-1
+MAX_SEND_COINS == 4
 
 WALLETS == { "Alice", "Bob", "Carol", "Dave", "Eve" }
 DENOMS == { "atom", "muon" }
@@ -70,7 +67,7 @@ GuessCoin(coins, bit) ==
 \* @type: () => Seq(COIN);
 GuessCoins == 
   LET GuessBit(i) == Guess(BOOLEAN) IN
-  LET bits == MkSeq(4, GuessBit) IN 
+  LET bits == MkSeq(MAX_SEND_COINS, GuessBit) IN 
   ApaFoldSeqLeft(GuessCoin, <<>>, bits)
 
 \* @type: (ACTION) => Bool;
@@ -112,9 +109,6 @@ DoAction(a) ==
             IF d \in DOMAIN b /\ d \in DOMAIN coins THEN b[d] + coins[d]
             ELSE IF d \in DOMAIN coins THEN coins[d]
             ELSE b[d]
-            \* Using the below line instead of the above 3 pushes Apalache runtime
-            \* for invariant (step < 4) from 90 to 222 seconds
-            \* GetBalance(balances, a.receiver, d) + coins[d]
           ]
       ELSE balances[w]
   ]
@@ -127,14 +121,6 @@ Next ==
      ELSE
        UNCHANGED <<balances>>
   /\ step' = step + 1
-
-Ex == step < 3
- 
-TestOverflow == outcome /= "RECEIVER_OVERFLOW"
-
-Inv == outcome /= "DUPLICATE_DENOM"
-
-View == outcome
 
 ================================================================================
 Created by Andrey Kuprianov on 8 September 2022

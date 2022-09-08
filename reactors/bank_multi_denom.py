@@ -54,7 +54,7 @@ def transfer(testnet: Testnet, action, balances, outcome):
             logging.info(f"Exception: {e}")
         else:
             raise e
-    logging.info(f"Excepted: {outcome}\n")
+    logging.info(f"Expected: {outcome}\n")
 
     with closing(testnet.get_grpc_channel()) as channel:
         stub = QueryStub(channel)

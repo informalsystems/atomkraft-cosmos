@@ -18,7 +18,7 @@ from terra_sdk.core.authz import (
 )
 
 
-def show_result(result: TxResponse, expectedResponse: model.Response):
+def show_result(result: TxResponse, expected: model.Response):
     if result.code == 0:
         logging.info(f"Status: Successful")
     else:
@@ -27,17 +27,12 @@ def show_result(result: TxResponse, expectedResponse: model.Response):
         logging.info(f"\tlog:  {result.raw_log}\n")
 
     to_text = lambda ok: "OK" if ok else "FAIL"
-    logging.info(
-        f"Expected {to_text(expectedResponse.ok)}, "
-        f"with error: {expectedResponse.error}\n"
-    )
+    err_str = f"with error: {expected.error}" if not expected.error else ""
+    logging.info(f"Expected {to_text(expected.ok)} ${err_str}\n")
 
 
 def check_result(result: TxResponse, expectedResponse: model.Response):
     assert (result.code == 0) == expectedResponse.ok
-
-
-WAIT_TIME = 0
 
 
 @step("no-event")
@@ -46,12 +41,10 @@ def init(testnet: Testnet):
 
     logging.info(f"model accounts: {model.accounts}")
     logging.info(f"model validators: {model.validators}")
-
     testnet.set_accounts(model.accounts)
     testnet.set_validators(model.validators)
     testnet.verbose = True
 
-    # testnet.oneshot()
     logging.info(f"Preparing testnet...")
     start_time = timer()
     testnet.prepare()
@@ -94,10 +87,9 @@ def request_grant(
     result = testnet.broadcast_transaction(
         event.granter, msg, gas=200000, fee_amount=20000
     )
+
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
-
-    time.sleep(WAIT_TIME)
 
 
 @step("request-revoke")
@@ -126,8 +118,6 @@ def request_revoke(
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
 
-    time.sleep(WAIT_TIME)
-
 
 @step("request-execute")
 def request_execute(
@@ -141,7 +131,7 @@ def request_execute(
     grantee = testnet.acc_addr(event.grantee)
     logging.info(f"‣ grantee: {event.grantee} ({grantee})")
 
-    # there's only one exec message in this model
+    # there's only one exec message in the current models
     sdk_msg = event.msg
     logging.info(f"‣ sdk msg: {unmunchify(sdk_msg)}")
 
@@ -150,13 +140,14 @@ def request_execute(
     msg = MsgExecAuthorized(grantee=grantee, msgs=[exec_msg])
     logging.info(f"‣ msg: ${msg}")
 
-    result = testnet.broadcast_transaction(
-        sdk_msg.signer, msg, gas=200000, fee_amount=20000
-    )
-    show_result(result, expectedResponse)
-    check_result(result, expectedResponse)
-
-    time.sleep(WAIT_TIME)
+    try:
+        result = testnet.broadcast_transaction(
+            event.grantee, msg, gas=200000, fee_amount=20000
+        )
+        show_result(result, expectedResponse)
+        check_result(result, expectedResponse)
+    except UnicodeDecodeError as e:
+        logging.error(f"Failed to send message: {e}")
 
 
 @step("expire")
@@ -190,8 +181,6 @@ def expire(
     )
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
-
-    time.sleep(WAIT_TIME)
 
     # this sleep is to wait for the grant expiration
     time.sleep(model.EXPIRES_SOON_TIME)

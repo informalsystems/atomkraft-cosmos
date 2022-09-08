@@ -34,7 +34,7 @@ TestThreeSteps == step = 3
 TestSuccess      == outcome = "SUCCESS"
 TestDuplicate    == outcome = "DUPLICATE_DENOM"
 TestNotPositive  == outcome = "AMOUNT_NOT_POSITIVE"
-TestInsifficient == outcome = "INSUFFICIENT_FUNDS"
+TestInsufficient == outcome = "INSUFFICIENT_FUNDS"
 TestOverflow     == outcome = "RECEIVER_OVERFLOW"
 
 \* Let's say that now we want to focus on the actions: ActionView requires that actions taken are different. 
@@ -47,7 +47,7 @@ TestOverflow     == outcome = "RECEIVER_OVERFLOW"
 \* In TLA+ this can be done easily: you refer to the next step using primes (') notation;
 \* e.g. balances' refers to the wallet balances in the next execution step.
 
-\* In the BankSend model there are these variables:
+\* In the BankSend model there are these state variables:
 \* - balances: a map from wallet names to their balances; each balance is a map from denomination to amount
 \* - action: action taken; for "send" action it contains sender, receiver, and coins that are being sent
 \* - outcome: the expected outcome of the action taken (see above)
@@ -74,7 +74,23 @@ TestInsufficientSuccess ==
     /\ outcome' = "SUCCESS"
 
 
+(******************************************************************************)
+\* Finally, you can describe the shape of a multi-step execution trace as a whole.
+\* This is the feature specific to our model checker Apalache; please see
+\* https://apalache.informal.systems/docs/apalache/principles/invariants.html#trace-invariants
+\* With this approach, a test assertion as an operator over a sequence of states.
+
+\* How about requiring a trace with at least 4 different outcomes?
+\* @type: Seq(STATE) => Bool;
+TestFourOutcomes(trace) ==
+  LET outcomes == { trace[s].outcome : s \in DOMAIN trace \ {1} } IN 
+  Cardinality(outcomes) >= 4
+
+
+
+
 ================================================================================
 Created by Andrey Kuprianov on 8 September 2022
- 
- 
+
+
+TODO: The test assertion TestFourOutcomes fails; see the issue: https://github.com/informalsystems/atomkraft/issues/145

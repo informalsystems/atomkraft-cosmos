@@ -80,11 +80,12 @@ CallGrant(msgGrant) ==
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
+\* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
 CallRevoke(msgRevoke) == 
-    IF ~ HasGrant(grantIdOfRevoke(msgRevoke)) THEN
-        [type: "response-revoke", ok: FALSE, error: "grant-not-found"]
+    IF ~ HasGrant(grantIdOfMsgRevoke(msgRevoke)) THEN
+        [type |-> "response-revoke", ok |-> FALSE, error |-> "grant-not-found"]
     ELSE
-        [type: "response-revoke", ok: TRUE, error: "none"]
+        [type |-> "response-revoke", ok |-> TRUE, error |-> "none"]
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
@@ -175,9 +176,10 @@ RequestGrant(granter, grantee, grant) ==
     /\ event' = msg
 
 \* https://github.com/cosmos/cosmos-sdk/blob/e09516f4795c637ab12b30bf732ce5d86da78424/x/authz/keeper/keeper.go#L204
-DeleteGrant(condition) ==
+\* @type: (GRANT_ID, Bool) => Bool;
+DeleteGrant(grantId, condition) ==
     IF condition THEN
-        grantStore' = MapRemove(grantStore, g)
+        grantStore' = MapRemove(grantStore, grantId)
     ELSE 
         UNCHANGED grantStore
 
@@ -186,13 +188,13 @@ DeleteGrant(condition) ==
 (******************************************************************************)
 \* @type: (ACCOUNT, ACCOUNT, MSG_TYPE_URL) => Bool;
 RequestRevoke(granter, grantee, msgTypeUrl) == 
-    LET g == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
-    /\ IsValid(g)
-    /\ HasGrant(g)
+    LET grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
+    /\ IsValid(grantId)
+    /\ HasGrant(grantId)
     /\ LET msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
         /\ event' = msg
         /\ LET response == CallRevoke(msg) IN
-            /\ DeleteGrant(response.ok)
+            /\ DeleteGrant(grantId, response.ok)
             /\ expectedResponse' = response
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
@@ -200,12 +202,12 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
 PostProcessExec(grantee, msg, acceptResponse) == 
     LET 
         \* @type: GRANT_ID;
-        g == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
+        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
     IN
     IF acceptResponse.updated # NoUpdate THEN
-        grantStore' = [grantStore EXCEPT ![g].authorization = acceptResponse.updated]
+        grantStore' = [grantStore EXCEPT ![grantId].authorization = acceptResponse.updated]
     ELSE 
-        DeleteGrant(acceptResponse.delete)
+        DeleteGrant(grantId, acceptResponse.delete)
 
 (******************************************************************************)
 (* Request to execute a message on behalf of a grantee.                       *)

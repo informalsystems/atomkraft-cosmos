@@ -43,8 +43,10 @@ grantIdOfMsgRevoke(msg) == [
 (******************************************************************************)
 (* Messages to be executed, such as Send messages or Stake messages. The content
 of a message depends on the implementation of the authorization logic. A signer
-of the message corresponds to the granter of the authorization. A message
-implements an Authorization interface (methods MsgTypeURL and Accept). *)
+of the message corresponds to the granter of the authorization. An SDK message
+may contain multiple signers, but authz accepts messages with just one.  A
+message implements an Authorization interface (methods MsgTypeURL and 
+Accept). *)
 (******************************************************************************)
 \* @typeAlias: SDK_MSG = [signer: ACCOUNT, content: SDK_MSG_CONTENT];
 \* @type: Set(SDK_MSG);
@@ -69,11 +71,11 @@ MsgExec == [
     msg: SdkMsgs
 ]
 
-\* @typeAlias: EVENT = [g: GRANT_ID, type: Str];
-\* @type: Set(EVENT);
+\* @typeAlias: EXPIRE_EVENT = [grantId: GRANT_ID, type: Str];
+\* @type: Set(EXPIRE_EVENT);
 ExpireEvents == [type: {"expire"}, grantId: ValidGrantIds]
 
-\* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msgs: Set(SDK_MSG), type: Str];
+\* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
 \* @type: Set(REQUEST_MSG);
 RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 

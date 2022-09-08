@@ -28,7 +28,15 @@ ConstInit ==
 
 --------------------------------------------------------------------------------
 
-\* @type: <<GRANT_ID -> GRANT>>;
-View == <<grantStore>>
+\* @type: <<Str>>;
+View == <<event.type>>
+
+EventTypes == {"request-grant", "request-revoke", "request-execute", "expire"}
+
+\* @type: <<Bool, Bool>>;
+View2 == <<
+    event.type \in EventTypes, 
+    event.type # "expire" /\ event.grantee \in Accounts
+    >>
 
 ================================================================================

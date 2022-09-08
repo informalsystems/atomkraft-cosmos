@@ -50,30 +50,58 @@ NotRevokeSuccess == ~ RevokeSuccess
 --------------------------------------------------------------------------------
 \* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
 \* @type: Seq(TRACE) => Bool;
-ExpireRevokeFailure(trace) ==
-    \E i, j \in DOMAIN trace: j = i + 1 /\
+ExpireSuccess(trace) ==
+    \E i \in DOMAIN trace: trace[i].event.type = "expire"
+
+NotExpireSuccess(trace) == ~ ExpireSuccess(trace)
+
+\* @type: Seq(TRACE) => Bool;
+ExpireRevoke(trace) ==
+    \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-revoke" 
+        \* /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
+
+NotExpireRevoke(trace) == ~ ExpireRevoke(trace)
+
+\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
+\* @type: Seq(TRACE) => Bool;
+ExpireRevokeFailure(trace) ==
+    \E i, j \in DOMAIN trace: i < j /\
+        LET state1 == trace[i] IN 
+        LET state2 == trace[j] IN
+        /\ state1.event.type = "expire"
+        /\ state2.event.type = "request-revoke" 
+        /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
         /\ state2.expectedResponse.ok = FALSE
 
 NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
 
-\* @type: Seq(TRACE) => Bool;
-ExpireRevokeFailureSameGrant(trace) ==
-    \E i, j \in DOMAIN trace: j = i + 1 /\
-        LET state1 == trace[i] IN 
-        LET state2 == trace[j] IN
-        /\ state1.event.type = "expire"
-        /\ state2.event.type = "request-revoke" 
-        /\ state2.expectedResponse.ok = FALSE
-        /\ state1.event.grantId = grantIdOfMsgRevoke(state2.event)
-
-NotExpireRevokeFailureSameGrant(trace) == ~ ExpireRevokeFailureSameGrant(trace)
+--------------------------------------------------------------------------------
+\* @type: (MSG_EXEC) => GRANT_ID;
+grantIdOfMsgExecute(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.msg.signer,
+    msgTypeUrl |-> msg.msg.content.authorizationType
+]
 
 \* @type: Seq(TRACE) => Bool;
 GrantExpireExec(trace) ==
+    \E i, j, k \in DOMAIN trace: i < j /\ j < k /\
+        LET state1 == trace[i] IN 
+        LET state2 == trace[j] IN
+        LET state3 == trace[k] IN
+        /\ state1.event.type = "request-grant"
+        /\ state2.event.type = "expire"
+        /\ state3.event.type = "request-execute" 
+        /\ grantIdOfMsgGrant(state1.event) = state2.event.grantId
+        /\ state2.event.grantId = grantIdOfMsgExecute(state1.event)
+
+
+\* @type: Seq(TRACE) => Bool;
+GrantExpireExec2(trace) ==
     LET 
         state1 == trace[1] 
         g1 == grantIdOfMsgGrant(state1.event)

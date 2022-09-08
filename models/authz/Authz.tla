@@ -13,6 +13,7 @@ VARIABLES
                 \* module in the server, used to store mappings from grant 
                 \* triples to authorizations.
     
+    \* @typeAlias: EVENT = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, grantId: GRANT_ID, type: Str];
     \* @type: EVENT;
     event,
 
@@ -80,14 +81,17 @@ CallGrant(msgGrant) ==
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
 CallRevoke(msgRevoke) == 
-    CHOOSE response \in MsgRevokeResponses: response.ok
+    IF ~ HasGrant(grantIdOfRevoke(msgRevoke)) THEN
+        [type: "response-revoke", ok: FALSE, error: "grant-not-found"]
+    ELSE
+        [type: "response-revoke", ok: TRUE, error: "none"]
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
 \* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
-        granter == msg.signer \* Actually, granter is the first of the list of signers.
+        granter == msg.signer \* An SDK message may contain multiple signers; but authz accepts messages with just one.
         grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl]
     IN
     IF granter = grantee THEN 
@@ -170,6 +174,13 @@ RequestGrant(granter, grantee, grant) ==
         /\ expectedResponse' = response
     /\ event' = msg
 
+\* https://github.com/cosmos/cosmos-sdk/blob/e09516f4795c637ab12b30bf732ce5d86da78424/x/authz/keeper/keeper.go#L204
+DeleteGrant(condition) ==
+    IF condition THEN
+        grantStore' = MapRemove(grantStore, g)
+    ELSE 
+        UNCHANGED grantStore
+
 (******************************************************************************)
 (* Request to revoke a grant.                                                 *)
 (******************************************************************************)
@@ -181,10 +192,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
     /\ LET msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
         /\ event' = msg
         /\ LET response == CallRevoke(msg) IN
-            /\ IF response.ok THEN
-                    grantStore' = MapRemove(grantStore, g)
-                ELSE 
-                    UNCHANGED grantStore
+            /\ DeleteGrant(response.ok)
             /\ expectedResponse' = response
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
@@ -194,12 +202,10 @@ PostProcessExec(grantee, msg, acceptResponse) ==
         \* @type: GRANT_ID;
         g == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
     IN
-    IF acceptResponse.delete THEN
-        grantStore' = MapRemove(grantStore, g)
-    ELSE IF acceptResponse.updated # NoUpdate THEN
+    IF acceptResponse.updated # NoUpdate THEN
         grantStore' = [grantStore EXCEPT ![g].authorization = acceptResponse.updated]
-    ELSE
-        UNCHANGED <<grantStore>>
+    ELSE 
+        DeleteGrant(acceptResponse.delete)
 
 (******************************************************************************)
 (* Request to execute a message on behalf of a grantee.                       *)

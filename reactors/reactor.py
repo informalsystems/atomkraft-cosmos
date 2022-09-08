@@ -176,10 +176,11 @@ def expire(
     logging.info(f"‣ grantee: {event.grantId.grantee} ({grantee})")
     logging.info(f"‣ msgTypeUrl: {event.grantId.msgTypeUrl} ({msg_type_url})")
 
-    grant = model.get_grant(grantStore, event.grantId)
-    if grant.expirationTime != "none":
-        grant.expirationTime = model.ExpirationTime.expire_soon.name
-    logging.info(f"‣ grant': {grant}")
+    model_grant = model.get_grant(grantStore, event.grantId)
+    if model_grant.expirationTime != "none":
+        model_grant.expirationTime = model.ExpirationTime.expire_soon.name
+    logging.info(f"‣ grant': {model_grant}")
+    grant = to_real_grant(testnet, model_grant)
 
     msg = MsgGrantAuthorization(granter, grantee, grant)
     logging.debug(f"‣ msg: ${msg}")

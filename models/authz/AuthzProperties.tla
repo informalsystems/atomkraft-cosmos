@@ -55,6 +55,20 @@ ExpireSuccess(trace) ==
 
 NotExpireSuccess(trace) == ~ ExpireSuccess(trace)
 
+--------------------------------------------------------------------------------
+\* @type: Seq(TRACE) => Bool;
+ExpireExecute(trace) ==
+    \E i, j \in DOMAIN trace: i < j /\
+        LET state1 == trace[i] IN 
+        LET state2 == trace[j] IN
+        /\ state1.event.type = "expire"
+        /\ state2.event.type = "request-execute" 
+        /\ state1.event.grantId = grantIdOfMsgExecute(state2.event)
+
+NotExpireExecute(trace) == ~ ExpireExecute(trace)
+
+--------------------------------------------------------------------------------
+
 \* @type: Seq(TRACE) => Bool;
 ExpireRevoke(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
@@ -80,25 +94,19 @@ ExpireRevokeFailure(trace) ==
 NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
 
 --------------------------------------------------------------------------------
-\* @type: (MSG_EXEC) => GRANT_ID;
-grantIdOfMsgExecute(msg) == [
-    grantee |-> msg.grantee,
-    granter |-> msg.msg.signer,
-    msgTypeUrl |-> msg.msg.content.authorizationType
-]
-
 \* @type: Seq(TRACE) => Bool;
 GrantExpireExec(trace) ==
-    \E i, j, k \in DOMAIN trace: i < j /\ j < k /\
-        LET state1 == trace[i] IN 
-        LET state2 == trace[j] IN
-        LET state3 == trace[k] IN
-        /\ state1.event.type = "request-grant"
-        /\ state2.event.type = "expire"
-        /\ state3.event.type = "request-execute" 
-        /\ grantIdOfMsgGrant(state1.event) = state2.event.grantId
-        /\ state2.event.grantId = grantIdOfMsgExecute(state1.event)
-
+    \E i, j, k \in DOMAIN trace: 
+        /\ i < j 
+        /\ j < k 
+        /\  LET state1 == trace[i] IN 
+            LET state2 == trace[j] IN
+            LET state3 == trace[k] IN
+            /\ state1.event.type = "request-grant"
+            /\ state2.event.type = "expire"
+            /\ state3.event.type = "request-execute" 
+            /\ grantIdOfMsgGrant(state1.event) = state2.event.grantId
+            /\ state2.event.grantId = grantIdOfMsgExecute(state1.event)
 
 \* @type: Seq(TRACE) => Bool;
 GrantExpireExec2(trace) ==

@@ -71,6 +71,13 @@ MsgExec == [
     msg: SdkMsgs
 ]
 
+\* @type: (MSG_EXEC) => GRANT_ID;
+grantIdOfMsgExecute(msgExec) == [
+    grantee |-> msgExec.grantee,
+    granter |-> msgExec.msg.signer,
+    msgTypeUrl |-> msgExec.msg.content.typeUrl
+]
+
 \* @typeAlias: EXPIRE_EVENT = [grantId: GRANT_ID, type: Str];
 \* @type: Set(EXPIRE_EVENT);
 ExpireEvents == [type: {"expire"}, grantId: ValidGrantIds]

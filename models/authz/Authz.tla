@@ -263,6 +263,7 @@ NextWithValidArguments ==
 
 Next == 
     \/ NextWithValidArguments
+    \* \/ NextWithInvalidArguments
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsgs: 

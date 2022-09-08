@@ -134,9 +134,3 @@ dmypy.json
 # Apalache
 _apalache-out/
 *_TTrace_*.tla
-
-.atomkraft/nodes
-.atomkraft/validator_nodes
-cosmos-sdk/
-
-reports/

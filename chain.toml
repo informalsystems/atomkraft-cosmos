@@ -1,16 +1,13 @@
 chain_id = "cosmoshub-4"
 validators = 3
 accounts = 2
-binary = "../cosmos-sdk/build/simd"
-# binary = "../../cosmos/cosmos-sdk/build/simd"
-# binary = "../../cosmos/gaia/build/gaiad"
+binary = "./cosmos-sdk/build/simd"
 hrp_prefix = "cosmos"
 denom = "stake"
-# denom = "uatom"
 coin_type = 118
 
 [config_node.app]
-minimum-gas-prices = "0.10stake"
+minimum-gas-prices = "0stake"
 api = { enable = true, swagger = true, enabled-unsafe-cors = true }
 rosetta = { enable = false }
 

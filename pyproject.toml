@@ -12,9 +12,6 @@ authors = [
 [tool.poetry.dependencies]
 python = "^3.10"
 atomkraft = "^0.0.10"
-# atomkraft = { path = "../atomkraft/", develop = false }
-terra-sdk = {git = "https://github.com/informalsystems/terra.py", rev = "poetry"}
-terra-proto = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.8.0", allow-prereleases = true}

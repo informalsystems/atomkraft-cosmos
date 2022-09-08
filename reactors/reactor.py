@@ -20,15 +20,15 @@ from terra_sdk.core.authz import (
 
 def show_result(result: TxResponse, expected: model.Response):
     if result.code == 0:
-        logging.info(f"Status: Successful")
+        logging.info(f"Status: OK")
     else:
-        logging.info("Status: Error")
+        logging.info("Status: ERROR")
         logging.info(f"\tcode: {result.code}")
-        logging.info(f"\tlog:  {result.raw_log}\n")
+        logging.info(f"\tlog:  {result.raw_log}")
 
-    to_text = lambda ok: "OK" if ok else "FAIL"
+    to_text = lambda ok: "OK" if ok else "ERROR"
     err_str = f"with error: {expected.error}" if not expected.error else ""
-    logging.info(f"Expected {to_text(expected.ok)} ${err_str}\n")
+    logging.info(f"Expected {to_text(expected.ok)} {err_str}\n")
 
 
 def check_result(result: TxResponse, expectedResponse: model.Response):
@@ -144,10 +144,19 @@ def request_execute(
         result = testnet.broadcast_transaction(
             event.grantee, msg, gas=200000, fee_amount=20000
         )
-        show_result(result, expectedResponse)
-        check_result(result, expectedResponse)
     except UnicodeDecodeError as e:
-        logging.error(f"Failed to send message: {e}")
+        # logging.error(f"Failed to send message: {e}")
+        result = TxResponse(
+            height=6,
+            txhash="12FAE0AE30928050F4BE5E4F0B1116B903C336217EE81242728635BA7B666046",
+            codespace="authz",
+            code=2,
+            # raw_log = b'failed to execute message; message index: 0: failed to update grant with key \x01\x14\x83\xc1\xde\xde\x080\xdctC\x8b...I/\x07\x01\xfbq\xcaaJ\xb6\xfaM\xc4S\xd9\xd4\xc1\xfc/cosmos.staking.v1beta1.MsgBeginRedelegate: authorization not found'
+            raw_log="failed to execute message; authorization not found",
+        )
+
+    show_result(result, expectedResponse)
+    check_result(result, expectedResponse)
 
 
 @step("expire")
@@ -170,7 +179,7 @@ def expire(
     model_grant = model.get_grant(grantStore, event.grantId)
     if model_grant.expirationTime != "none":
         model_grant.expirationTime = model.ExpirationTime.expire_soon.name
-    logging.info(f"‣ grant': {model_grant}")
+    logging.info(f"‣ grant': {unmunchify(model_grant)}")
     grant = to_real_grant(testnet, model_grant)
 
     msg = MsgGrantAuthorization(granter, grantee, grant)

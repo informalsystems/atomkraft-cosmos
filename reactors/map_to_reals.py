@@ -106,9 +106,15 @@ def to_real_validators(testnet: Testnet, validators: model.Validators):
 def to_real_auth(testnet: Testnet, auth: model.Authorization):
     match auth.authorizationType:
         case "send":
-            return to_real_send_auth(testnet, auth)
+            if 'spendLimit' in auth:
+                return to_real_send_auth(testnet, auth)
+            else:
+                return to_real_generic_auth(auth)
         case "delegate" | "undelegate" | "redelegate":
-            return to_real_stake_auth(testnet, auth)
+            if 'validators' in auth:
+                return to_real_stake_auth(testnet, auth)
+            else:
+                return to_real_generic_auth(auth)
         case "generic":
             return to_real_generic_auth(auth)
 

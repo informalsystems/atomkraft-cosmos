@@ -28,7 +28,7 @@ def show_result(result: TxResponse, expected: model.Response):
 
     to_text = lambda ok: "OK" if ok else "ERROR"
     err_str = f"with error: {expected.error}" if not expected.error else ""
-    logging.info(f"Expected {to_text(expected.ok)} {err_str}\n")
+    logging.info(f"Expected: {to_text(expected.ok)} {err_str}\n")
 
 
 def check_result(result: TxResponse, expectedResponse: model.Response):

@@ -1,5 +1,5 @@
 --------------------------- MODULE AuthzProperties -----------------------------
-EXTENDS Authz, FiniteSets, Integers
+EXTENDS Authz, FiniteSets, Integers, Sequences
 
 (******************************************************************************)
 
@@ -64,6 +64,7 @@ ExpireExecute(trace) ==
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-execute" 
         /\ state1.event.grantId = grantIdOfMsgExecute(state2.event)
+        /\ Len(trace) = 10
 
 NotExpireExecute(trace) == ~ ExpireExecute(trace)
 
@@ -76,9 +77,11 @@ ExpireRevoke(trace) ==
         LET state2 == trace[j] IN
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-revoke" 
-        \* /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
+        /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
 
 NotExpireRevoke(trace) == ~ ExpireRevoke(trace)
+
+--------------------------------------------------------------------------------
 
 \* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
 \* @type: Seq(TRACE) => Bool;

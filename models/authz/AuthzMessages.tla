@@ -1,6 +1,7 @@
------------------------------ MODULE GrantMessages -----------------------------
+----------------------------- MODULE AuthzMessages -----------------------------
 (******************************************************************************)
-
+(* Authz messages as defined in                                               *)
+(*    https://github.com/cosmos/cosmos-sdk/blob/main/proto/cosmos/authz/v1beta1/tx.proto *)
 (******************************************************************************)
 EXTENDS Grants
 

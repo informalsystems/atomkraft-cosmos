@@ -5,7 +5,7 @@ Official documentation: https://docs.cosmos.network/v0.46/modules/authz/
 ADR: https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-030-authz-module.md
 *)
 (******************************************************************************)
-EXTENDS GrantMessages, Maps, Integers
+EXTENDS AuthzMessages, Maps, Integers
 
 VARIABLES
     \* @type: GRANT_ID -> GRANT;  

@@ -22,12 +22,12 @@ VARIABLES
 
 -------------------------------------------------------------------------------
 \* @type: (GRANT_ID) => Bool;
-HasGrant(g) == g \in DOMAIN grantStore
+HasGrant(grantId) == grantId \in DOMAIN grantStore
 
 \* @type: (GRANT_ID) => Bool;
-IsExpired(g) == 
-    /\ HasGrant(g)
-    /\ grantStore[g].expirationTime = "past"
+IsExpired(grantId) == 
+    /\ HasGrant(grantId)
+    /\ grantStore[grantId].expirationTime = "past"
 
 --------------------------------------------------------------------------------
 AcceptErrors == {
@@ -165,8 +165,6 @@ RequestGrant(granter, grantee, grant) ==
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
         grantId == grantIdOfMsgGrant(msg)
     IN
-    /\ IsValid(grantId)
-    /\ ~ HasGrant(grantId) \/ IsExpired(grantId)
     /\ LET response == CallGrant(msg) IN
         /\ IF response.ok THEN
                 grantStore' = MapPut(grantStore, grantId, grant)
@@ -188,14 +186,14 @@ DeleteGrant(grantId, condition) ==
 (******************************************************************************)
 \* @type: (ACCOUNT, ACCOUNT, MSG_TYPE_URL) => Bool;
 RequestRevoke(granter, grantee, msgTypeUrl) == 
-    LET grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
-    /\ IsValid(grantId)
-    /\ HasGrant(grantId)
-    /\ LET msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] IN
-        /\ event' = msg
-        /\ LET response == CallRevoke(msg) IN
-            /\ DeleteGrant(grantId, response.ok)
-            /\ expectedResponse' = response
+    LET 
+        msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] 
+        response == CallRevoke(msg) 
+        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl]
+    IN
+    /\ event' = msg
+    /\ expectedResponse' = response
+    /\ DeleteGrant(grantId, response.ok)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/4eec00f9899fef9a2ea3f937ac960ee97b2d7b18/x/authz/keeper/keeper.go#L99
 \* @type: (ACCOUNT, SDK_MSG, ACCEPT_RESPONSE) => Bool;
@@ -239,9 +237,7 @@ Expire(grantId) ==
     /\ expectedResponse' = NoResponse
 
 --------------------------------------------------------------------------------
-\* We keep action RequestExec separated from the other actions to be able to 
-\* check properties on grants without executing them. 
-NextWithInvalidArguments == 
+NextAllowInvalidArguments == 
     \/ \E granter, grantee \in Accounts, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
     \/ \E grantId \in GrantIds: 
@@ -249,7 +245,7 @@ NextWithInvalidArguments ==
     \/ \E grantId \in ValidGrantIds: 
         Expire(grantId)
 
-NextWithValidArguments == 
+NextOnlyWithValidArguments == 
     \/ \E granter, grantee \in Accounts, grant \in Grants: 
         /\ granter # grantee
         /\ grant.expirationTime # "past"
@@ -261,9 +257,11 @@ NextWithValidArguments ==
     \/ \E grantId \in ValidGrantIds: 
         Expire(grantId)
 
+\* We keep action RequestExec separated from the other actions to be able to 
+\* check properties on grants without executing them. 
 Next == 
-    \/ NextWithValidArguments
-    \* \/ NextWithInvalidArguments
+    \* \/ NextOnlyWithValidArguments
+    \/ NextAllowInvalidArguments
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsgs: 

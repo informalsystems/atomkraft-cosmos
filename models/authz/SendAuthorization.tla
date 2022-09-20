@@ -43,10 +43,10 @@ SdkMsgContent ==
 \* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
-\* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL, spendLimit: COINS];
+\* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL, spendLimit: COINS];
 \* @type: Set(AUTH);
 Authorization == [
-    authorizationType: MsgTypeUrls, \* Not present in the code.
+    type: {"send-authorization"},
     
     \* Terra SDK: "spend limit must be positive" (error code=10)
     spendLimit: { c \in Coins : c > 0 },
@@ -54,14 +54,26 @@ Authorization == [
     \* Specifies an optional list of addresses to whom the grantee can send
     \* tokens on behalf of the granter. If omitted, any recipient is allowed.
     \* Since cosmos-sdk 0.47
-    allowList: SUBSET Accounts
+    allowList: SUBSET Accounts,
+
+    msgTypeUrl: MsgTypeUrls \* Not present in the code.
+]
+
+\* Apalache does not like the expression:
+\*      [auth EXCEPT !.spendLimit = auth.spendLimit - amount]
+\* @type: (AUTH, COINS) => AUTH;
+UpdateSpendLimit(auth, spendLimit) == [
+    type |-> "stake-authorization",
+    spendLimit |-> spendLimit, 
+    allowList |-> auth.allowList, 
+    msgTypeUrl |-> auth.msgTypeUrl
 ]
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == 
-    auth.authorizationType
+    auth.msgTypeUrl
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
@@ -77,7 +89,13 @@ Accept(auth, msg) ==
         accept |-> amount <= auth.spendLimit,
         delete |-> amount = auth.spendLimit,
         updated |-> IF amount < auth.spendLimit
-            THEN [type |-> "SendAuthorization", spendLimit |-> auth.spendLimit - amount]
+            \* UpdateSpendLimit(auth, auth.spendLimit - amount)
+            THEN [
+                    type |-> "stake-authorization",
+                    spendLimit |-> auth.spendLimit - amount, 
+                    allowList |-> auth.allowList, 
+                    msgTypeUrl |-> auth.msgTypeUrl
+                ]
             ELSE auth,
         error |-> IF amount <= auth.spendLimit THEN "none" ELSE "insufficient-amount"
     ]

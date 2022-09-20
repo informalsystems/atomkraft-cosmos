@@ -1,77 +1,85 @@
 --------------------------- MODULE AuthzProperties -----------------------------
 EXTENDS Authz, FiniteSets, Integers, Sequences
 
+--------------------------------------------------------------------------------
+(******************************************************************************)
+(* The following scenarios are described by properties on a single state.     *)
 (******************************************************************************)
 
-\** Apalache typecheker fails:
-\* \* Filter the function `f` by the values in its range. For entries k |-> v, keep
-\* \* only the entries where `g(v)` is true.
-\* \* @ type: ((a -> b), (b -> Bool)) => (a -> b);
-\* FilterRange(f, g(_)) ==
-\*     LET dom == {x \in DOMAIN f: g(f[x])} IN
-\*     [x \in dom |-> f[x]]
-
-\* \* @type: Int;
-\* NumActiveGrants == 
-\*     LET activeStore == FilterRange(grantStore, 
-\*         LAMBDA grant: grant # NoGrant /\ grant.expirationTime # "past") 
-\*     IN
-\*     Cardinality(activeStore)
-
---------------------------------------------------------------------------------
-
-GrantSuccess ==
+\* States in which a valid grant was requested (valid meaning that granter is 
+\* different than grantee), and the request succeeds. 
+RequestGrantSucceeds ==
     /\ event.type = "request-grant"
     /\ event.granter # event.grantee
     /\ expectedResponse.ok = TRUE
 
-NotGrantSuccess == ~ GrantSuccess
+NotRequestGrantSucceeds == ~ RequestGrantSucceeds
 
-GrantFailedSameAccounts ==
+\* States in which a grant was requested and the request failed because granter
+\* and grantee are the same. 
+RequestGrantFailsOnSameAccount ==
     /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
     /\ expectedResponse.error = "granter-equal-grantee"
 
-NotGrantFailedSameAccounts == ~ GrantFailedSameAccounts
+NotRequestGrantFailsOnSameAccount == ~ RequestGrantFailsOnSameAccount
 
-GrantFailedAuthExpired ==
+\* States in which a grant was requested and the request failed because
+\* the grant's authorization expired.
+RequestGrantFailsOnExpiredAuth ==
     /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
     /\ expectedResponse.error = "authorization-expired"
 
-NotGrantFailedAuthExpired == ~ GrantFailedAuthExpired
+NotRequestGrantFailsOnExpiredAuth == ~ RequestGrantFailsOnExpiredAuth
 
-RevokeSuccess ==
+\* States in which a request to revoke a grant succeeds.
+RevokeSucceeds ==
     /\ event.type = "request-revoke"
     /\ expectedResponse.ok = TRUE
 
-NotRevokeSuccess == ~ RevokeSuccess
+NotRevokeSucceeds == ~ RevokeSucceeds
+
+RevokeNonExistingGrant ==
+    /\ event.type = "request-revoke" 
+    /\ expectedResponse.error = "grant-not-found"
+
+NotRevokeNonExistingGrant == ~ RevokeNonExistingGrant
 
 --------------------------------------------------------------------------------
+(******************************************************************************)
+(* The following scenarios are described by trace properties on more than one *)
+(* state.                                                                     *)
+(******************************************************************************)
+
+\* Traces with a state with an expire event and a subsequent state with an
+\* execute message on the same grant id.
 \* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
 \* @type: Seq(TRACE) => Bool;
-ExpireSuccess(trace) ==
-    \E i \in DOMAIN trace: trace[i].event.type = "expire"
-
-NotExpireSuccess(trace) == ~ ExpireSuccess(trace)
-
---------------------------------------------------------------------------------
-\* @type: Seq(TRACE) => Bool;
-ExpireExecute(trace) ==
+ExpireThenExecute(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-execute" 
         /\ state1.event.grantId = grantIdOfMsgExecute(state2.event)
-        /\ Len(trace) = 10
+        \* /\ Len(trace) = 10
 
-NotExpireExecute(trace) == ~ ExpireExecute(trace)
+NotExpireThenExecute(trace) == ~ ExpireThenExecute(trace)
+
+\* This property on a single state should be the same as the one above. It
+\* implies that before request-execute, there were a request-grant and an expire
+\* event.
+ExecuteExpired ==
+    /\ event.type = "request-execute" 
+    /\ expectedResponse.error = "authorization-expired"
+
+NotExecuteExpired == ~ ExecuteExpired
 
 --------------------------------------------------------------------------------
 
 \* @type: Seq(TRACE) => Bool;
-ExpireRevoke(trace) ==
+ExpireThenRevoke(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
@@ -79,13 +87,13 @@ ExpireRevoke(trace) ==
         /\ state2.event.type = "request-revoke" 
         /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
 
-NotExpireRevoke(trace) == ~ ExpireRevoke(trace)
+NotExpireThenRevoke(trace) == ~ ExpireThenRevoke(trace)
 
 --------------------------------------------------------------------------------
 
 \* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
 \* @type: Seq(TRACE) => Bool;
-ExpireRevokeFailure(trace) ==
+ExpireThenRevokeFails(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
         LET state2 == trace[j] IN
@@ -94,11 +102,11 @@ ExpireRevokeFailure(trace) ==
         /\ state2.event.grantId = grantIdOfMsgRevoke(state1.event)
         /\ state2.expectedResponse.ok = FALSE
 
-NotExpireRevokeFailure(trace) == ~ ExpireRevokeFailure(trace)
+NotExpireThenRevokeFails(trace) == ~ ExpireThenRevokeFails(trace)
 
 --------------------------------------------------------------------------------
 \* @type: Seq(TRACE) => Bool;
-GrantExpireExec(trace) ==
+RequestGrantExpireAndExec(trace) ==
     \E i, j, k \in DOMAIN trace: 
         /\ i < j 
         /\ j < k 
@@ -112,7 +120,7 @@ GrantExpireExec(trace) ==
             /\ state2.event.grantId = grantIdOfMsgExecute(state1.event)
 
 \* @type: Seq(TRACE) => Bool;
-GrantExpireExec2(trace) ==
+RequestGrantExpireAndExec2(trace) ==
     LET 
         state1 == trace[1] 
         g1 == grantIdOfMsgGrant(state1.event)
@@ -134,38 +142,40 @@ GrantExpireExec2(trace) ==
                 msg == CHOOSE m \in state3.event.msgs: TRUE IN
                 g1.msgTypeUrl = msg.content.typeUrl
 
-NotGrantExpireExec(trace) == ~ GrantExpireExec(trace)
+NotRequestGrantExpireAndExec(trace) == ~ RequestGrantExpireAndExec(trace)
 
-\* \* 3. MIREL Test Case: testing grant failures and then successful creation of grant
-\* \* @type: Seq(STATE) => Bool;
-\* GrantFailedFollowedBySuccess(trace) ==    
-\*     \E i \in DOMAIN trace:
-\*         LET state1 == trace[i] IN 
-\*         LET state2 == trace[i+1] IN
-\*         /\ state1.outcome_status \in GRANT_FAILURE_REASONS
-\*         \* /\ state1.outcome_status = GRANT_FAILED
-\*         /\ state2.outcome_status = GRANT_SUCCESS            
-\*         /\ Len(trace) >= i+1
+\* First a request-grant fails, then a request-grant on the same grant id succeeds.
+\* @type: Seq(TRACE) => Bool;
+GrantFailsThenGrantSucceeds(trace) ==    
+    \E i, j \in DOMAIN trace: i < j /\
+        LET state1 == trace[i] IN 
+        LET state2 == trace[j] IN
+        /\ state1.event.type = "request-grant"
+        /\ state1.expectedResponse.ok = FALSE
+        /\ state2.event.type = "request-grant"
+        /\ state2.expectedResponse.ok = TRUE
+        /\ grantIdOfMsgGrant(state1.event) = grantIdOfMsgGrant(state2.event)
 
-\* \* 4. MIREL Test Case: testing grant failure, succesful creating grant and then Revoke
-\* (* <--- *)
-\* \* @type: Seq(STATE) => Bool;
-\* GrantFailuresPreconditionsNotMetFollowedBySuccess(trace) ==
-\*     \E i \in DOMAIN trace:
-\*         LET state1 ==trace[i] IN 
-\*         LET state2 == trace [j] IN 
-\*         LET state3 == trace [k] IN
-\*         LET grant1 == state1.action_taken.grant IN
-\*         LET grant2 == state2.action_taken.grant IN
-\*         LET grant3 == state3.action_taken.grant IN    
-\*         /\ i < j
-\*         /\ j < k
-\*         /\ state1.outcome_status \in GRANT_FAILURE_REASONS
-\*         /\ state2.outcome_status = GRANT_SUCCESS
-\*         /\ state3.outcome_status = REVOKE_SUCCESS
-\*         /\ grant1 = grant2
-\*         /\ grant2 = grant3
-\*         /\ Len(trace) >= k
+NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
+
+--------------------------------------------------------------------------------
+(******************************************************************************)
+
+\** Apalache typecheker fails:
+\* \* Filter the function `f` by the values in its range. For entries k |-> v, keep
+\* \* only the entries where `g(v)` is true.
+\* \* @ type: ((a -> b), (b -> Bool)) => (a -> b);
+\* FilterRange(f, g(_)) ==
+\*     LET dom == {x \in DOMAIN f: g(f[x])} IN
+\*     [x \in dom |-> f[x]]
+
+\* \* @type: Int;
+\* NumActiveGrants == 
+\*     LET activeStore == FilterRange(grantStore, 
+\*         LAMBDA grant: grant # NoGrant /\ grant.expirationTime # "past") 
+\*     IN
+\*     Cardinality(activeStore)
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022
+Last modified by Hernán Vanzetto on 20 September 2022

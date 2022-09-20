@@ -50,7 +50,10 @@ Accept). *)
 (******************************************************************************)
 \* @typeAlias: SDK_MSG = [signer: ACCOUNT, content: SDK_MSG_CONTENT];
 \* @type: Set(SDK_MSG);
-SdkMsgs == [signer: Accounts, content: SdkMsgContent]
+SdkMsgs == [
+    signer: Accounts, 
+    content: SdkMsgContent
+]
 
 (******************************************************************************)
 (* MsgExec attempts to execute the provided messages using authorizations
@@ -80,7 +83,10 @@ grantIdOfMsgExecute(msgExec) == [
 
 \* @typeAlias: EXPIRE_EVENT = [grantId: GRANT_ID, type: Str];
 \* @type: Set(EXPIRE_EVENT);
-ExpireEvents == [type: {"expire"}, grantId: ValidGrantIds]
+ExpireEvents == [
+    type: {"expire"}, 
+    grantId: ValidGrantIds
+]
 
 \* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
 \* @type: Set(REQUEST_MSG);

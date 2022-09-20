@@ -41,11 +41,11 @@ SdkMsgContent ==
 
 --------------------------------------------------------------------------------
 MsgTypeURL(auth) ==
-    CASE auth.authorizationType \in Generic!MsgTypeUrls -> 
+    CASE auth.msgTypeUrl \in Generic!MsgTypeUrls -> 
         Generic!MsgTypeURL(auth)
-      [] auth.authorizationType \in Send!MsgTypeUrls -> 
+      [] auth.msgTypeUrl \in Send!MsgTypeUrls -> 
         Send!MsgTypeURL(auth)
-      [] auth.authorizationType \in Stake!MsgTypeUrls -> 
+      [] auth.msgTypeUrl \in Stake!MsgTypeUrls -> 
         Stake!MsgTypeURL(auth)
 
 Accept(auth, msg) ==

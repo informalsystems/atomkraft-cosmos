@@ -79,9 +79,11 @@ MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
-\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, authorizationType: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [  
+    type: {"stake-authorization"},
+
     \* Specifies the maximum amount of tokens can be delegate to a validator. If
     \* it is empty, there is no spend limit and any amount of coins can be
     \* delegated.
@@ -97,7 +99,7 @@ Authorization == [
     allow: BOOLEAN,
 
     \* Specifies one of three authorization types.
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
 ]
 
 \* Apalache does not like the expression:
@@ -105,24 +107,25 @@ Authorization == [
 \* Error message:         
 \*     The specification is malformed: An updated record has more fields than its
 \*     declared type: A record with the inferred type `[allow: Bool,
-\*     authorizationType: Str, maxTokens: Int, type: Str, validators: Set(Str)]`
+\*     msgTypeUrl: Str, maxTokens: Int, type: Str, validators: Set(Str)]`
 \*     has been updated with the key `validators` in an `EXCEPT` expression and the
 \*     updated record has more fields than are specified in its type annotation.
 \*     For details see
 \*     https://apalache.informal.systems/docs/apalache/known-issues.html#updating-records-with-excess-fields
 \* @type: (AUTH, COINS) => AUTH;
 UpdateMaxTokens(auth, maxTokens) == [
+    type |-> "stake-authorization",
     maxTokens |-> maxTokens, 
     validators |-> auth.validators, 
     allow |-> auth.allow, 
-    authorizationType |-> auth.authorizationType
+    msgTypeUrl |-> auth.msgTypeUrl
 ]
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L38
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) ==
-    auth.authorizationType
+    auth.msgTypeUrl
 
 \* @type: (SDK_MSG_CONTENT) => VALIDATOR;
 ValidatorAddressOf(msg) ==

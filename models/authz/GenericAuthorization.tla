@@ -26,13 +26,15 @@ SdkMsgContent == [ typeUrl: MsgTypes ]
 \* GenericAuthorization gives the grantee unrestricted permissions to execute
 \* the provided method on behalf of the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L34
-\* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [
+    type: {"generic-authorization"},
+
     \* In the code this field is called Msg. It's a message type, identified by
     \* its type URL. The authorization grants unrestricted permission to
     \* execute.
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
 ]
 
 --------------------------------------------------------------------------------
@@ -40,7 +42,7 @@ Authorization == [
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L17
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == 
-    auth.authorizationType
+    auth.msgTypeUrl
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L22
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];

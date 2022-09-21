@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import logging
 from typing import List
 from atomkraft.chain import Testnet
-from reactors import model_data as model
+from reactors.authz import model_data as model
 
 from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType
 from terra_sdk.core import authz as terra, staking, bank
@@ -80,7 +80,7 @@ def to_real_grant(
 
 def to_real_generic_auth(auth: model.GenericAuthorization):
     logging.debug("to_real_generic_auth")
-    return terra.GenericAuthorization(msg=MSG_TYPE[auth.authorizationType])
+    return terra.GenericAuthorization(msg=MSG_TYPE[auth.msgTypeUrl])
 
 
 def to_real_send_auth(testnet: Testnet, auth: model.SendAuthorization):
@@ -90,7 +90,7 @@ def to_real_send_auth(testnet: Testnet, auth: model.SendAuthorization):
 def to_real_stake_auth(testnet: Testnet, auth: model.StakeAuthorization):
     validators = to_real_validators(testnet, auth.validators)
     return terra.StakeAuthorization(
-        authorization_type=STAKING_AUTH_TYPE[auth.authorizationType],
+        authorization_type=STAKING_AUTH_TYPE[auth.msgTypeUrl],
         max_tokens=to_real_coin(testnet, auth.maxTokens),
         allow_list=validators if auth.allow else None,
         deny_list=validators if not auth.allow else None,
@@ -104,7 +104,7 @@ def to_real_validators(testnet: Testnet, validators: model.Validators):
 
 # TODO: move to model.Authorization class
 def to_real_auth(testnet: Testnet, auth: model.Authorization):
-    match auth.authorizationType:
+    match auth.msgTypeUrl:
         case "send":
             if 'spendLimit' in auth:
                 return to_real_send_auth(testnet, auth)

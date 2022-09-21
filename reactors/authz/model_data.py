@@ -30,10 +30,10 @@ EXPIRES_SOON_TIME = 5
 
 
 class GenericAuthorization:
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
 
     # def to_real(self):
-    #     return GenericAuthorization(msg=MSG_TYPE[self.authorizationType])
+    #     return GenericAuthorization(msg=MSG_TYPE[self.msgTypeUrl])
 
 
 class GenericSdkMsgContent:
@@ -41,7 +41,7 @@ class GenericSdkMsgContent:
 
 
 class SendAuthorization:
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
     spendLimit: Coins
     allowList: List[Address]
 
@@ -75,12 +75,12 @@ class StakeAuthorization:
     maxTokens: Optional[Coins]
     validators: List[Address]
     allow: bool
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
 
     # def to_real(self, testnet: Testnet):
     #     validators = validators_to_real(self.validators, testnet)
     #     return StakeAuthorization(
-    #         authorization_type=STAKING_AUTH_TYPE[self.authorizationType],
+    #         authorization_type=STAKING_AUTH_TYPE[self.msgTypeUrl],
     #         max_tokens=to_real_coins(testnet, self.maxTokens),
     #         allow_list=validators if self.allow else None,
     #         deny_list=validators if not self.allow else None,
@@ -116,7 +116,7 @@ Authorization = Union[GenericAuthorization, SendAuthorization, StakeAuthorizatio
 
 # def authorization_to_real(auth: Authorization, testnet: Testnet):
 #     return auth.to_real(testnet)
-# match auth.authorizationType:
+# match auth.msgTypeUrl:
 #     case MsgTypeUrls.send:
 #         # auth: SendAuthorization = auth
 #         return auth.to_real(testnet)

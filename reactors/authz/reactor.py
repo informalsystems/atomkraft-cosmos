@@ -7,7 +7,7 @@ from atomkraft.chain import Testnet
 from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
-from reactors import model_data as model
+from reactors.authz import model_data as model
 from .map_to_reals import to_real_grant, MSG_TYPE, to_real_exec_msg
 
 from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
@@ -20,15 +20,16 @@ from terra_sdk.core.authz import (
 
 def show_result(result: TxResponse, expected: model.Response):
     if result.code == 0:
-        logging.info(f"Status: OK")
+        logging.info(f"Status:\tOK")
     else:
-        logging.info("Status: ERROR")
-        logging.info(f"\tcode: {result.code}")
-        logging.info(f"\tlog:  {result.raw_log}")
+        logging.info(f"Status:\tERROR (code: {result.code}, log: {result.raw_log})")
 
-    to_text = lambda ok: "OK" if ok else "ERROR"
-    err_str = f"with error: {expected.error}" if not expected.error else ""
-    logging.info(f"Expected: {to_text(expected.ok)} {err_str}\n")
+    if expected.error == "none":
+        assert expected.ok
+        logging.info(f"Expected:\tOK\n")
+    else:
+        assert not expected.ok
+        logging.info(f"Expected:\tERROR ({expected.error})\n")
 
 
 def check_result(result: TxResponse, expectedResponse: model.Response):

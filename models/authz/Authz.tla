@@ -27,7 +27,7 @@ HasGrant(grantId) == grantId \in DOMAIN grantStore
 \* @type: (GRANT_ID) => Bool;
 IsExpired(grantId) == 
     /\ HasGrant(grantId)
-    /\ grantStore[grantId].expirationTime = "past"
+    /\ grantStore[grantId].expiration = "past"
 
 --------------------------------------------------------------------------------
 AcceptErrors == {
@@ -73,7 +73,7 @@ AcceptResponse == [
 CallGrant(msgGrant) == 
     IF msgGrant.granter = msgGrant.grantee THEN 
         [type |-> "response-grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
-    ELSE IF msgGrant.grant.expirationTime = "past" THEN 
+    ELSE IF msgGrant.grant.expiration = "past" THEN 
         [type |-> "response-grant", ok |-> FALSE, error |-> "authorization-expired"]
     ELSE 
         [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
@@ -93,16 +93,16 @@ CallRevoke(msgRevoke) ==
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
         granter == msg.signer \* An SDK message may contain multiple signers; but authz accepts messages with just one.
-        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl]
+        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
     IN
     IF granter = grantee THEN 
         [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
     ELSE IF ~ HasGrant(grantId) THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
-    ELSE IF grantStore[grantId].expirationTime = "past" THEN 
+    ELSE IF grantStore[grantId].expiration = "past" THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]
     ELSE 
-        Accept(grantStore[grantId].authorization, msg.content)
+        Accept(grantStore[grantId].authorization, msg)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
@@ -200,7 +200,7 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
 PostProcessExec(grantee, msg, acceptResponse) == 
     LET 
         \* @type: GRANT_ID;
-        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.content.typeUrl] 
+        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl] 
     IN
     IF acceptResponse.updated # NoUpdate THEN
         grantStore' = [grantStore EXCEPT ![grantId].authorization = acceptResponse.updated]
@@ -231,8 +231,8 @@ notices that the grant expired, upon running the Execute function). *)
 Expire(grantId) ==
     /\ HasGrant(grantId)
     /\ ~ IsExpired(grantId)
-    /\ grantStore[grantId].expirationTime # "none"
-    /\ grantStore' = [grantStore EXCEPT ![grantId].expirationTime = "past"]
+    /\ grantStore[grantId].expiration # "none"
+    /\ grantStore' = [grantStore EXCEPT ![grantId].expiration = "past"]
     /\ event' = [type |-> "expire", grantId |-> grantId]
     /\ expectedResponse' = NoResponse
 
@@ -248,7 +248,7 @@ NextAllowInvalidArguments ==
 NextOnlyWithValidArguments == 
     \/ \E granter, grantee \in Accounts, grant \in Grants: 
         /\ granter # grantee
-        /\ grant.expirationTime # "past"
+        /\ grant.expiration # "past"
         /\ RequestGrant(granter, grantee, grant)
     \/ \E grantId \in ValidGrantIds: 
         /\ HasGrant(grantId)
@@ -264,7 +264,7 @@ Next ==
     \/ NextAllowInvalidArguments
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. We model execution requests of only one message per call.
-    \/ \E grantee \in Accounts, msg \in SdkMsgs: 
+    \/ \E grantee \in Accounts, msg \in SdkMsg: 
         RequestExec(grantee, msg)
 
 ================================================================================

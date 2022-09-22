@@ -42,21 +42,6 @@ grantIdOfMsgRevoke(msg) == [
 ]
 
 (******************************************************************************)
-(* Messages to be executed, such as Send messages or Stake messages. The content
-of a message depends on the implementation of the authorization logic. A signer
-of the message corresponds to the granter of the authorization. An SDK message
-may contain multiple signers, but authz accepts messages with just one.  A
-message implements an Authorization interface (methods MsgTypeURL and 
-Accept). *)
-(******************************************************************************)
-\* @typeAlias: SDK_MSG = [signer: ACCOUNT, content: SDK_MSG_CONTENT];
-\* @type: Set(SDK_MSG);
-SdkMsgs == [
-    signer: Accounts, 
-    content: SdkMsgContent
-]
-
-(******************************************************************************)
 (* MsgExec attempts to execute the provided messages using authorizations
 granted to the grantee. Each message should have only one signer corresponding
 to the granter of the authorization. *)
@@ -72,14 +57,14 @@ MsgExec == [
     \* Each message must implement an Authorization interface. The x/authz module
     \* will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
     \* triple and validate it.
-    msg: SdkMsgs
+    msg: SdkMsg
 ]
 
 \* @type: (MSG_EXEC) => GRANT_ID;
 grantIdOfMsgExecute(msgExec) == [
     grantee |-> msgExec.grantee,
     granter |-> msgExec.msg.signer,
-    msgTypeUrl |-> msgExec.msg.content.typeUrl
+    msgTypeUrl |-> msgExec.msg.typeUrl
 ]
 
 \* @typeAlias: EXPIRE_EVENT = [grantId: GRANT_ID, type: Str];
@@ -123,7 +108,8 @@ MsgExecResponseErrors == {
     "insufficient-amount",
     "account-not-allowed",
     "validator-not-allowed",
-    "validator-denied"
+    "validator-denied",
+    "invalid-request"
 }
 
 \* @typeAlias: RESPONSE_EXEC = [error: Str, ok: Bool, type: Str];

@@ -28,10 +28,11 @@ MsgTypeUrls == { SEND_TYPE_URL }
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL];
-\* @type: Set(SDK_MSG_CONTENT);
-SdkMsgContent == 
+\* @typeAlias: SDK_MSG = [signer: ACCOUNT, amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL];
+\* @type: Set(SDK_MSG);
+MsgSend ==
     LET Msgs == [
+        signer: Accounts, 
         typeUrl: MsgTypeUrls,
         fromAddress: Accounts,
         toAddress: Accounts,
@@ -77,7 +78,7 @@ MsgTypeURL(auth) ==
 
 \* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG_CONTENT) => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
         \* @type: COINS;
@@ -85,6 +86,8 @@ Accept(auth, msg) ==
     IN
     IF auth.allowList # {} /\ msg.toAddress \notin auth.allowList THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "account-not-allowed"]
+    ELSE IF amount = 0 THEN 
+        [ accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "invalid-request" ]
     ELSE [
         accept |-> amount <= auth.spendLimit,
         delete |-> amount = auth.spendLimit,

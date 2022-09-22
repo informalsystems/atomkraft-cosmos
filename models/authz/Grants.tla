@@ -28,18 +28,6 @@ MsgTypeUrls ==
     Send!MsgTypeUrls \cup 
     Stake!MsgTypeUrls
 
-Authorization == 
-    Generic!Authorization \cup 
-    Send!Authorization \cup 
-    Stake!Authorization
-
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
-SdkMsgContent == 
-    Generic!SdkMsgContent \cup 
-    Send!SdkMsgContent \cup 
-    Stake!SdkMsgContent
-
---------------------------------------------------------------------------------
 MsgTypeURL(auth) ==
     CASE auth.msgTypeUrl \in Generic!MsgTypeUrls -> 
         Generic!MsgTypeURL(auth)
@@ -55,6 +43,29 @@ Accept(auth, msg) ==
         Send!Accept(auth, msg)
       [] msg.typeUrl \in Stake!MsgTypeUrls -> 
         Stake!Accept(auth, msg)
+
+--------------------------------------------------------------------------------
+Authorization == 
+    Generic!Authorization \cup 
+    Send!Authorization \cup 
+    Stake!Authorization
+
+--------------------------------------------------------------------------------
+(******************************************************************************)
+(* Messages to be executed, such as Send messages or Stake messages. The content
+of a message depends on the implementation of the authorization logic. A signer
+of the message corresponds to the granter of the authorization. An SDK message
+may contain multiple signers, but authz accepts messages with just one.  A
+message implements an Authorization interface (methods MsgTypeURL and 
+Accept). *)
+(******************************************************************************)
+\* @typeAlias: SDK_MSG = [signer: ACCOUNT, typeUrl: MSG_TYPE_URL, amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR];
+\* @type: Set(SDK_MSG);
+SdkMsg ==
+    Send!MsgSend \cup 
+    Stake!MsgDelegate \cup 
+    Stake!MsgUndelegate \cup 
+    Stake!MsgBeginRedelegate
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -78,27 +89,25 @@ IsValid(g) == g.granter # g.grantee
 \* @type: Set(GRANT_ID);
 ValidGrantIds == { g \in GrantIds: IsValid(g) }
 
-\* Time when the grant will expire with respect to the moment when the related
-\* event happens. If "none", then the grant doesn't have an expiration time and 
-\* other conditions in the authorization may apply to invalidate it.
-\* @typeAlias: EXPIRATION_TIME = Str;
-\* @type: Set(EXPIRATION_TIME);
-ExpirationTimes == {"past", "future", "none"}
-
 \* Grant gives permissions to execute the provide method with expiration time.
 \* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L74
-\* @typeAlias: GRANT = [authorization: AUTH, expirationTime: EXPIRATION_TIME];
+\* @typeAlias: GRANT = [authorization: AUTH, expiration: Str];
 \* @type: Set(GRANT);
 Grants == [
     authorization: Authorization,
-    expirationTime: ExpirationTimes
+
+    \* Time when the grant will expire with respect to the moment when the
+    \* related event happens. If "none", then the grant doesn't have an 
+    \* expiration time and other conditions in the authorization may apply to 
+    \* invalidate it.
+    expiration: {"past", "future", "none"}
 ]
 
 \* @type: AUTH;
 NoAuthorization == [ type |-> "NoAuthorization" ]
 
 \* @type: GRANT;
-NoGrant == [ authorization |-> NoAuthorization, expirationTime |-> "none" ]
+NoGrant == [ authorization |-> NoAuthorization, expiration |-> "none" ]
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

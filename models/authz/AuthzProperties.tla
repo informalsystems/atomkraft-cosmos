@@ -140,7 +140,7 @@ RequestGrantExpireAndExec2(trace) ==
             /\ LET 
                 \* @type: SDK_MSG;
                 msg == CHOOSE m \in state3.event.msgs: TRUE IN
-                g1.msgTypeUrl = msg.content.typeUrl
+                g1.msgTypeUrl = msg.typeUrl
 
 NotRequestGrantExpireAndExec(trace) == ~ RequestGrantExpireAndExec(trace)
 
@@ -172,7 +172,7 @@ NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
 \* \* @type: Int;
 \* NumActiveGrants == 
 \*     LET activeStore == FilterRange(grantStore, 
-\*         LAMBDA grant: grant # NoGrant /\ grant.expirationTime # "past") 
+\*         LAMBDA grant: grant # NoGrant /\ grant.expiration # "past") 
 \*     IN
 \*     Cardinality(activeStore)
 

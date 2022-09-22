@@ -13,6 +13,9 @@ LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE Integers
 
 CONSTANT
+    \* @typeAlias: ACCOUNT = Str;
+    \* @type: Set(ACCOUNT);
+    Accounts,
     \* @typeAlias: VALIDATOR = Str;
     \* @type: Set(VALIDATOR);
     Validators,
@@ -32,13 +35,14 @@ ASSUME \E min, max \in Int:
 ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 
 \* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
+\* @typeAlias: SDK_MSG = [signer: ACCOUNT, amount: COINS, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L205
-\* @type: Set(SDK_MSG_CONTENT);
+\* @type: Set(SDK_MSG);
 MsgDelegate == [
+    signer: Accounts, 
     typeUrl: { DELEGATE_TYPE_URL },
     delegatorAddress: Validators,
     validatorAddress: Validators,
@@ -48,10 +52,11 @@ MsgDelegate == [
 \* MsgUndelegate defines a SDK message for performing an undelegation from a
 \* delegate and a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L370
-\* @type: Set(SDK_MSG_CONTENT);
+\* @type: Set(SDK_MSG);
 MsgUndelegate == [
+    signer: Accounts, 
     typeUrl: { UNDELEGATE_TYPE_URL},
-    delegatorAddress: Validators,
+    delegatorAddress: Accounts,
     validatorAddress: Validators,
     amount: Coins
 ]
@@ -59,8 +64,9 @@ MsgUndelegate == [
 \* MsgBeginRedelegate defines a SDK message for performing a redelegation of
 \* coins from a delegator and source validator to a destination validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L283
-\* @type: Set(SDK_MSG_CONTENT);
+\* @type: Set(SDK_MSG);
 MsgBeginRedelegate == [
+    signer: Accounts, 
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
     delegatorAddress: Validators,
     validatorSrcAddress: Validators,
@@ -68,12 +74,9 @@ MsgBeginRedelegate == [
     amount: Coins
 ]
 
-\* @type: Set(SDK_MSG_CONTENT);
-SdkMsgContent == MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate
-
 \* Types of messages allowed to be granted permission
 \* @type: Set(MSG_TYPE_URL);
-MsgTypeUrls == { m.typeUrl: m \in SdkMsgContent }
+MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate }
 
 --------------------------------------------------------------------------------
 \* The authorization for delegate/undelegate/redelegate.
@@ -127,7 +130,7 @@ UpdateMaxTokens(auth, maxTokens) == [
 MsgTypeURL(auth) ==
     auth.msgTypeUrl
 
-\* @type: (SDK_MSG_CONTENT) => VALIDATOR;
+\* @type: (SDK_MSG) => VALIDATOR;
 ValidatorAddressOf(msg) ==
     CASE msg.typeUrl = DELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 
@@ -135,7 +138,7 @@ ValidatorAddressOf(msg) ==
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L58
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG_CONTENT) => ACCEPT_RESPONSE;
+\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
         \* @type: COINS;
@@ -149,6 +152,8 @@ Accept(auth, msg) ==
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
     ELSE IF auth.maxTokens = NoMaxCoins THEN 
         [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
+    ELSE IF amount = 0 THEN 
+        [ accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "invalid-request" ]
     ELSE [ 
         accept |-> amount <= auth.maxTokens, 
         delete |-> amount = auth.maxTokens, 

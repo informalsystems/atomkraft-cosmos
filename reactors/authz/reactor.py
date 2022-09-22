@@ -8,14 +8,7 @@ from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
 from reactors.authz import model_data as model
-from .map_to_reals import to_real_grant, MSG_TYPE, to_real_exec_msg
-
 from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
-from terra_sdk.core.authz import (
-    MsgExecAuthorized,
-    MsgGrantAuthorization,
-    MsgRevokeAuthorization,
-)
 
 
 def show_result(result: TxResponse, expected: model.Response):
@@ -32,8 +25,8 @@ def show_result(result: TxResponse, expected: model.Response):
         logging.info(f"Expected:\tERROR ({expected.error})\n")
 
 
-def check_result(result: TxResponse, expectedResponse: model.Response):
-    assert (result.code == 0) == expectedResponse.ok
+def check_result(result: TxResponse, expected: model.Response):
+    assert (result.code == 0) == (expected.error == "none")
 
 
 @step("no-event")
@@ -49,17 +42,17 @@ def init(testnet: Testnet):
     logging.info(f"Preparing testnet...")
     start_time = timer()
     testnet.prepare()
-    logging.info(f"Prapare time: {(timer() - start_time):.2f} seconds")
+    logging.debug(f"Prapare time: {(timer() - start_time):.2f} seconds")
 
-    logging.info(f"Spinup testnet...")
+    logging.info(f"Spining up testnet...")
     start_time = timer()
     testnet.spinup()
-    logging.info(f"Spinup time: {(timer() - start_time):.2f} seconds")
+    logging.debug(f"Spinup time: {(timer() - start_time):.2f} seconds")
 
     logging.info(f"Wait for testnet to be ready...")
     start_time = timer()
     with TmEventSubscribe({"tm.event": "NewBlock"}):
-        logging.info(f"Waiting time: {(timer() - start_time):.2f} seconds")
+        logging.debug(f"Waiting time: {(timer() - start_time):.2f} seconds")
         logging.info("Testnet launched! 🚀\n")
 
 
@@ -71,22 +64,13 @@ def request_grant(
 ):
     logging.info("🔶 Step: request grant")
     assert event.type == "request-grant"
-
-    granter = testnet.acc_addr(event.granter)
-    grantee = testnet.acc_addr(event.grantee)
-    logging.info(f"‣ granter: {event.granter} ({granter})")
-    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
-    logging.info(f"‣ grant.authorization: {unmunchify(event.grant.authorization)}")
-    logging.info(f"‣ grant.expirationTime: {event.grant.expirationTime}")
-
-    grant = to_real_grant(testnet, event.grant)
-    logging.debug(f"‣ grant: ${grant}")
-
-    msg = MsgGrantAuthorization(granter, grantee, grant)
-    logging.debug(f"‣ msg: ${msg}")
+    request = model.MsgGrant(unmunchify(event))
 
     result = testnet.broadcast_transaction(
-        event.granter, msg, gas=200000, fee_amount=20000
+        request.granter,
+        request.to_real(testnet),
+        gas=200000,
+        fee_amount=20000,
     )
 
     show_result(result, expectedResponse)
@@ -101,19 +85,10 @@ def request_revoke(
 ):
     logging.info("🔶 Step: revoke grant")
     assert event.type == "request-revoke"
-
-    granter = testnet.acc_addr(event.granter)
-    grantee = testnet.acc_addr(event.grantee)
-    msg_type_url = MSG_TYPE[event.msgTypeUrl]
-    logging.info(f"‣ granter: {event.granter} ({granter})")
-    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
-    logging.info(f"‣ msgTypeUrl: {event.msgTypeUrl} ({msg_type_url})")
-
-    msg = MsgRevokeAuthorization(granter, grantee, msg_type_url)
-    logging.debug(f"‣ msg: ${msg}")
+    request = model.MsgRevoke(unmunchify(event))
 
     result = testnet.broadcast_transaction(
-        event.granter, msg, gas=200000, fee_amount=20000
+        request.granter, request.to_real(testnet), gas=200000, fee_amount=20000
     )
 
     show_result(result, expectedResponse)
@@ -128,31 +103,20 @@ def request_execute(
 ):
     logging.info("🔶 Step: execute grant")
     assert event.type == "request-execute"
-
-    grantee = testnet.acc_addr(event.grantee)
-    logging.info(f"‣ grantee: {event.grantee} ({grantee})")
-
-    # there's only one exec message in the current models
-    sdk_msg = event.msg
-    logging.info(f"‣ sdk msg: {unmunchify(sdk_msg)}")
-
-    exec_msg = to_real_exec_msg(testnet, sdk_msg)
-    logging.info(f"‣ exec_msg: ${exec_msg}")
-    msg = MsgExecAuthorized(grantee=grantee, msgs=[exec_msg])
-    logging.info(f"‣ msg: ${msg}")
+    request = model.MsgExec(unmunchify(event))
 
     try:
         result = testnet.broadcast_transaction(
-            event.grantee, msg, gas=200000, fee_amount=20000
+            request.grantee, request.to_real(testnet), gas=200000, fee_amount=20000
         )
     except UnicodeDecodeError as e:
-        # logging.error(f"Failed to send message: {e}")
+        # Terra library aborts execution with UnicodeDecodeError: 'utf-8' codec can't decode byte 0x83 in position 85: invalid start byte
+        # Quick hack to fail without halting:
         result = TxResponse(
             height=6,
             txhash="12FAE0AE30928050F4BE5E4F0B1116B903C336217EE81242728635BA7B666046",
             codespace="authz",
             code=2,
-            # raw_log = b'failed to execute message; message index: 0: failed to update grant with key \x01\x14\x83\xc1\xde\xde\x080\xdctC\x8b...I/\x07\x01\xfbq\xcaaJ\xb6\xfaM\xc4S\xd9\xd4\xc1\xfc/cosmos.staking.v1beta1.MsgBeginRedelegate: authorization not found'
             raw_log="failed to execute message; authorization not found",
         )
 
@@ -170,27 +134,32 @@ def expire(
     logging.info("🔶 Step: expire grant")
     assert event.type == "expire"
 
-    granter = testnet.acc_addr(event.grantId.granter)
-    grantee = testnet.acc_addr(event.grantId.grantee)
-    msg_type_url = MSG_TYPE[event.grantId.msgTypeUrl]
-    logging.info(f"‣ granter: {event.grantId.granter} ({granter})")
-    logging.info(f"‣ grantee: {event.grantId.grantee} ({grantee})")
-    logging.info(f"‣ msgTypeUrl: {event.grantId.msgTypeUrl} ({msg_type_url})")
+    # To force a grant to expire, we update the grant with a new expiration time
+    # `model.EXPIRES_SOON_TIME`. This time is small enough that we can wait for
+    # it to pass and thus the grant will expire.
+    grant = model.get_grant(grantStore, event.grantId)
+    if grant.expiration != "none":
+        grant.expiration = model.ExpirationTime.expire_soon.name
+    logging.info(f"‣ grant': {unmunchify(grant)}")
 
-    model_grant = model.get_grant(grantStore, event.grantId)
-    if model_grant.expirationTime != "none":
-        model_grant.expirationTime = model.ExpirationTime.expire_soon.name
-    logging.info(f"‣ grant': {unmunchify(model_grant)}")
-    grant = to_real_grant(testnet, model_grant)
-
-    msg = MsgGrantAuthorization(granter, grantee, grant)
-    logging.debug(f"‣ msg: ${msg}")
+    request_grant_msg = model.MsgGrant(
+        {
+            "type": "request-grant",
+            "granter": event.grantId.granter,
+            "grantee": event.grantId.grantee,
+            "grant": unmunchify(grant),
+        }
+    )
 
     result = testnet.broadcast_transaction(
-        event.grantId.granter, msg, gas=200000, fee_amount=20000
+        event.grantId.granter,
+        request_grant_msg.to_real(testnet),
+        gas=200000,
+        fee_amount=20000,
     )
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
 
-    # this sleep is to wait for the grant expiration
-    time.sleep(model.EXPIRES_SOON_TIME)
+    logging.info("Waiting for the grant to expire...")
+    logging.info(f"Waiting {model.EXPIRES_SOON_TIME} seconds")
+    time.sleep(model.EXPIRES_SOON_TIME + 5)

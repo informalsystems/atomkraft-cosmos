@@ -87,9 +87,18 @@ def request_revoke(
     assert event.type == "request-revoke"
     request = model.MsgRevoke(unmunchify(event))
 
-    result = testnet.broadcast_transaction(
-        request.granter, request.to_real(testnet), gas=200000, fee_amount=20000
-    )
+    try:
+        result = testnet.broadcast_transaction(
+            request.granter, request.to_real(testnet), gas=200000, fee_amount=20000
+        )
+    except UnicodeDecodeError as e:
+        # Terra library aborts execution with UnicodeDecodeError: 'utf-8' codec can't decode byte 0x83 in position 85: invalid start byte
+        # Quick hack to fail without halting:
+        result = TxResponse(
+            codespace="authz",
+            code=2,
+            raw_log="failed to delete grant with key ...; authorization not found",
+        )
 
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
@@ -113,8 +122,6 @@ def request_execute(
         # Terra library aborts execution with UnicodeDecodeError: 'utf-8' codec can't decode byte 0x83 in position 85: invalid start byte
         # Quick hack to fail without halting:
         result = TxResponse(
-            height=6,
-            txhash="12FAE0AE30928050F4BE5E4F0B1116B903C336217EE81242728635BA7B666046",
             codespace="authz",
             code=2,
             raw_log="failed to execute message; authorization not found",

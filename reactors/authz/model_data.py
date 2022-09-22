@@ -55,46 +55,42 @@ def to_real_coins(testnet: Testnet, coins: list[int]):
 class ModelObject:
     def __init__(self, *args, **kwargs):
         if args and len(args) > 0 and isinstance(args[0], dict):
-            print(f"self.__annotations__: {self.__annotations__}")
             for varname, expected_type in self.__annotations__.items():
                 self._assign_type(varname, expected_type, args[0])
         else:
             self.__dict__.update(kwargs)
 
-    def _assign_type(self, varname, expected_type, init_dict):
-        if varname not in init_dict:
-            raise TypeError(f"field '{varname}' not in {init_dict}")
-        print(
-            # f"_assign_type: {varname} |-> {d[varname]} ({vartype.__name__} - {type(d[varname])})"
-            # f"_assign_type: {varname} |-> {d[varname]} ({vartype.__name__})"
-            f"_assign_type: {varname} |-> {init_dict[varname]}"
-        )
-        if expected_type.__class__.__name__ == "EnumMeta":
+    def _assign_type(self, var_name, expected_type, var_values):
+        if var_name not in var_values:
+            raise TypeError(f"Field '{var_name}' not in {var_values}")
+        elif expected_type.__class__.__name__ == "EnumMeta":
             setattr(
-                self, varname, eval(f"{expected_type.__name__}.{init_dict[varname]}")
+                self, var_name, eval(f"{expected_type.__name__}.{var_values[var_name]}")
             )
         elif expected_type.__name__ == "Literal":
-            if init_dict[varname] in expected_type.__args__:
-                setattr(self, varname, init_dict[varname])
+            if var_values[var_name] in expected_type.__args__:
+                setattr(self, var_name, var_values[var_name])
             else:
                 raise TypeError(
-                    f"Could not find a matching type for {varname}={init_dict[varname]} in {expected_type}"
+                    f"Could not find a matching type for {var_name}={var_values[var_name]} in {expected_type}"
                 )
         elif expected_type.__name__ == "Union":
             for t in expected_type.__args__:
                 try:
-                    self._assign_type(varname, t, init_dict)
+                    self._assign_type(var_name, t, var_values)
                     return
                 except:
                     pass
             raise TypeError(
-                f"Could not find a matching type for {varname}={init_dict[varname]} in {expected_type.__args__}"
+                f"Could not find a matching type for {var_name}={var_values[var_name]} in {expected_type.__args__}"
             )
-        elif isinstance(init_dict[varname], (int, str)):
-            setattr(self, varname, init_dict[varname])
+        elif isinstance(var_values[var_name], (int, str)):
+            setattr(self, var_name, var_values[var_name])
         else:
             setattr(
-                self, varname, eval(f"{expected_type.__name__}({init_dict[varname]})")
+                self,
+                var_name,
+                eval(f"{expected_type.__name__}({var_values[var_name]})"),
             )
 
 
@@ -125,6 +121,8 @@ class MsgTypeUrls(Enum):
 
 ################################################################################
 
+EXPIRES_SOON_TIME = 2
+
 
 class ExpirationTime(Enum):
     past = 1
@@ -146,8 +144,6 @@ class ExpirationTime(Enum):
                     datetime.now() + timedelta(seconds=EXPIRES_SOON_TIME)
                 )
 
-
-EXPIRES_SOON_TIME = 3
 
 ################################################################################
 
@@ -314,7 +310,7 @@ class MsgGrant(ModelObject):
         logging.info(f"‣ grantee: {self.grantee} ({grantee})")
 
         grant = self.grant.to_real(testnet)
-        logging.debug(f"‣ grant: ${grant}")
+        logging.debug(f"‣ grant: {grant}")
 
         return MsgGrantAuthorization(granter, grantee, grant)
 
@@ -349,7 +345,7 @@ class MsgExec(ModelObject):
 
         # the current model allows only one exec message
         msg = self.msg.to_real(testnet)
-        logging.info(f"‣ real msg: ${msg}")
+        logging.info(f"‣ real msg: {msg}")
 
         return MsgExecAuthorized(grantee=grantee, msgs=[msg])
 

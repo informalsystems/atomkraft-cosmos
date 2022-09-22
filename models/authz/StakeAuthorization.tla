@@ -34,17 +34,14 @@ ASSUME \E min, max \in Int:
 \* @type: COINS;
 ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 
-\* @typeAlias: MSG_TYPE_URL = Str;
-\* @typeAlias: SDK_MSG = [signer: ACCOUNT, amount: COINS, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
-
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L205
 \* @type: Set(SDK_MSG);
 MsgDelegate == [
-    signer: Accounts, 
     typeUrl: { DELEGATE_TYPE_URL },
-    delegatorAddress: Validators,
+    signer: Accounts, 
+    delegatorAddress: Accounts,
     validatorAddress: Validators,
     amount: Coins
 ]
@@ -54,8 +51,8 @@ MsgDelegate == [
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L370
 \* @type: Set(SDK_MSG);
 MsgUndelegate == [
-    signer: Accounts, 
     typeUrl: { UNDELEGATE_TYPE_URL},
+    signer: Accounts, 
     delegatorAddress: Accounts,
     validatorAddress: Validators,
     amount: Coins
@@ -66,9 +63,9 @@ MsgUndelegate == [
 \* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L283
 \* @type: Set(SDK_MSG);
 MsgBeginRedelegate == [
-    signer: Accounts, 
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
-    delegatorAddress: Validators,
+    signer: Accounts, 
+    delegatorAddress: Accounts,
     validatorSrcAddress: Validators,
     validatorDstAddress: Validators,
     amount: Coins
@@ -150,10 +147,10 @@ Accept(auth, msg) ==
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
     ELSE IF ~ auth.allow /\ validatorAddress \in auth.validators THEN
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
-    ELSE IF auth.maxTokens = NoMaxCoins THEN 
-        [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
     ELSE IF amount = 0 THEN 
         [ accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "invalid-request" ]
+    ELSE IF auth.maxTokens = NoMaxCoins THEN 
+        [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
     ELSE [ 
         accept |-> amount <= auth.maxTokens, 
         delete |-> amount = auth.maxTokens, 

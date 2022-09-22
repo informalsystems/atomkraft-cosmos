@@ -17,7 +17,6 @@ CONSTANT
 \* @type: Set(MSG_TYPE_URL);
 MsgTypeUrls == MsgTypes
 
-\* @typeAlias: SDK_MSG = [signer: ACCOUNT, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG);
 SdkMsg == [
     signer: Accounts, 

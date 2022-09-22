@@ -28,7 +28,6 @@ MsgTypeUrls == { SEND_TYPE_URL }
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
-\* @typeAlias: SDK_MSG = [signer: ACCOUNT, amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL];
 \* @type: Set(SDK_MSG);
 MsgSend ==
     LET Msgs == [

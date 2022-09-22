@@ -1,0 +1,312 @@
+{
+  "#meta": {
+    "format": "ITF",
+    "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
+    "description": "Created by Apalache on Thu Sep 22 23:24:51 CEST 2022"
+  },
+  "params": [
+    "Validators",
+    "Coins",
+    "NoMaxCoins",
+    "Accounts"
+  ],
+  "vars": [
+    "grantStore",
+    "event",
+    "expectedResponse"
+  ],
+  "states": [
+    {
+      "#meta": {
+        "index": 0
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "type": "no-event"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "no-response"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 1
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grantee": "a2",
+        "granter": "a1",
+        "msgTypeUrl": "send",
+        "type": "request-revoke"
+      },
+      "expectedResponse": {
+        "error": "grant-not-found",
+        "ok": false,
+        "type": "response-revoke"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 2
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "maxTokens": 1,
+            "msgTypeUrl": "redelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1",
+                "v2"
+              ]
+            }
+          },
+          "expiration": "future"
+        },
+        "grantee": "a2",
+        "granter": "a3",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2"
+                  ]
+                }
+              },
+              "expiration": "future"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 3
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grantId": {
+          "grantee": "a2",
+          "granter": "a3",
+          "msgTypeUrl": "redelegate"
+        },
+        "type": "expire"
+      },
+      "expectedResponse": {
+        "error": "none",
+        "ok": true,
+        "type": "no-response"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2"
+                  ]
+                }
+              },
+              "expiration": "past"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 4
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grantee": "a2",
+        "msg": {
+          "amount": 1,
+          "delegatorAddress": "a3",
+          "signer": "a3",
+          "typeUrl": "redelegate",
+          "validatorDstAddress": "v2",
+          "validatorSrcAddress": "v1"
+        },
+        "type": "request-execute"
+      },
+      "expectedResponse": {
+        "error": "authorization-expired",
+        "ok": false,
+        "type": "response-execute"
+      },
+      "grantStore": {
+        "#map": [
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2"
+                  ]
+                }
+              },
+              "expiration": "past"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

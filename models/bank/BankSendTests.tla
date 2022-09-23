@@ -16,7 +16,7 @@ EXTENDS BankSend
 \* You can use other views for focusing on other interesting behaviors.
 
 OutcomeView == outcome
-ActionView == outcome
+ActionView == action
 StepView == step
 
 (******************************************************************************)
@@ -82,9 +82,9 @@ TestInsufficientSuccess ==
 
 \* How about requiring a trace with at least 4 different outcomes?
 \* @type: Seq(STATE) => Bool;
-TestFourOutcomes(trace) ==
-  LET outcomes == { trace[s].outcome : s \in DOMAIN trace \ {1} } IN 
-  Cardinality(outcomes) >= 4
+\* TestFourOutcomes(trace) ==
+\*   LET outcomes == { trace[s].outcome : s \in DOMAIN trace \ {1} } IN 
+\*   Cardinality(outcomes) >= 4
 
 
 

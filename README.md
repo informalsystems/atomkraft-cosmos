@@ -98,6 +98,6 @@ If you are interested to
 - contribute to this community effort
 - integrate the standard Cosmos SDK test suite developed here into the CI of your project
 - employ `Atomkraft` for testing your code
-- create a model-based test suite for achieving high coverage of your code with 
+- create a model-based test suite for achieving high coverage of your code
 
 drop us an email to `hello@informal.systems`.

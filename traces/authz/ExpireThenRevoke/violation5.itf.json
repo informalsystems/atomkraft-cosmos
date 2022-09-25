@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Fri Sep 23 17:01:12 CEST 2022"
+    "description": "Created by Apalache on Fri Sep 23 17:04:54 CEST 2022"
   },
   "params": [
     "Validators",
@@ -81,24 +81,56 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 1,
-          "fromAddress": "a2",
-          "signer": "a2",
-          "toAddress": "a1",
-          "typeUrl": "send"
+        "grant": {
+          "authorization": {
+            "allow": true,
+            "maxTokens": 1,
+            "msgTypeUrl": "redelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1",
+                "v2",
+                "v3"
+              ]
+            }
+          },
+          "expiration": "future"
         },
-        "type": "request-execute"
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "grant-not-found",
-        "ok": false,
-        "type": "response-execute"
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
-          
+          [
+            {
+              "grantee": "a1",
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": true,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
+              },
+              "expiration": "future"
+            }
+          ]
         ]
       }
     },
@@ -128,36 +160,41 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "msgTypeUrl": "delegate",
-            "type": "generic-authorization"
-          },
-          "expiration": "future"
+        "grantId": {
+          "grantee": "a1",
+          "granter": "a2",
+          "msgTypeUrl": "redelegate"
         },
-        "grantee": "a1",
-        "granter": "a3",
-        "type": "request-grant"
+        "type": "expire"
       },
       "expectedResponse": {
         "error": "none",
         "ok": true,
-        "type": "response-grant"
+        "type": "no-response"
       },
       "grantStore": {
         "#map": [
           [
             {
               "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "delegate"
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
             },
             {
               "authorization": {
-                "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
+                "allow": true,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
               },
-              "expiration": "future"
+              "expiration": "past"
             }
           ]
         ]
@@ -189,30 +226,43 @@
         ]
       },
       "event": {
-        "grantId": {
-          "grantee": "a1",
-          "granter": "a3",
-          "msgTypeUrl": "delegate"
+        "grantee": "a2",
+        "msg": {
+          "amount": 0,
+          "delegatorAddress": "a2",
+          "signer": "a1",
+          "typeUrl": "redelegate",
+          "validatorDstAddress": "v3",
+          "validatorSrcAddress": "v3"
         },
-        "type": "expire"
+        "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
-        "type": "no-response"
+        "error": "grant-not-found",
+        "ok": false,
+        "type": "response-execute"
       },
       "grantStore": {
         "#map": [
           [
             {
               "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "delegate"
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
             },
             {
               "authorization": {
-                "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
+                "allow": true,
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
               },
               "expiration": "past"
             }
@@ -247,36 +297,18 @@
       },
       "event": {
         "grantee": "a1",
-        "msg": {
-          "amount": 0,
-          "delegatorAddress": "a3",
-          "signer": "a3",
-          "typeUrl": "delegate",
-          "validatorAddress": "v1"
-        },
-        "type": "request-execute"
+        "granter": "a2",
+        "msgTypeUrl": "redelegate",
+        "type": "request-revoke"
       },
       "expectedResponse": {
-        "error": "authorization-expired",
-        "ok": false,
-        "type": "response-execute"
+        "error": "none",
+        "ok": true,
+        "type": "response-revoke"
       },
       "grantStore": {
         "#map": [
-          [
-            {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "delegate"
-            },
-            {
-              "authorization": {
-                "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
-              },
-              "expiration": "past"
-            }
-          ]
+          
         ]
       }
     }

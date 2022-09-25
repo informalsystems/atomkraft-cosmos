@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Fri Sep 23 17:01:12 CEST 2022"
+    "description": "Created by Apalache on Fri Sep 23 17:08:37 CEST 2022"
   },
   "params": [
     "Validators",
@@ -81,20 +81,28 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 1,
-          "fromAddress": "a2",
-          "signer": "a2",
-          "toAddress": "a1",
-          "typeUrl": "send"
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "maxTokens": 0,
+            "msgTypeUrl": "delegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1"
+              ]
+            }
+          },
+          "expiration": "past"
         },
-        "type": "request-execute"
+        "grantee": "a1",
+        "granter": "a3",
+        "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "grant-not-found",
+        "error": "authorization-expired",
         "ok": false,
-        "type": "response-execute"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
@@ -130,8 +138,17 @@
       "event": {
         "grant": {
           "authorization": {
+            "allow": true,
+            "maxTokens": -99,
             "msgTypeUrl": "delegate",
-            "type": "generic-authorization"
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1",
+                "v2",
+                "v3"
+              ]
+            }
           },
           "expiration": "future"
         },
@@ -154,8 +171,17 @@
             },
             {
               "authorization": {
+                "allow": true,
+                "maxTokens": -99,
                 "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
               },
               "expiration": "future"
             }
@@ -189,17 +215,28 @@
         ]
       },
       "event": {
-        "grantId": {
-          "grantee": "a1",
-          "granter": "a3",
-          "msgTypeUrl": "delegate"
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "maxTokens": -99,
+            "msgTypeUrl": "redelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1"
+              ]
+            }
+          },
+          "expiration": "none"
         },
-        "type": "expire"
+        "grantee": "a3",
+        "granter": "a1",
+        "type": "request-grant"
       },
       "expectedResponse": {
         "error": "none",
         "ok": true,
-        "type": "no-response"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
@@ -211,10 +248,40 @@
             },
             {
               "authorization": {
+                "allow": true,
+                "maxTokens": -99,
                 "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
               },
-              "expiration": "past"
+              "expiration": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a3",
+              "granter": "a1",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "maxTokens": -99,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1"
+                  ]
+                }
+              },
+              "expiration": "none"
             }
           ]
         ]
@@ -246,20 +313,28 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 0,
-          "delegatorAddress": "a3",
-          "signer": "a3",
-          "typeUrl": "delegate",
-          "validatorAddress": "v1"
+        "grant": {
+          "authorization": {
+            "allow": true,
+            "maxTokens": 0,
+            "msgTypeUrl": "delegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v2"
+              ]
+            }
+          },
+          "expiration": "past"
         },
-        "type": "request-execute"
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
       },
       "expectedResponse": {
         "error": "authorization-expired",
         "ok": false,
-        "type": "response-execute"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
@@ -271,10 +346,40 @@
             },
             {
               "authorization": {
+                "allow": true,
+                "maxTokens": -99,
                 "msgTypeUrl": "delegate",
-                "type": "generic-authorization"
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1",
+                    "v2",
+                    "v3"
+                  ]
+                }
               },
-              "expiration": "past"
+              "expiration": "future"
+            }
+          ],
+          [
+            {
+              "grantee": "a3",
+              "granter": "a1",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "allow": false,
+                "maxTokens": -99,
+                "msgTypeUrl": "redelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v1"
+                  ]
+                }
+              },
+              "expiration": "none"
             }
           ]
         ]

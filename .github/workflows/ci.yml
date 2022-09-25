@@ -68,5 +68,4 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          atomkraft test trace --trace traces/special1.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
-          atomkraft test trace --trace traces/special2.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
+          atomkraft test trace --path traces/bank/TestSuccess --reactor reactors/bank.py --keypath action.tag

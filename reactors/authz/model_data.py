@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from enum import Enum, unique
 import logging
 from typing import Literal, Optional, Union
-from munch import unmunchify
 
 from atomkraft.chain import Testnet
 from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType

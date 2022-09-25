@@ -32,8 +32,7 @@ atomkraft chain config binary ./cosmos-sdk/build/simd
 ## Run tests
 
 ```sh
-# run tests
-poetry run atomkraft test trace --trace traces/special1.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
-poetry run atomkraft test trace --trace traces/special2.itf.json --reactor reactors/reactor.py --keypath action_taken.action_type
+poetry run atomkraft test trace --trace traces/authz/ExpireThenExecute/violation1.itf.json --reactor reactors/authz/reactor.py --keypath event.type
+poetry run atomkraft test trace --trace traces/authz/ExpireThenRevoke/violation1.itf.json --reactor reactors/authz/reactor.py --keypath event.type
+poetry run atomkraft test trace --trace traces/authz/GrantFailsThenGrantSucceeds/violation1.itf.json --reactor reactors/authz/reactor.py --keypath event.type
 ```
-

@@ -57,14 +57,20 @@ def transfer(testnet: Testnet, action, balances, outcome):
     with closing(testnet.get_grpc_channel()) as channel:
         stub = QueryStub(channel)
         for e_acc in balances:
-            query_result = asyncio.run(stub.all_balances(address=testnet.acc_addr(e_acc)))
+            query_result = asyncio.run(
+                stub.all_balances(address=testnet.acc_addr(e_acc))
+            )
             observed = {e.denom: int(e.amount) for e in query_result.balances}
             for e_denom in balances[e_acc]:
-                if balances[e_acc][e_denom] != observed.get(e_denom, 0):
-                    balances_mismatch = balances_mismatch + \
-                    f"\n\texpected {e_acc}[{e_denom}] = {balances[e_acc][e_denom]}, got {observed.get(e_denom, 0)}"
+                bal = balances[e_acc][e_denom]
+                obs_bal = observed.get(e_denom, 0)
+                if bal != obs_bal:
+                    balances_mismatch += (
+                        f"\n\texpected {e_acc}[{e_denom}] = {bal}, got {obs_bal}"
+                    )
 
-    if (outcome == "SUCCESS" and result != "SUCCESS") or \
-       (outcome != "SUCCESS" and result == "SUCCESS"):
+    if (outcome == "SUCCESS" and result != "SUCCESS") or (
+        outcome != "SUCCESS" and result == "SUCCESS"
+    ):
         logging.error(f"\tExpected {outcome}, got {result}{balances_mismatch}")
         raise RuntimeError(f"Expected {outcome}, got {result}{balances_mismatch}")

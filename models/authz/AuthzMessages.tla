@@ -34,13 +34,6 @@ MsgRevoke == [
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* @type: (MSG_REVOKE) => GRANT_ID;
-grantIdOfMsgRevoke(msg) == [
-    grantee |-> msg.grantee,
-    granter |-> msg.granter,
-    msgTypeUrl |-> msg.msgTypeUrl
-]
-
 (******************************************************************************)
 (* MsgExec attempts to execute the provided messages using authorizations
 granted to the grantee. Each message should have only one signer corresponding
@@ -80,7 +73,7 @@ RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Responses *)
+(* Responses                                                                  *)
 (******************************************************************************)
 
 MsgGrantResponseErrors == {
@@ -99,6 +92,7 @@ MsgGrantResponses == [
     error: MsgGrantResponseErrors
 ]
 
+--------------------------------------------------------------------------------
 MsgExecResponseErrors == {
     "none", 
     "grant-not-found", 
@@ -120,14 +114,21 @@ MsgExecResponses == [
     error: MsgExecResponseErrors
 ]
 
+--------------------------------------------------------------------------------
+MsgRevokeResponseErrors == {
+    "none", 
+    "grant-not-found"
+}
+
 \* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];
 \* @type: Set(RESPONSE_REVOKE);
 MsgRevokeResponses == [
     type: {"response-revoke"}, 
     ok: BOOLEAN,
-    error: {"none"}
+    error: MsgRevokeResponseErrors
 ]
 
+--------------------------------------------------------------------------------
 \* For the initial state and expire events.
 NoResponse == [
     type |-> "no-response",

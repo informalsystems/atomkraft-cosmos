@@ -5,117 +5,15 @@ Official documentation: https://docs.cosmos.network/v0.46/modules/authz/
 ADR: https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-030-authz-module.md
 *)
 (******************************************************************************)
-EXTENDS AuthzMessages, Maps, Integers
+EXTENDS AuthzMessages, AuthzService, Maps, Integers
 
-VARIABLES
-    \* @type: GRANT_ID -> GRANT;  
-    grantStore, \* Representation of the KV store implemented by the authz 
-                \* module in the server, used to store mappings from grant 
-                \* triples to authorizations.
-    
+VARIABLES    
     \* @typeAlias: EVENT = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, grantId: GRANT_ID, type: Str];
     \* @type: EVENT;
     event,
 
     \* @type: RESPONSE_MSG;
     expectedResponse
-
--------------------------------------------------------------------------------
-\* @type: (GRANT_ID) => Bool;
-HasGrant(grantId) == grantId \in DOMAIN grantStore
-
-\* @type: (GRANT_ID) => Bool;
-IsExpired(grantId) == 
-    /\ HasGrant(grantId)
-    /\ grantStore[grantId].expiration = "past"
-
---------------------------------------------------------------------------------
-AcceptErrors == {
-    "none", 
-    "validator-not-allowed",
-    "validator-denied",
-    "insufficient-amount"
-}
-
-NoUpdate == [type |-> "no-update"]
-
-(* AcceptResponse instruments the controller of an authz message if the request
-is accepted and if it should be updated or deleted. *)
-\* https://github.com/cosmos/cosmos-sdk/blob/f2cea6a137ce19ad8987fa8a0cb99f4b37c4484d/x/authz/authorizations.go#L20
-\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: Set(ACCEPT_RESPONSE);
-AcceptResponse == [
-    \* If Accept=true, the controller can accept and authorization and handle the update.
-    accept: BOOLEAN,
-    
-    \* If Delete=true, the controller must delete the authorization object and release storage resources.
-    delete: BOOLEAN,
-    
-    \* Controller, who is calling Authorization.Accept must check if `Updated !=
-    \* nil`. If yes, it must use the updated version and handle the update on the
-    \* storage level.
-    updated: Authorization \cup {NoUpdate},
-
-    \* This field does not appear in the code; it's here just to simplify the spec.
-    error: AcceptErrors
-]
-
---------------------------------------------------------------------------------
-(******************************************************************************)
-(* Operators that model processing of request messages.                       *)
-(******************************************************************************)
-
-\* The interface that includes the three operations below:
-\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L331
-
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L14
-\* @type: (MSG_GRANT) => RESPONSE_GRANT;
-CallGrant(msgGrant) == 
-    IF msgGrant.granter = msgGrant.grantee THEN 
-        [type |-> "response-grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
-    ELSE IF msgGrant.grant.expiration = "past" THEN 
-        [type |-> "response-grant", ok |-> FALSE, error |-> "authorization-expired"]
-    ELSE 
-        [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
-
---------------------------------------------------------------------------------
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
-\* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
-CallRevoke(msgRevoke) == 
-    IF ~ HasGrant(grantIdOfMsgRevoke(msgRevoke)) THEN
-        [type |-> "response-revoke", ok |-> FALSE, error |-> "grant-not-found"]
-    ELSE
-        [type |-> "response-revoke", ok |-> TRUE, error |-> "none"]
-
---------------------------------------------------------------------------------
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
-\* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
-DispatchActionsOneMsg(grantee, msg) == 
-    LET 
-        granter == msg.signer \* An SDK message may contain multiple signers; but authz accepts messages with just one.
-        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
-    IN
-    IF granter = grantee THEN 
-        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
-    ELSE IF ~ HasGrant(grantId) THEN 
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
-    ELSE IF grantStore[grantId].expiration = "past" THEN 
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]
-    ELSE 
-        Accept(grantStore[grantId].authorization, msg)
-
-\* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
-\* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
-CallExec(msgExec) == 
-    LET 
-        acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msgExec.msg)
-        execResponse == [
-            type |-> "response-execute", 
-            ok |-> acceptResponse.accept, 
-            error |-> acceptResponse.error
-        ] 
-    IN 
-    <<execResponse, acceptResponse>>
 
 --------------------------------------------------------------------------------
 \* Only for the initial state.

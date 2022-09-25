@@ -24,7 +24,7 @@ Atomkraft-powered Test Suite for Cosmos blockchains
     (cd cosmos-sdk; make build)
     ```
 
-4. (Skip this step if using vanilla Cosmos SDK) If you want to test a custom Cosmos SDK compatible blockchain binary, then you need to have it on your locally on your machine. Please update the [Atomkraft chain config](chain.toml) either manually, or by using these commands:
+4. (Skip this step if using vanilla Cosmos SDK) If you want to test a custom Cosmos SDK compatible blockchain binary, then you need to have it locally on your machine. Please update the [Atomkraft chain config](chain.toml) either manually, or by using these commands:
     ```sh
     atomkraft chain config prefix <YOUR-PREFIX>
     atomkraft chain config binary <PATH-TO-YOUR-BINARY>
@@ -100,4 +100,4 @@ If you are interested to
 - employ `Atomkraft` for testing your code
 - create a project-specific model-based test suite for achieving high coverage of your code
 
-drop us an email to `hello@informal.systems`.
+please drop us an email to `hello@informal.systems`; we are looking forward to hear from you!

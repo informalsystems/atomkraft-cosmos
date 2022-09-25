@@ -1,6 +1,11 @@
 all:
 	@echo "Targets:"
+	@echo "\ttraces"
 	@echo "\tclean"
+
+.PHONY: traces
+traces:
+	time ./generate-traces.sh
 
 .PHONY: clean
 clean:

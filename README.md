@@ -59,7 +59,7 @@ TestThreeSteps == step = 3
 while the command
 
 ```sh
-atomkraft model sample --model-path models/bank/BankSendTests.tla --examples TestThreeSteps --traces-dir traces/bank --max_error=10 --view=TestThreeSteps == step = 3
+atomkraft model sample --model-path models/bank/BankSendTests.tla --examples TestThreeSteps --traces-dir traces/bank --max_error=10 --view=OutcomeView
 ```
 
 should generate 10 abstract traces that satisfy the `TestThreeSteps` test assertion; the traces will be saved in the [traces/bank/TestThreeSteps](traces/bank/TestThreeSteps/) folder. the `--view` argument specifies the criterion according to which the generated traces should differ. In that case we use `OutcomeView == outcome`, which says that different transaction outcomes should be generated.
@@ -98,6 +98,6 @@ If you are interested to
 - contribute to this community effort
 - integrate the standard Cosmos SDK test suite developed here into the CI of your project
 - employ `Atomkraft` for testing your code
-- create a model-based test suite for achieving high coverage of your code
+- create a project-specific model-based test suite for achieving high coverage of your code
 
 drop us an email to `hello@informal.systems`.

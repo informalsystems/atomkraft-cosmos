@@ -13,22 +13,11 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.tag`|`init`|`send`|
-|`action.coins`|`None`|`<<[ amount \|-> 20, denom \|-> "atom" ]>>`|
+|`action.coins`|`None`|`<<[ amount \|-> 0, denom \|-> "atom" ], [ amount \|-> 20, denom \|-> "muon" ]>>`|
 |`action.receiver`|`None`|`"Dave"`|
-|`action.sender`|`None`|`"Bob"`|
-|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>, <<"Bob", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>})`|`None`|
-
-</details>
-<details open>
-
-<summary><code>balances</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`balances("Bob")("atom")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`1809251394333065553493296640760748560207343510400633813116524750123642650603`|
-|`balances("Dave")`|`None`|`SetAsFun({<<"atom", 20>>})`|
+|`action.sender`|`None`|`"Alice"`|
+|`action.tag`|`init`|`send`|
+|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Bob", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Carol", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Dave", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Eve", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>})`|`None`|
 
 </details>
 <details open>
@@ -38,7 +27,7 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`outcome`|``|`SUCCESS`|
+|`outcome`|``|`AMOUNT_NOT_POSITIVE`|
 
 </details>
 <details open>
@@ -67,9 +56,20 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.coins[0].denom`|`atom`|`muon`|
-|`action.sender`|`Bob`|`Alice`|
-|`action.coins[0].amount`|`20`|`1809251394333065553493296640760748560207343510400633813116524750123642650621`|
+|`action.receiver`|`Dave`|`Carol`|
+|`action.coins[0]`|`[ amount \|-> 0, denom \|-> "atom" ]`|`[ amount \|-> 0, denom \|-> "muon" ]`|
+|`action.coins[1]`|`[ amount \|-> 20, denom \|-> "muon" ]`|`None`|
+|`action.coins[2]`|`None`|`[ amount \|-> 115792089237316195423570985008687907853269984665640564039457584007913129639934, denom \|-> "gluon" ]`|
+
+</details>
+<details open>
+
+<summary><code>outcome</code></summary>
+
+
+|KeyPath|Old|New|
+|-|-|-|
+|`outcome`|`AMOUNT_NOT_POSITIVE`|`DUPLICATE_DENOM`|
 
 </details>
 <details open>
@@ -80,17 +80,6 @@
 |KeyPath|Old|New|
 |-|-|-|
 |`step`|`1`|`2`|
-
-</details>
-<details open>
-
-<summary><code>balances</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`balances("Dave")("muon")`|`None`|`1809251394333065553493296640760748560207343510400633813116524750123642650621`|
-|`balances("Alice")("muon")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`2`|
 
 </details>
 
@@ -109,22 +98,20 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.receiver`|`Dave`|`Eve`|
-|`action.sender`|`Alice`|`Dave`|
-|`action.coins[0]`|`[ amount \|-> 1809251394333065553493296640760748560207343510400633813116524750123642650621, denom \|-> "muon" ]`|`[ amount \|-> 10, denom \|-> "atom" ]`|
-|`action.coins[1]`|`None`|`[ amount \|-> 2, denom \|-> "muon" ]`|
+|`action.receiver`|`Carol`|`Bob`|
+|`action.sender`|`Alice`|`Bob`|
+|`action.coins[0]`|`[ amount \|-> 0, denom \|-> "muon" ]`|`[ amount \|-> 2, denom \|-> "atom" ]`|
+|`action.coins[2]`|`[ amount \|-> 115792089237316195423570985008687907853269984665640564039457584007913129639934, denom \|-> "gluon" ]`|`None`|
 
 </details>
 <details open>
 
-<summary><code>balances</code></summary>
+<summary><code>outcome</code></summary>
 
 
 |KeyPath|Old|New|
 |-|-|-|
-|`balances("Dave")("atom")`|`20`|`10`|
-|`balances("Dave")("muon")`|`1809251394333065553493296640760748560207343510400633813116524750123642650621`|`1809251394333065553493296640760748560207343510400633813116524750123642650619`|
-|`balances("Eve")`|`None`|`SetAsFun({<<"atom", 10>>, <<"muon", 2>>})`|
+|`outcome`|`DUPLICATE_DENOM`|`SUCCESS`|
 
 </details>
 <details open>

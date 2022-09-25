@@ -13,10 +13,10 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.tag`|`init`|`send`|
 |`action.coins`|`None`|`<<[ amount \|-> 0, denom \|-> "atom" ], [ amount \|-> 200, denom \|-> "muon" ]>>`|
 |`action.receiver`|`None`|`"Alice"`|
 |`action.sender`|`None`|`"Bob"`|
+|`action.tag`|`init`|`send`|
 |`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>, <<"Bob", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>})`|`None`|
 
 </details>
@@ -97,10 +97,10 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.coins[1]`|`[ amount \|-> 0, denom \|-> "atom" ]`|`None`|
-|`action.coins[2]`|`[ amount \|-> 1809251394333065553493296640760748560207343510400633813116524750123642650625, denom \|-> "muon" ]`|`None`|
 |`action.receiver`|`Bob`|`Eve`|
 |`action.sender`|`Bob`|`Eve`|
+|`action.coins[1]`|`[ amount \|-> 0, denom \|-> "atom" ]`|`None`|
+|`action.coins[2]`|`[ amount \|-> 1809251394333065553493296640760748560207343510400633813116524750123642650625, denom \|-> "muon" ]`|`None`|
 
 </details>
 <details open>

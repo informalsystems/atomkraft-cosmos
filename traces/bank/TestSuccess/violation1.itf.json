@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Fri Sep 23 13:23:50 CEST 2022"
+    "description": "Created by Apalache on Fri Sep 23 21:53:46 CEST 2022"
   },
   "vars": [
     "outcome",
@@ -18,6 +18,44 @@
       "action": {
         "balances": {
           "#map": [
+            [
+              "Carol",
+              {
+                "#map": [
+                  [
+                    "atom",
+                    0
+                  ],
+                  [
+                    "muon",
+                    0
+                  ],
+                  [
+                    "gluon",
+                    0
+                  ]
+                ]
+              }
+            ],
+            [
+              "Eve",
+              {
+                "#map": [
+                  [
+                    "atom",
+                    0
+                  ],
+                  [
+                    "muon",
+                    0
+                  ],
+                  [
+                    "gluon",
+                    0
+                  ]
+                ]
+              }
+            ],
             [
               "Alice",
               {
@@ -67,6 +105,25 @@
                   ]
                 ]
               }
+            ],
+            [
+              "Dave",
+              {
+                "#map": [
+                  [
+                    "atom",
+                    0
+                  ],
+                  [
+                    "muon",
+                    0
+                  ],
+                  [
+                    "gluon",
+                    0
+                  ]
+                ]
+              }
             ]
           ]
         },
@@ -74,6 +131,44 @@
       },
       "balances": {
         "#map": [
+          [
+            "Carol",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
+                ]
+              ]
+            }
+          ],
+          [
+            "Eve",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
+                ]
+              ]
+            }
+          ],
           [
             "Alice",
             {
@@ -120,6 +215,25 @@
                   {
                     "#bigint": "57896044618658097711785492504343953926634992332820282019728792003956564819967"
                   }
+                ]
+              ]
+            }
+          ],
+          [
+            "Dave",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
                 ]
               ]
             }
@@ -140,12 +254,50 @@
             "denom": "gluon"
           }
         ],
-        "receiver": "Alice",
-        "sender": "Alice",
+        "receiver": "Bob",
+        "sender": "Bob",
         "tag": "send"
       },
       "balances": {
         "#map": [
+          [
+            "Carol",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
+                ]
+              ]
+            }
+          ],
+          [
+            "Eve",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
+                ]
+              ]
+            }
+          ],
           [
             "Alice",
             {
@@ -192,6 +344,25 @@
                   {
                     "#bigint": "57896044618658097711785492504343953926634992332820282019728792003956564819967"
                   }
+                ]
+              ]
+            }
+          ],
+          [
+            "Dave",
+            {
+              "#map": [
+                [
+                  "atom",
+                  0
+                ],
+                [
+                  "muon",
+                  0
+                ],
+                [
+                  "gluon",
+                  0
                 ]
               ]
             }

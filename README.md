@@ -56,7 +56,7 @@ TestThreeSteps == step = 3
 ```
 
 
-command
+while the command
 
 ```sh
 atomkraft model sample --model-path models/bank/BankSendTests.tla --examples TestThreeSteps --traces-dir traces/bank --max_error=10 --view=TestThreeSteps == step = 3

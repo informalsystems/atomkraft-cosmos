@@ -13,11 +13,11 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.tag`|`init`|`send`|
-|`action.coins`|`None`|`<<[ amount \|-> 100, denom \|-> "atom" ], [ amount \|-> 300, denom \|-> "atom" ]>>`|
-|`action.receiver`|`None`|`"Dave"`|
+|`action.coins`|`None`|`<<[ amount \|-> 100, denom \|-> "muon" ], [ amount \|-> 1, denom \|-> "atom" ]>>`|
+|`action.receiver`|`None`|`"Alice"`|
 |`action.sender`|`None`|`"Alice"`|
-|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>, <<"Bob", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>})`|`None`|
+|`action.tag`|`init`|`send`|
+|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Bob", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Carol", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Dave", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Eve", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>})`|`None`|
 
 </details>
 <details open>
@@ -27,7 +27,7 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`outcome`|``|`DUPLICATE_DENOM`|
+|`outcome`|``|`SUCCESS`|
 
 </details>
 <details open>
@@ -56,22 +56,10 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.coins[1].amount`|`300`|`2`|
-|`action.coins[1].denom`|`atom`|`muon`|
-|`action.receiver`|`Dave`|`Carol`|
-|`action.sender`|`Alice`|`Bob`|
-
-</details>
-<details open>
-
-<summary><code>balances</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`balances("Bob")("atom")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`1809251394333065553493296640760748560207343510400633813116524750123642650523`|
-|`balances("Bob")("muon")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`1809251394333065553493296640760748560207343510400633813116524750123642650621`|
-|`balances("Carol")`|`None`|`SetAsFun({<<"atom", 100>>, <<"muon", 2>>})`|
+|`action.receiver`|`Alice`|`Carol`|
+|`action.sender`|`Alice`|`Eve`|
+|`action.coins[0]`|`[ amount \|-> 100, denom \|-> "muon" ]`|`[ amount \|-> 0, denom \|-> "gluon" ]`|
+|`action.coins[1]`|`[ amount \|-> 1, denom \|-> "atom" ]`|`None`|
 
 </details>
 <details open>
@@ -81,7 +69,7 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`outcome`|`DUPLICATE_DENOM`|`SUCCESS`|
+|`outcome`|`SUCCESS`|`AMOUNT_NOT_POSITIVE`|
 
 </details>
 <details open>
@@ -110,19 +98,20 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`action.coins[1]`|`[ amount \|-> 2, denom \|-> "muon" ]`|`None`|
-|`action.coins[0]`|`[ amount \|-> 100, denom \|-> "atom" ]`|`[ amount \|-> 200, denom \|-> "atom" ]`|
+|`action.coins[0].amount`|`0`|`2`|
+|`action.coins[0].denom`|`gluon`|`atom`|
+|`action.receiver`|`Carol`|`Bob`|
+|`action.sender`|`Eve`|`Bob`|
 
 </details>
 <details open>
 
-<summary><code>balances</code></summary>
+<summary><code>outcome</code></summary>
 
 
 |KeyPath|Old|New|
 |-|-|-|
-|`balances("Bob")("atom")`|`1809251394333065553493296640760748560207343510400633813116524750123642650523`|`1809251394333065553493296640760748560207343510400633813116524750123642650323`|
-|`balances("Carol")("atom")`|`100`|`300`|
+|`outcome`|`AMOUNT_NOT_POSITIVE`|`SUCCESS`|
 
 </details>
 <details open>

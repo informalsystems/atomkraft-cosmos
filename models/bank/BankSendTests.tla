@@ -16,7 +16,7 @@ EXTENDS BankSend
 \* You can use other views for focusing on other interesting behaviors.
 
 OutcomeView == outcome
-ActionView == outcome
+ActionView == action
 StepView == step
 
 (******************************************************************************)
@@ -35,11 +35,13 @@ TestSuccess      == outcome = "SUCCESS"
 TestDuplicate    == outcome = "DUPLICATE_DENOM"
 TestNotPositive  == outcome = "AMOUNT_NOT_POSITIVE"
 TestInsufficient == outcome = "INSUFFICIENT_FUNDS"
-TestOverflow     == outcome = "RECEIVER_OVERFLOW"
 
-\* Let's say that now we want to focus on the actions: ActionView requires that actions taken are different. 
-\*
-\*   atomkraft model sample --model-path models/bank/BankSendTests.tla --examples TestSuccess --traces-dir traces/bank --max_error=10 --view=ActionView
+\* If you inspect the traces generated via TestSuccess, you'll notice 
+\* that all succeed with the sender and receiver being the same.
+\* To generate more interesting traces we add an additional constraint.
+TestSuccessNotSelf == 
+  /\ outcome = "SUCCESS" 
+  /\ action.sender /= action.receiver
 
 
 (******************************************************************************)
@@ -62,35 +64,42 @@ TestDrainAllFunds ==
     /\ \E denom \in DOMAIN balances[wallet]: balances[wallet][denom] > 0
     /\ \A denom \in DOMAIN balances'[wallet]: balances'[wallet][denom] = 0
 
-\* For some wallet and a denom a send first failed with insufficient funds, but then succeeded
+\* For the same sender, receiver, and coins, 
+\* transfer first succeeded, but then failed
+TestSuccessFailure ==
+  /\ action = action'
+  /\ outcome = "SUCCESS"
+  /\ outcome' /= "SUCCESS"
+
+\* For the same sender and receiver, 
+\* transfer first failed, but then succeeded
+TestFailureSuccess ==
+  /\ action.sender = action'.sender
+  /\ action.receiver = action'.receiver
+  /\ outcome /= "SUCCESS"
+  /\ outcome' = "SUCCESS"
+
+
+\* For the same sender, receiver and denom, 
+\* transfer first failed with insufficient funds, but then succeeded
 TestInsufficientSuccess ==
-  \E wallet \in DOMAIN balances:
-  \E denom \in DENOMS:
-    /\ action.sender = wallet
-    /\ \E c \in DOMAIN action.coins : action.coins[c].denom = denom
-    /\ outcome = "INSUFFICIENT_FUNDS"
-    /\ action'.sender = wallet
-    /\ \E c \in DOMAIN action'.coins : action'.coins[c].denom = denom
-    /\ outcome' = "SUCCESS"
+  /\ action.sender = action'.sender
+  /\ action.receiver = action'.receiver
+  /\ \E c1 \in DOMAIN action.coins:
+     \E c2 \in DOMAIN action'.coins:
+      action.coins[c1].denom = action'.coins[c2].denom
+  /\ outcome = "INSUFFICIENT_FUNDS"
+  /\ outcome' = "SUCCESS"
 
 
 (******************************************************************************)
-\* Finally, you can describe the shape of a multi-step execution trace as a whole.
-\* This is the feature specific to our model checker Apalache; please see
-\* https://apalache.informal.systems/docs/apalache/principles/invariants.html#trace-invariants
-\* With this approach, a test assertion as an operator over a sequence of states.
-
-\* How about requiring a trace with at least 4 different outcomes?
-\* @type: Seq(STATE) => Bool;
-TestFourOutcomes(trace) ==
-  LET outcomes == { trace[s].outcome : s \in DOMAIN trace \ {1} } IN 
-  Cardinality(outcomes) >= 4
-
-
-
+\* Having generated the test traces from the above test assertions,
+\* you can execute them against your blockchain.
+\* Assuming the blockchain parameters are configured, 
+\* if you want to execute the tests generated from e.g. TestSuccess assertion,
+\* the command below will generate and execute Pytest scripts:
+\*
+\* atomkraft test trace --path traces/bank/TestSuccess --reactor reactors/bank.py --keypath action.tag
 
 ================================================================================
 Created by Andrey Kuprianov on 8 September 2022
-
-
-TODO: The test assertion TestFourOutcomes fails; see the issue: https://github.com/informalsystems/atomkraft/issues/145

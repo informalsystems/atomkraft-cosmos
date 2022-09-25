@@ -13,11 +13,11 @@
 
 |KeyPath|Old|New|
 |-|-|-|
+|`action.coins`|`None`|`<<[ amount \|-> 2, denom \|-> "atom" ], [ amount \|-> 1, denom \|-> "muon" ]>>`|
+|`action.receiver`|`None`|`"Bob"`|
+|`action.sender`|`None`|`"Bob"`|
 |`action.tag`|`init`|`send`|
-|`action.coins`|`None`|`<<[ amount \|-> 0, denom \|-> "muon" ], [ amount \|-> 300, denom \|-> "atom" ]>>`|
-|`action.receiver`|`None`|`"Dave"`|
-|`action.sender`|`None`|`"Alice"`|
-|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>, <<"Bob", SetAsFun({<<"atom", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>, <<"muon", 1809251394333065553493296640760748560207343510400633813116524750123642650623>>})>>})`|`None`|
+|`action.balances`|`SetAsFun({<<"Alice", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Bob", SetAsFun({<<"atom", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"gluon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>, <<"muon", 57896044618658097711785492504343953926634992332820282019728792003956564819967>>})>>, <<"Carol", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Dave", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>, <<"Eve", SetAsFun({<<"atom", 0>>, <<"gluon", 0>>, <<"muon", 0>>})>>})`|`None`|
 
 </details>
 <details open>
@@ -27,7 +27,7 @@
 
 |KeyPath|Old|New|
 |-|-|-|
-|`outcome`|``|`AMOUNT_NOT_POSITIVE`|
+|`outcome`|``|`SUCCESS`|
 
 </details>
 <details open>
@@ -51,47 +51,23 @@
 
 <details open>
 
-<summary><code>action</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`action.receiver`|`Dave`|`Carol`|
-|`action.sender`|`Alice`|`Bob`|
-|`action.coins[1]`|`[ amount \|-> 300, denom \|-> "atom" ]`|`[ amount \|-> 2, denom \|-> "muon" ]`|
-|`action.coins[0]`|`[ amount \|-> 0, denom \|-> "muon" ]`|`[ amount \|-> 100, denom \|-> "atom" ]`|
-
-</details>
-<details open>
-
-<summary><code>balances</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`balances("Bob")("atom")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`1809251394333065553493296640760748560207343510400633813116524750123642650523`|
-|`balances("Bob")("muon")`|`1809251394333065553493296640760748560207343510400633813116524750123642650623`|`1809251394333065553493296640760748560207343510400633813116524750123642650621`|
-|`balances("Carol")`|`None`|`SetAsFun({<<"atom", 100>>, <<"muon", 2>>})`|
-
-</details>
-<details open>
-
-<summary><code>outcome</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`outcome`|`AMOUNT_NOT_POSITIVE`|`SUCCESS`|
-
-</details>
-<details open>
-
 <summary><code>step</code></summary>
 
 
 |KeyPath|Old|New|
 |-|-|-|
 |`step`|`1`|`2`|
+
+</details>
+<details open>
+
+<summary><code>action</code></summary>
+
+
+|KeyPath|Old|New|
+|-|-|-|
+|`action.coins[0]`|`[ amount \|-> 2, denom \|-> "atom" ]`|`[ amount \|-> 3, denom \|-> "atom" ]`|
+|`action.coins[1]`|`[ amount \|-> 1, denom \|-> "muon" ]`|`[ amount \|-> 2, denom \|-> "muon" ]`|
 
 </details>
 
@@ -105,34 +81,23 @@
 
 <details open>
 
-<summary><code>action</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`action.coins[1]`|`[ amount \|-> 2, denom \|-> "muon" ]`|`None`|
-|`action.coins[0]`|`[ amount \|-> 100, denom \|-> "atom" ]`|`[ amount \|-> 200, denom \|-> "atom" ]`|
-
-</details>
-<details open>
-
-<summary><code>balances</code></summary>
-
-
-|KeyPath|Old|New|
-|-|-|-|
-|`balances("Bob")("atom")`|`1809251394333065553493296640760748560207343510400633813116524750123642650523`|`1809251394333065553493296640760748560207343510400633813116524750123642650323`|
-|`balances("Carol")("atom")`|`100`|`300`|
-
-</details>
-<details open>
-
 <summary><code>step</code></summary>
 
 
 |KeyPath|Old|New|
 |-|-|-|
 |`step`|`2`|`3`|
+
+</details>
+<details open>
+
+<summary><code>action</code></summary>
+
+
+|KeyPath|Old|New|
+|-|-|-|
+|`action.coins[0]`|`[ amount \|-> 3, denom \|-> "atom" ]`|`[ amount \|-> 57896044618658097711785492504343953926634992332820282019728792003956564819965, denom \|-> "atom" ]`|
+|`action.coins[1]`|`[ amount \|-> 2, denom \|-> "muon" ]`|`[ amount \|-> 300, denom \|-> "muon" ]`|
 
 </details>
 

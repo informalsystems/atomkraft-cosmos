@@ -66,7 +66,8 @@ def state():
     return Munch()
 
 
-status = lambda ok: "OK" if ok else "FAIL"
+def status(ok):
+    "OK" if ok else "FAIL"
 
 
 def create_give_grant_auth(

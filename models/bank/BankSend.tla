@@ -18,13 +18,18 @@ VARIABLES
     step
 
 \* Cosmos SDK specifies that the maximum account balance is 2^256-1.
-\* For some reason (to investigate!) it is failing with this amount, so we use 2^250-1.
-MAX == 2^250-1
+MAX == 2^256-1
+\* Total supply in the genesis should not exceed MAX.
+\* Thus we use initial balances of a smaller bitwidth.
+MAX_INIT == 2^255-1
+\* Maximum number of coins to include in 1 send transaction
 MAX_SEND_COINS == 4
 
 WALLETS == { "Alice", "Bob", "Carol", "Dave", "Eve" }
-DENOMS == { "atom", "muon" }
-AMOUNTS == { 0, 1, 2, 3, 10, 20, 30, 100, 200, 300, MAX-2, MAX-1, MAX, MAX+1, MAX+2 }
+DENOMS == { "atom", "muon", "gluon" }
+AMOUNTS == { 0, 1, 2, 3, 10, 20, 30, 100, 200, 300, 
+            MAX_INIT-2, MAX_INIT-1, MAX_INIT, MAX_INIT+1, MAX_INIT+2,
+            MAX-2, MAX-1, MAX, MAX+1, MAX+2 }
 
 \* @type: (BALANCES, Str) => (Str -> Int);
 GetBalances(b, wallet) ==
@@ -52,7 +57,8 @@ ActionOutcome(a, b) ==
       THEN "INSUFFICIENT_FUNDS"
     ELSE IF \E c \in DOMAIN a.coins: \* receiver balance should not overflow
       GetBalance(b, a.receiver, a.coins[c].denom) + a.coins[c].amount > MAX
-      THEN "RECEIVER_OVERFLOW"
+      THEN "RECEIVER_OVERFLOW" 
+      \* in this model overflow never happens as total supply < MAX, and no minting happens
     ELSE 
       "SUCCESS"
 
@@ -77,7 +83,9 @@ NewAction(a) ==
     /\ \E i \in DOMAIN a.coins: a.coins[i].denom /= "null"
 
 Init ==
-    /\ balances = [ wallet \in {"Alice", "Bob"} |-> [denom \in DENOMS |-> MAX] ]
+    /\ balances = [ wallet \in WALLETS |-> 
+        [denom \in DENOMS |-> IF wallet \in {"Alice", "Bob"} THEN MAX_INIT ELSE 0]
+       ]
     /\ action = [ tag |-> "init", balances |-> balances ]
     /\ outcome = ""
     /\ step = 0
@@ -93,8 +101,8 @@ ActionCoins(a) ==
 
 \* @type: (ACTION) => Bool;
 DoAction(a) ==
-  \* balances' = balances
-  LET coins == ActionCoins(a) IN
+  IF a.sender = a.receiver THEN UNCHANGED <<balances>>
+  ELSE LET coins == ActionCoins(a) IN
   balances' = [
     w \in DOMAIN balances \union {a.sender, a.receiver} |->
       IF w = a.sender THEN 

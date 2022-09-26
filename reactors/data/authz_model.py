@@ -16,9 +16,6 @@ from terra_sdk.core.authz import (
     MsgRevokeAuthorization,
 )
 
-accounts = ["a1", "a2", "a3"]
-validators = ["v1", "v2", "v3"]
-
 NO_MAX_COINS = -99
 
 ################################################################################

@@ -7,7 +7,7 @@ from atomkraft.chain import Testnet
 from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
-from reactors.authz import model_data as model
+from reactors.data import authz_model as model
 from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
 
 
@@ -30,13 +30,13 @@ def check_result(result: TxResponse, expected: model.Response):
 
 
 @step("no-event")
-def init(testnet: Testnet):
+def init(testnet: Testnet, Accounts: list[str], Validators: list[str]):
     logging.info("🔶 Step: init")
 
-    logging.info(f"model accounts: {model.accounts}")
-    logging.info(f"model validators: {model.validators}")
-    testnet.set_accounts(model.accounts)
-    testnet.set_validators(model.validators)
+    testnet.set_accounts(sorted(Accounts))
+    testnet.set_validators(sorted(Validators))    
+    testnet.set_account_balances(dict([(id, {'stake': 10000000000}) for id in sorted(Accounts)]))
+    testnet.set_validator_balances(dict([(id, {'stake': 10000000000}) for id in sorted(Validators)]))
     testnet.verbose = True
 
     logging.info(f"Preparing testnet...")

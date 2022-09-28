@@ -1,0 +1,6 @@
+tasks:
+  - init: |-
+      pyenv install 3.10.6 && pyenv global 3.10.6
+      pip install -U atomkraft
+      atomkraft model apalache get
+      (cd cosmos-sdk; make build)

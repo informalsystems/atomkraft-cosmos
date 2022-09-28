@@ -1,4 +1,4 @@
-Atomkraft-powered Test Suite for Cosmos blockchains
+Atomkraft-powered Test Suite for Cosmos blockchains [![Try on Gitpod](https://img.shields.io/badge/Atomkraft-Try%20on%20Gitpod-FFB45B?logo=gitpod)](https://gitpod.io/#https://github.com/informalsystems/atomkraft-cosmos)
 ===
 
 [Atomkraft](https://github.com/informalsystems/atomkraft) is a tool for E2E testing of Cosmos SDK blockchains. The distinctive characteristic of Atomkraft tests is that they are _model-based_: a TLA+ model is currently needed to automatically generate the test scenarios. But as soon as the model is in place, massive test suites can be generated and executed against the real blockchain at a press of a button, thanks to the power provided to you by Atomkraft and our in-house model checker [Apalache](https://apalache.informal.systems).

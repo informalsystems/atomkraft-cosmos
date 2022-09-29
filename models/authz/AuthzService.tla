@@ -77,11 +77,15 @@ DispatchActionsOneMsg(grantee, msg) ==
         grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
     IN
     
-    \* In the code, it is said that if granter = grantee "we implicitly accept"
-    \* the message. But then the execution of the message fails because there
+    \* A comment in the code says that if granter = grantee "we implicitly accept"
+    \* the `message. But then the execution of the message will fail because there
     \* should not exist any grant with granter = grantee.
     IF granter = grantee \/ ~ HasGrant(grantId) THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
+    
+    \* FIX: in the code the function GetCleanAuthorization deletes the grant if
+    \* it's expired, so the error will be "grant-not-found" and the grantStore
+    \* should be updated.
     ELSE IF grantStore[grantId].expiration = "past" THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]
     ELSE 

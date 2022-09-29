@@ -76,9 +76,11 @@ DispatchActionsOneMsg(grantee, msg) ==
         granter == msg.signer \* An SDK message may contain multiple signers; but authz accepts messages with just one.
         grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
     IN
-    IF granter = grantee THEN 
-        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
-    ELSE IF ~ HasGrant(grantId) THEN 
+    
+    \* In the code, it is said that if granter = grantee "we implicitly accept"
+    \* the message. But then the execution of the message fails because there
+    \* should not exist any grant with granter = grantee.
+    IF granter = grantee \/ ~ HasGrant(grantId) THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
     ELSE IF grantStore[grantId].expiration = "past" THEN 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]

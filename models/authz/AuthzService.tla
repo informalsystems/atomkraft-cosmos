@@ -1,11 +1,13 @@
 ----------------------------- MODULE AuthzService ------------------------------
 (******************************************************************************)
-
+(* Operators modeling the methods for sending request messages, as defined in *)
+(* the `Msg` service in                                                       *)
+(*     https://github.com/cosmos/cosmos-sdk/blob/main/proto/cosmos/authz/v1beta1/tx.proto *)
 (******************************************************************************)
-EXTENDS Grants, Maps, Integers
+EXTENDS Integers, MsgTypes, Maps, Grants
 
-\* grantStore represents the KV store implemented by the authz module in the
-\* server, used to store mappings from grant triples to authorizations.
+\* The variable grantStore represents the KV store implemented by the authz
+\* module, used to store mappings from grant triples to authorizations.
 VARIABLE
     \* @type: GRANT_ID -> GRANT;  
     grantStore  
@@ -28,22 +30,29 @@ IsExpired(grantId) ==
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Request grant                                                              *)
+(* Send request grant                                                         *)
 (******************************************************************************)
+\* @type: (MSG_GRANT) => GRANT_ID;
+grantIdOfMsgGrant(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.granter,
+    msgTypeUrl |-> MsgTypeURL(msg.grant.authorization)
+]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L14
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
-CallGrant(msgGrant) == 
-    IF msgGrant.granter = msgGrant.grantee THEN 
-        [type |-> "response-grant", ok |-> FALSE, error |-> "granter-equal-grantee"]
-    ELSE IF msgGrant.grant.expiration = "past" THEN 
-        [type |-> "response-grant", ok |-> FALSE, error |-> "authorization-expired"]
-    ELSE 
+SendMsgGrant(msg) == 
+    LET grantId == grantIdOfMsgGrant(msg) IN
+    CASE IsValid(grantId) ->
+        [type |-> "response-grant", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
+      [] msg.grant.expiration = "past" ->
+        [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
+      [] OTHER ->
         [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Request revoke                                                             *)
+(* Send request revoke                                                        *)
 (******************************************************************************)
 
 \* @type: (MSG_REVOKE) => GRANT_ID;
@@ -55,54 +64,67 @@ grantIdOfMsgRevoke(msg) == [
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
 \* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
-CallRevoke(msgRevoke) == 
-    IF ~ HasGrant(grantIdOfMsgRevoke(msgRevoke)) THEN
-        [type |-> "response-revoke", ok |-> FALSE, error |-> "grant-not-found"]
-    ELSE
+SendMsgRevoke(msg) == 
+    LET grantId == grantIdOfMsgRevoke(msg) IN
+    CASE IsValid(grantId) ->
+        [type |-> "response-revoke", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
+      [] ~ HasGrant(grantId) ->
+        [type |-> "response-revoke", ok |-> FALSE, error |-> AUTH_NOT_FOUND]
+      [] OTHER ->
         [type |-> "response-revoke", ok |-> TRUE, error |-> "none"]
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Request execute                                                            *)
+(* Send request execute                                                       *)
 (******************************************************************************)
 
 NoUpdate == [type |-> "no-update"]
 
+\* An SDK message may contain multiple signers, but authz accepts messages with just one.
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/keeper.go#L90
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
-        granter == msg.signer \* An SDK message may contain multiple signers; but authz accepts messages with just one.
-        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
+        \* @type: GRANT_ID;
+        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
+        \* @type: AUTH;
+        auth == grantStore[grantId].authorization
     IN
-    
-    \* A comment in the code says that if granter = grantee "we implicitly accept"
-    \* the `message. But then the execution of the message will fail because there
-    \* should not exist any grant with granter = grantee.
-    IF granter = grantee \/ ~ HasGrant(grantId) THEN 
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "grant-not-found"]
-    
-    \* FIX: in the code the function GetCleanAuthorization deletes the grant if
-    \* it's expired, so the error will be "grant-not-found" and the grantStore
-    \* should be updated.
-    ELSE IF grantStore[grantId].expiration = "past" THEN 
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> "authorization-expired"]
-    ELSE 
-        Accept(grantStore[grantId].authorization, msg)
+    CASE IsValid(grantId) ->
+        \* A comment in the code says that if granter = grantee "we implicitly
+        \* accept" the message.
+        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
+      [] msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress -> 
+        \* CHECK: This will execute the message even when no authorization has been granted.
+        Accept(auth, msg)
+      [] msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress ->
+        \* CHECK: This will execute the message even when no authorization has been granted.
+        Accept(auth, msg)
+      [] ~ IsValid(grantId) /\ IsExpired(grantId) ->
+        \* CHECK: Probably unreachable: expired grants are deleted before.
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
+      [] ~ IsValid(grantId) /\ ~ HasGrant(grantId) ->
+        \* There are multiple reasons for failing to execute a message and they
+        \* depend on the kind of message being executed.
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
+      [] OTHER -> 
+        Accept(auth, msg)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
-CallExec(msgExec) == 
+SendMsgExecute(msg) == 
     LET 
-        acceptResponse == DispatchActionsOneMsg(msgExec.grantee, msgExec.msg)
-        execResponse == [
-            type |-> "response-execute", 
-            ok |-> acceptResponse.accept, 
-            error |-> acceptResponse.error
-        ] 
-    IN 
-    <<execResponse, acceptResponse>>
+        \* @type: ACCEPT_RESPONSE;
+        acceptResponse == DispatchActionsOneMsg(msg.grantee, msg.msg)
+    IN
+    IF acceptResponse.accept /\ msg.msg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} THEN
+        \* Message is accepted but execution will fail because there are no delegations to un/redelegate.
+        <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], 
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE]>>
+    ELSE 
+        <<[type |-> "response-execute", ok |-> acceptResponse.accept, error |-> acceptResponse.error], 
+        acceptResponse>>
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

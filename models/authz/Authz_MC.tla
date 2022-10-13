@@ -28,15 +28,7 @@ ConstInit ==
 
 --------------------------------------------------------------------------------
 
-\* @type: <<Str>>;
-View == <<event.type>>
-
-EventTypes == {"request-grant", "request-revoke", "request-execute", "expire"}
-
-\* @type: <<Bool, Bool>>;
-View2 == <<
-    event.type \in EventTypes, 
-    event.type # "expire" /\ event.grantee \in Accounts
-    >>
+\* @type: <<Str, Str>>;
+View == <<event.type, expectedResponse.error>>
 
 ================================================================================

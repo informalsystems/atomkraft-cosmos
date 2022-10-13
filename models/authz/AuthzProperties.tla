@@ -20,7 +20,7 @@ NotRequestGrantSucceeds == ~ RequestGrantSucceeds
 RequestGrantFailsOnSameAccount ==
     /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
-    /\ expectedResponse.error = "granter-equal-grantee"
+    /\ expectedResponse.error = GRANTER_EQUALS_GRANTEE
 
 NotRequestGrantFailsOnSameAccount == ~ RequestGrantFailsOnSameAccount
 
@@ -29,7 +29,7 @@ NotRequestGrantFailsOnSameAccount == ~ RequestGrantFailsOnSameAccount
 RequestGrantFailsOnExpiredAuth ==
     /\ event.type = "request-grant"
     /\ expectedResponse.ok = FALSE
-    /\ expectedResponse.error = "authorization-expired"
+    /\ expectedResponse.error = AUTH_EXPIRED
 
 NotRequestGrantFailsOnExpiredAuth == ~ RequestGrantFailsOnExpiredAuth
 
@@ -42,9 +42,26 @@ NotRevokeSucceeds == ~ RevokeSucceeds
 
 RevokeNonExistingGrant ==
     /\ event.type = "request-revoke" 
-    /\ expectedResponse.error = "grant-not-found"
+    /\ expectedResponse.error = AUTH_NOT_FOUND
 
 NotRevokeNonExistingGrant == ~ RevokeNonExistingGrant
+
+\* Execute a send message where that transfer tokens from the grantee, possibly
+\* without a granted authorization.
+\* @type: Bool;
+GranteeExecutes ==
+    /\ event.type = "request-execute"
+    /\ event.msg.typeUrl = "send"
+    /\ event.grantee = event.msg.fromAddress
+
+NotGranteeExecutes == ~ GranteeExecutes
+
+\* @type: Bool;
+JustExecuteOneMessage ==
+    /\ event.type = "request-execute"
+    \* /\ Len(trace) = 1
+
+NotJustExecuteOneMessage == ~ JustExecuteOneMessage
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -72,7 +89,7 @@ NotExpireThenExecute(trace) == ~ ExpireThenExecute(trace)
 \* event.
 ExecuteExpired ==
     /\ event.type = "request-execute" 
-    /\ expectedResponse.error = "authorization-expired"
+    /\ expectedResponse.error = AUTH_EXPIRED
 
 NotExecuteExpired == ~ ExecuteExpired
 
@@ -157,24 +174,6 @@ GrantFailsThenGrantSucceeds(trace) ==
         /\ grantIdOfMsgGrant(state1.event) = grantIdOfMsgGrant(state2.event)
 
 NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
-
---------------------------------------------------------------------------------
-(******************************************************************************)
-
-\** Apalache typecheker fails:
-\* \* Filter the function `f` by the values in its range. For entries k |-> v, keep
-\* \* only the entries where `g(v)` is true.
-\* \* @ type: ((a -> b), (b -> Bool)) => (a -> b);
-\* FilterRange(f, g(_)) ==
-\*     LET dom == {x \in DOMAIN f: g(f[x])} IN
-\*     [x \in dom |-> f[x]]
-
-\* \* @type: Int;
-\* NumActiveGrants == 
-\*     LET activeStore == FilterRange(grantStore, 
-\*         LAMBDA grant: grant # NoGrant /\ grant.expiration # "past") 
-\*     IN
-\*     Cardinality(activeStore)
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

@@ -6,8 +6,9 @@
 <body>
   <div class="mermaid">
   flowchart TB
-    Authz_MC --> AuthzProperties --> Authz --> AuthzMessages --> Grants
+    Authz_MC --> AuthzProperties --> Authz --> AuthzMessages --> Grants & MsgTypes
     Authz --> AuthzService & Maps
+    AuthzService --> MsgTypes
     AuthzService --> Grants -->|instance| GenericAuthorization & SendAuthorization & StakeAuthorization --> MsgTypes
   </div>
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>

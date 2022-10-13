@@ -45,6 +45,8 @@ Accept(auth, msg) ==
         Stake!Accept(auth, msg)
 
 --------------------------------------------------------------------------------
+\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL, spendLimit: COINS, allowList: Set(ACCOUNT), type: Str];
+\* @type: Set(AUTH);
 Authorization == 
     Generic!Authorization \cup 
     Send!Authorization \cup 
@@ -84,7 +86,7 @@ GrantIds == [
 ]
 
 \* @type: (GRANT_ID) => Bool;
-IsValid(g) == g.granter # g.grantee
+IsValid(grantId) == grantId.granter # grantId.grantee
 
 \* @type: Set(GRANT_ID);
 ValidGrantIds == { g \in GrantIds: IsValid(g) }

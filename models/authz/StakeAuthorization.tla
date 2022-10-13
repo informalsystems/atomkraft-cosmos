@@ -79,7 +79,7 @@ MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRe
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
-\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL];
+\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL, type: Str];
 \* @type: Set(AUTH);
 Authorization == [  
     type: {"stake-authorization"},
@@ -138,27 +138,29 @@ ValidatorAddressOf(msg) ==
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 
     LET 
-        \* @type: COINS;
-        amount == msg.amount
         \* @type: VALIDATOR;
         validatorAddress == ValidatorAddressOf(msg)
     IN
-    IF auth.allow /\ validatorAddress \notin auth.validators THEN
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-not-allowed"]
-    ELSE IF ~ auth.allow /\ validatorAddress \in auth.validators THEN
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "validator-denied"]
-    ELSE IF amount = 0 THEN 
-        [ accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> "invalid-request" ]
-    ELSE IF auth.maxTokens = NoMaxCoins THEN 
-        [ accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none" ]
-    ELSE [ 
-        accept |-> amount <= auth.maxTokens, 
-        delete |-> amount = auth.maxTokens, 
-        updated |-> IF amount < auth.maxTokens
-            THEN UpdateMaxTokens(auth, auth.maxTokens - amount)
-            ELSE auth,
-        error |-> IF amount <= auth.maxTokens THEN "none" ELSE "insufficient-amount"
-    ]
+
+    \* The error messages for when a validator does not belong to the allowed
+    \* list or does belong to the deny list are the same, and this could hide some
+    \* potential problems.
+    CASE auth.allow /\ validatorAddress \notin auth.validators ->
+        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> CANNOT_DELEGATE_TO_VALIDATOR]
+      [] ~ auth.allow /\ validatorAddress \in auth.validators ->
+        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> CANNOT_DELEGATE_TO_VALIDATOR]
+      [] msg.amount <= 0 ->
+        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> INVALID_DELEGATION_AMOUNT] \* code = 18
+      [] auth.maxTokens = NoMaxCoins ->
+        [accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none"]
+      [] OTHER -> [ 
+            accept |-> msg.amount <= auth.maxTokens, 
+            delete |-> msg.amount = auth.maxTokens, 
+            updated |-> IF msg.amount < auth.maxTokens
+                THEN UpdateMaxTokens(auth, auth.maxTokens - msg.amount)
+                ELSE auth,
+            error |-> IF msg.amount <= auth.maxTokens THEN "none" ELSE NEGATIVE_COIN_AMOUNT
+        ]
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

@@ -3,7 +3,7 @@
 (* Authz messages as defined in                                               *)
 (*    https://github.com/cosmos/cosmos-sdk/blob/main/proto/cosmos/authz/v1beta1/tx.proto *)
 (******************************************************************************)
-EXTENDS Grants
+EXTENDS MsgTypes, Grants
 
 (******************************************************************************)
 (* MsgGrant is a request message to the Grant method. It declares authorization
@@ -60,13 +60,6 @@ grantIdOfMsgExecute(msgExec) == [
     msgTypeUrl |-> msgExec.msg.typeUrl
 ]
 
-\* @typeAlias: EXPIRE_EVENT = [grantId: GRANT_ID, type: Str];
-\* @type: Set(EXPIRE_EVENT);
-ExpireEvents == [
-    type: {"expire"}, 
-    grantId: ValidGrantIds
-]
-
 \* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
 \* @type: Set(REQUEST_MSG);
 RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
@@ -76,12 +69,11 @@ RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 (* Responses                                                                  *)
 (******************************************************************************)
 
+\* @type: Set(Str);
 MsgGrantResponseErrors == {
-    "none", 
-    "granter-equal-grantee", 
-    "authorization-expired"
-    \* "authorization-not-implemented", 
-    \* "msgTypeURL-not-defined"
+    GRANTER_EQUALS_GRANTEE, 
+    INVALID_EXPIRATION,
+    "none"
 }
 
 \* @typeAlias: RESPONSE_GRANT = [error: Str, ok: Bool, type: Str];
@@ -93,17 +85,26 @@ MsgGrantResponses == [
 ]
 
 --------------------------------------------------------------------------------
+
+\* @type: Set(Str);
 MsgExecResponseErrors == {
-    "none", 
-    "grant-not-found", 
-    "authorization-expired", 
-    
-    \* For SendAuthorization and StakeAuthorization
-    "insufficient-amount",
-    "account-not-allowed",
-    "validator-not-allowed",
-    "validator-denied",
-    "invalid-request"
+    AUTH_NOT_FOUND,
+    AUTH_EXPIRED,
+    NO_DELEGATION,
+
+    \* For SendAuthorization:
+    ADDRESS_NOT_ALLOWED,
+    INSUFFICIENT_AMOUNT, 
+    SPEND_LIMIT_IS_NIL,
+    SPEND_LIMIT_IS_NEGATIVE,
+
+    \* For StakeAuthorization
+    CANNOT_DELEGATE_TO_VALIDATOR,
+    NEGATIVE_COIN_AMOUNT,
+    INVALID_DELEGATION_AMOUNT,
+    FAILED_TO_EXECUTE,
+
+    "none"
 }
 
 \* @typeAlias: RESPONSE_EXEC = [error: Str, ok: Bool, type: Str];
@@ -115,9 +116,11 @@ MsgExecResponses == [
 ]
 
 --------------------------------------------------------------------------------
+\* @type: Set(Str);
 MsgRevokeResponseErrors == {
     "none", 
-    "grant-not-found"
+    AUTH_NOT_FOUND,
+    GRANTER_EQUALS_GRANTEE
 }
 
 \* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];

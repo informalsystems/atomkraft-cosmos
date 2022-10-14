@@ -9,8 +9,9 @@ empty, the amount is unlimited. Additionally, this Msg takes an AllowList and a
 DenyList, which allows you to select which validators you allow grantees to
 stake with. *)
 (******************************************************************************)
-LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE Integers
+LOCAL INSTANCE MsgTypes
+LOCAL INSTANCE MsgErrors
 
 CONSTANT
     \* @typeAlias: ACCOUNT = Str;

@@ -14,6 +14,10 @@ VARIABLES
     expectedResponse
 
 --------------------------------------------------------------------------------
+(******************************************************************************)
+(* Initial state                                                              *)
+(******************************************************************************)
+
 \* Only for the initial state.
 NoEvent == [type |-> "no-event"]
 
@@ -29,17 +33,16 @@ ExpireEvents == [
     authorization: Authorization
 ]
 
-TypeOK == 
-    /\ IsMap(grantStore, ValidGrantIds, Grants \cup {NoGrant})
-    /\ event \in RequestMessages \cup ExpireEvents \cup {NoEvent}
-    /\ expectedResponse \in Responses \cup {NoResponse}
-
 Init ==
     /\ grantStore = EmptyStore
     /\ event = NoEvent
     /\ expectedResponse = NoResponse
 
 --------------------------------------------------------------------------------
+(******************************************************************************)
+(* State actions                                                              *)
+(******************************************************************************)
+
 (******************************************************************************)
 (* Request to give a grant from a granter to a grantee.                       *)
 (*                                                                            *)
@@ -60,7 +63,7 @@ Init ==
 RequestGrant(granter, grantee, grant) ==
     LET 
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
-        grantId == grantIdOfMsgGrant(msg)
+        grantId == grantIdOf(msg)
         response == SendMsgGrant(msg)
     IN
     /\ event' = msg
@@ -131,39 +134,27 @@ Expire(grantId) ==
     /\ DeleteGrant(grantId, TRUE)
 
 --------------------------------------------------------------------------------
-NextAllowInvalidArguments == 
+Next == 
     \/ \E granter, grantee \in Accounts, grant \in Grants: 
         RequestGrant(granter, grantee, grant)
     \/ \E grantId \in GrantIds: 
         RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
     \/ \E grantId \in ValidGrantIds: 
         Expire(grantId)
-
-NextOnlyWithValidArguments == 
-    \/ \E granter, grantee \in Accounts, grant \in Grants: 
-        /\ granter # grantee
-        /\ grant.expiration # "past"
-        /\ RequestGrant(granter, grantee, grant)
-    \/ \E grantId \in ValidGrantIds: 
-        /\ HasGrant(grantId)
-        /\ ~ IsExpired(grantId)
-        /\ RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
-    \/ \E grantId \in ValidGrantIds: 
-        Expire(grantId)
-
-\* We keep action RequestExecute separated from the other actions to be able to 
-\* check properties on grants without executing them. 
-Next == 
-    \* \/ NextOnlyWithValidArguments
-    \/ NextAllowInvalidArguments
     \* NB: The implementation allows to send more than one message in an Exec
-    \* request. We model execution requests of only one message per call.
+    \* request. Here we model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsg: 
         RequestExecute(grantee, msg)
+
 --------------------------------------------------------------------------------
 (******************************************************************************)
-(* Invariants                                                                 *)
+(* Model invariants                                                           *)
 (******************************************************************************)
+
+TypeOK == 
+    /\ IsMap(grantStore, GrantIds, Grants \cup {NoGrant})
+    /\ event \in RequestMessages \cup ExpireEvents \cup {NoEvent}
+    /\ expectedResponse \in Responses \cup {NoResponse}
 
 NoExpiredGrantInStore == 
     \A grantId \in DOMAIN grantStore: 
@@ -175,13 +166,14 @@ UnRedelegateFailToExecute ==
     => expectedResponse.error = FAILED_TO_EXECUTE
 
 ValidRevokeCannotAuthNotFound ==
-    LET grantId == grantIdOfMsgRevoke(event) IN
+    LET grantId == grantIdOf(event) IN
     /\ event.type = "request-revoke"
     /\ IsValid(grantId)
-    /\ ~ HasGrant(grantId) 
+    /\ HasGrant(grantId) 
     => expectedResponse.error # AUTH_NOT_FOUND
 
 Inv == 
+    /\ TypeOK
     /\ NoExpiredGrantInStore
     /\ UnRedelegateFailToExecute
     /\ ValidRevokeCannotAuthNotFound

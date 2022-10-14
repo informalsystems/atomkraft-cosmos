@@ -3,7 +3,7 @@
 (* Authz messages as defined in                                               *)
 (*    https://github.com/cosmos/cosmos-sdk/blob/main/proto/cosmos/authz/v1beta1/tx.proto *)
 (******************************************************************************)
-EXTENDS MsgTypes, Grants
+EXTENDS MsgTypes, MsgErrors, Grants
 
 (******************************************************************************)
 (* MsgGrant is a request message to the Grant method. It declares authorization
@@ -53,16 +53,36 @@ MsgExec == [
     msg: SdkMsg
 ]
 
-\* @type: (MSG_EXEC) => GRANT_ID;
-grantIdOfMsgExecute(msgExec) == [
-    grantee |-> msgExec.grantee,
-    granter |-> msgExec.msg.signer,
-    msgTypeUrl |-> msgExec.msg.typeUrl
-]
-
 \* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
 \* @type: Set(REQUEST_MSG);
 RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
+
+--------------------------------------------------------------------------------
+\* @type: (MSG_GRANT) => GRANT_ID;
+grantIdOfMsgGrant(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.granter,
+    msgTypeUrl |-> MsgTypeURL(msg.grant.authorization)
+]
+
+\* @type: (MSG_REVOKE) => GRANT_ID;
+grantIdOfMsgRevoke(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.granter,
+    msgTypeUrl |-> msg.msgTypeUrl
+]
+
+\* @type: (MSG_EXEC) => GRANT_ID;
+grantIdOfMsgExecute(msg) == [
+    grantee |-> msg.grantee,
+    granter |-> msg.msg.signer,
+    msgTypeUrl |-> msg.msg.typeUrl
+]
+
+grantIdOf(msg) ==
+    CASE msg.type = "request-grant" -> grantIdOfMsgGrant(msg)
+      [] msg.type = "request-revoke" -> grantIdOfMsgRevoke(msg)
+      [] msg.type = "request-execute" -> grantIdOfMsgExecute(msg)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)

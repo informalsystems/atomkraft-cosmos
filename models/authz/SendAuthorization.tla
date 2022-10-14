@@ -5,8 +5,9 @@ cosmos.bank.v1beta1.MsgSend Msg. It takes a SpendLimit that specifies the
 maximum amount of tokens the grantee can spend. The SpendLimit is updated as the
 tokens are spent. *)
 (******************************************************************************)
-LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE Integers
+LOCAL INSTANCE MsgTypes
+LOCAL INSTANCE MsgErrors
 
 CONSTANT
     \* @typeAlias: ACCOUNT = Str;

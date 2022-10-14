@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
-declare -a tests=("ExpireThenExecute" "ExpireThenRevoke" "GrantFailsThenGrantSucceeds")
+declare -a tests=("ExpireThenExecute" "ExpireThenRevoke" "GrantFailsThenGrantSucceeds" "ExecuteWithoutGrants")
 
 MAIN_TLA_FILE="Authz_MC.tla"
 
 for TEST in "${tests[@]}"; do
     echo "Sampling $TEST on $MAIN_TLA_FILE..."
     OUT_DIR=./_apalache-out/$TEST
+    NEGATED_TEST=Not$TEST
     time apalache-mc check \
-        --cinit=ConstInit --length=5 --max-error=10 --view=View \
-        --inv=Not$TEST \
+        --cinit=ConstInit --length=7 --max-error=20 --view=View \
+        --inv=$NEGATED_TEST \
         --out-dir=$OUT_DIR \
         $MAIN_TLA_FILE
     
@@ -18,9 +19,9 @@ for TEST in "${tests[@]}"; do
 
     TRACES_DIR=../../traces/authz/$TEST
     mkdir -p $TRACES_DIR
+    rm -f $TRACES_DIR/*.itf.json
 
     echo "cp $OUT_DIR/*.itf.json $TRACES_DIR"
     cp $OUT_DIR/*.itf.json $TRACES_DIR
     rm $TRACES_DIR/violation.itf.json
-    # find $OUT_DIR -type f -iname "violation*.itf.json" -not -iname "violation.itf.json" -exec cp {} $TRACES_DIR \;
 done

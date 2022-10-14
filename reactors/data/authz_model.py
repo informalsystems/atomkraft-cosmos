@@ -4,13 +4,13 @@ import logging
 from typing import Literal, Optional, Union
 
 from atomkraft.chain import Testnet
-from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType
-from terra_sdk.core import authz as terra, staking, bank
-from terra_sdk.core.coin import Coin as TerraCoin
-from terra_sdk.core.coins import Coins as TerraCoins
-from terra_sdk.core.msg import Msg as TerraMsg
-from terra_sdk.util.converter import to_isoformat
-from terra_sdk.core.authz import (
+from terra_proto.cosmos.staking.v1beta1 import AuthorizationType as StakingAuthType  # type: ignore
+from terra_sdk.core import authz as terra, staking, bank  # type: ignore
+from terra_sdk.core.coin import Coin as TerraCoin  # type: ignore
+from terra_sdk.core.coins import Coins as TerraCoins  # type: ignore
+from terra_sdk.core.msg import Msg as TerraMsg  # type: ignore
+from terra_sdk.util.converter import to_isoformat  # type: ignore
+from terra_sdk.core.authz import (  # type: ignore
     MsgExecAuthorized,
     MsgGrantAuthorization,
     MsgRevokeAuthorization,
@@ -27,17 +27,17 @@ Coins = int
 ################################################################################
 
 
-def to_real_coin(testnet: Testnet, coins: int):
-    if coins == NO_MAX_COINS:
+def to_real_coin(testnet: Testnet, coins: Optional[int]):
+    if coins is None or coins == NO_MAX_COINS:
         return None
 
     return TerraCoin.from_str(f"{int(coins)}{testnet.denom}")
 
 
-def to_real_coins(testnet: Testnet, coins: list[int]):
-    if len(coins) != 1:
+def to_real_coins(testnet: Testnet, coin_list: list[int]):
+    if len(coin_list) != 1:
         raise ValueError("Currently only accept one coin value.")
-    coins = coins[0]
+    coins = coin_list[0]
 
     if coins == NO_MAX_COINS:
         return None
@@ -117,7 +117,7 @@ class MsgTypeUrls(Enum):
 
 ################################################################################
 
-EXPIRES_SOON_TIME = 2
+EXPIRES_SOON_TIME = 1 # seconds to expire after 'now'
 
 
 class ExpirationTime(Enum):
@@ -129,12 +129,12 @@ class ExpirationTime(Enum):
     def to_real(self):
         match self:
             case self.past:
-                return to_isoformat(datetime.now() - timedelta(seconds=100))
+                return to_isoformat(datetime.now() - timedelta(seconds=60))
             case self.future:
-                return to_isoformat(datetime.now() + timedelta(seconds=100))
+                return to_isoformat(datetime.now() + timedelta(seconds=60))
             case self.none:
                 # terra.py client requires a concrete timestamp
-                return to_isoformat(datetime.now() + timedelta(seconds=10000))
+                return to_isoformat(datetime.now() + timedelta(seconds=3600))
             case self.expire_soon:
                 return to_isoformat(
                     datetime.now() + timedelta(seconds=EXPIRES_SOON_TIME)
@@ -148,6 +148,9 @@ class Authorization(ModelObject):
     type: Literal["generic-authorization", "send-authorization", "stake-authorization"]
     msgTypeUrl: MsgTypeUrls
 
+    def __repr__(self) -> str:
+        return f"Authorization(type: {self.type}, msgTypeUrl: {self.msgTypeUrl})"
+
 
 ################################################################################
 
@@ -158,6 +161,9 @@ class GenericAuthorization(Authorization):
 
     def to_real(self, _testnet: Testnet):
         return terra.GenericAuthorization(msg=self.msgTypeUrl.to_real())
+
+    def __repr__(self) -> str:
+        return f"GenericAuthorization(msgTypeUrl: {self.msgTypeUrl})"
 
 
 ################################################################################
@@ -173,6 +179,9 @@ class SendAuthorization(Authorization):
             # FIX: terra library does not support `allow_list``
         )
 
+    def __repr__(self) -> str:
+        return f"SendAuthorization(msgTypeUrl: {self.msgTypeUrl}, spendLimit: {self.spendLimit}, allowList: {self.allowList})"
+
 
 class MsgSend(ModelObject):
     signer: AccAddress
@@ -187,6 +196,9 @@ class MsgSend(ModelObject):
             to_address=testnet.acc_addr(self.toAddress),
             amount=to_real_coins(testnet, [self.amount]),
         )
+
+    def __repr__(self) -> str:
+        return f"MsgSend(typeUrl: {self.typeUrl}, signer: {self.signer}, from_address: {self.fromAddress}, toAddress: {self.toAddress}, amount: {self.amount})"
 
 
 ################################################################################
@@ -223,6 +235,9 @@ class StakeAuthorization(Authorization):
             deny_list=validators if not self.allow else None,
         )
 
+    def __repr__(self) -> str:
+        return f"StakeAuthorization(msgTypeUrl: {self.msgTypeUrl}, maxTokens: {self.maxTokens}, validators: {self.validators}, allow: {self.allow})"
+
 
 class MsgDelegate(ModelObject):
     signer: AccAddress
@@ -233,10 +248,13 @@ class MsgDelegate(ModelObject):
 
     def to_real(self, testnet: Testnet) -> TerraMsg:
         return staking.MsgDelegate(
-            delegator_address=testnet.acc_addr(self.signer),
+            delegator_address=testnet.acc_addr(self.delegatorAddress),
             validator_address=testnet.val_addr(self.validatorAddress, True),
             amount=to_real_coin(testnet, self.amount),
         )
+
+    def __repr__(self) -> str:
+        return f"MsgDelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
 
 
 class MsgUndelegate(ModelObject):
@@ -253,6 +271,9 @@ class MsgUndelegate(ModelObject):
             amount=to_real_coin(testnet, self.amount),
         )
 
+    def __repr__(self) -> str:
+        return f"MsgUndelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
+
 
 class MsgBeginRedelegate(ModelObject):
     signer: AccAddress
@@ -264,11 +285,14 @@ class MsgBeginRedelegate(ModelObject):
 
     def to_real(self, testnet: Testnet) -> TerraMsg:
         return staking.MsgBeginRedelegate(
-            delegator_address=testnet.acc_addr(self.signer),
+            delegator_address=testnet.acc_addr(self.delegatorAddress),
             validator_src_address=testnet.val_addr(self.validatorSrcAddress, True),
             validator_dst_address=testnet.val_addr(self.validatorDstAddress, True),
             amount=to_real_coin(testnet, self.amount),
         )
+
+    def __repr__(self) -> str:
+        return f"MsgBeginRedelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorSrcAddress: {self.validatorSrcAddress}, validatorDstAddress: {self.validatorDstAddress}, amount: {self.amount})"
 
 
 ################################################################################
@@ -282,6 +306,11 @@ class Grant(ModelObject):
         return terra.AuthorizationGrant(
             authorization=self.authorization.to_real(testnet),
             expiration=self.expiration.to_real(),
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"Grant(authorization: {self.authorization}, expiration: {self.expiration})"
         )
 
 
@@ -310,6 +339,9 @@ class MsgGrant(ModelObject):
 
         return MsgGrantAuthorization(granter, grantee, grant)
 
+    def __repr__(self) -> str:
+        return f"MsgGrant(granter: {self.granter}, grantee: {self.grantee}, msg: {self.grant})"
+
 
 class MsgRevoke(ModelObject):
     type: Literal["request-revoke"]
@@ -329,6 +361,9 @@ class MsgRevoke(ModelObject):
 
         return MsgRevokeAuthorization(granter, grantee, msg_type_url)
 
+    def __repr__(self) -> str:
+        return f"MsgRevoke(granter: {self.granter}, grantee: {self.grantee}, msgTypeUrl: {self.msgTypeUrl})"
+
 
 class MsgExec(ModelObject):
     type: Literal["request-execute"]
@@ -345,6 +380,9 @@ class MsgExec(ModelObject):
 
         return MsgExecAuthorized(grantee=grantee, msgs=[msg])
 
+    def __repr__(self) -> str:
+        return f"MsgExec(grantee: {self.grantee}, msg: {self.msg})"
+
 
 ################################################################################
 
@@ -352,6 +390,7 @@ class MsgExec(ModelObject):
 class ExpireEvent(ModelObject):
     type: Literal["expire"]
     grantId: GrantIds
+    authorization: Authorization
 
 
 Event = Union[MsgGrant, MsgRevoke, MsgExec, ExpireEvent]

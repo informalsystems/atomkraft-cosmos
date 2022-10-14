@@ -1,14 +1,17 @@
 import logging
-from munch import unmunchify
+from munch import unmunchify  # type: ignore
+import re
 import time
 from timeit import default_timer as timer
+
+from terra_proto.cosmos.base.abci.v1beta1 import TxResponse  # type: ignore
 
 from atomkraft.chain import Testnet
 from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
 from reactors.data import authz_model as model
-from terra_proto.cosmos.base.abci.v1beta1 import TxResponse
+from reactors.data.authz_queries import query_all_balances, query_grants
 
 
 def show_result(result: TxResponse, expected: model.Response):
@@ -27,16 +30,29 @@ def show_result(result: TxResponse, expected: model.Response):
 
 def check_result(result: TxResponse, expected: model.Response):
     assert (result.code == 0) == (expected.error == "none")
+    if result.code == 0:
+        assert expected.error == "none"
+    else:
+        # the error message in the model may contain parentheses
+        expected_error = expected.error.replace("(", "\\(").replace(")", "\\)")
+        assert bool(re.search(expected_error, result.raw_log))
+
+
+INITIAL_BALANCE = 1000000
 
 
 @step("no-event")
 def init(testnet: Testnet, Accounts: list[str], Validators: list[str]):
-    logging.info("🔶 Step: init")
+    logging.info("🔶🔶🔶 Step: init")
 
     testnet.set_accounts(sorted(Accounts))
-    testnet.set_validators(sorted(Validators))    
-    testnet.set_account_balances(dict([(id, {'stake': 10000000000}) for id in sorted(Accounts)]))
-    testnet.set_validator_balances(dict([(id, {'stake': 10000000000}) for id in sorted(Validators)]))
+    testnet.set_validators(sorted(Validators))
+    testnet.set_account_balances(
+        dict([(id, {"stake": INITIAL_BALANCE}) for id in sorted(Accounts)])
+    )
+    testnet.set_validator_balances(
+        dict([(id, {"stake": INITIAL_BALANCE}) for id in sorted(Validators)])
+    )
     testnet.verbose = True
 
     logging.info(f"Preparing testnet...")
@@ -62,19 +78,27 @@ def request_grant(
     event: model.MsgGrant,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: request grant")
+    logging.info("🔶🔶🔶 Step: request grant")
     assert event.type == "request-grant"
     request = model.MsgGrant(unmunchify(event))
+    logging.info(f"request: {request}")
 
+    request_msg = request.to_real(testnet)
+    logging.info(f"request_msg: {request_msg}")
     result = testnet.broadcast_transaction(
         request.granter,
-        request.to_real(testnet),
-        gas=200000,
-        fee_amount=20000,
+        request_msg,
     )
 
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
+
+    query_grants(
+        testnet,
+        granter=request.granter,
+        grantee=request.grantee,
+    )
+    query_all_balances(testnet)
 
 
 @step("request-revoke")
@@ -83,18 +107,27 @@ def request_revoke(
     event: model.MsgRevoke,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: revoke grant")
+    logging.info("🔶🔶🔶 Step: revoke grant")
     assert event.type == "request-revoke"
     request = model.MsgRevoke(unmunchify(event))
+    logging.info(f"request: {request}")
 
     result = catch_unicode_decode_error(
         lambda: testnet.broadcast_transaction(
-            request.granter, request.to_real(testnet), gas=200000, fee_amount=20000
+            request.granter,
+            request.to_real(testnet),
         )
     )
 
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
+
+    query_grants(
+        testnet,
+        granter=request.granter,
+        grantee=request.grantee,
+    )
+    query_all_balances(testnet)
 
 
 @step("request-execute")
@@ -103,15 +136,19 @@ def request_execute(
     event: model.MsgExec,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: execute grant")
+    logging.info("🔶🔶🔶 Step: execute grant")
     assert event.type == "request-execute"
     request = model.MsgExec(unmunchify(event))
+    logging.info(f"request: {request}")
 
     result = catch_unicode_decode_error(
         lambda: testnet.broadcast_transaction(
-            request.grantee, request.to_real(testnet), gas=200000, fee_amount=20000
+            request.grantee,
+            request.to_real(testnet),
         )
     )
+
+    query_all_balances(testnet)
 
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
@@ -121,51 +158,62 @@ def request_execute(
 def expire(
     testnet: Testnet,
     event: model.ExpireEvent,
-    grantStore: model.GrantStore,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: expire grant")
+    logging.info("🔶🔶🔶 Step: expire grant")
     assert event.type == "expire"
 
     # To force a grant to expire, we update the grant with a new expiration time
     # `model.EXPIRES_SOON_TIME`. This time is small enough that we can wait for
-    # it to pass and thus the grant will expire.
-    grant = model.get_grant(grantStore, event.grantId)
-    if grant.expiration != "none":
-        grant.expiration = model.ExpirationTime.expire_soon.name
-    logging.info(f"‣ grant': {unmunchify(grant)}")
+    # it to pass and thus the grant will expire. It cannot be a `past` time
+    # because the request would be rejected.
+    # logging.info(f"‣ event.authorization: {unmunchify(event.authorization)}")
 
     request_grant_msg = model.MsgGrant(
         {
             "type": "request-grant",
             "granter": event.grantId.granter,
             "grantee": event.grantId.grantee,
-            "grant": unmunchify(grant),
+            "grant": {
+                "authorization": unmunchify(event.authorization),
+                "expiration": model.ExpirationTime.expire_soon.name,
+            },
         }
     )
 
-    result = testnet.broadcast_transaction(
-        event.grantId.granter,
-        request_grant_msg.to_real(testnet),
-        gas=200000,
-        fee_amount=20000,
-    )
+    request_msg = request_grant_msg.to_real(testnet)
+    logging.info(f"request_msg: {request_msg}")
+
+    result = testnet.broadcast_transaction(event.grantId.granter, request_msg)
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
 
-    logging.info("Waiting for the grant to expire...")
-    logging.info(f"Waiting {model.EXPIRES_SOON_TIME} seconds")
-    time.sleep(model.EXPIRES_SOON_TIME + 5)
+    wait_time = model.EXPIRES_SOON_TIME + 1
+    logging.info(f"Waiting {wait_time} seconds for the grant to expire...\n")
+    time.sleep(wait_time)
+
+    query_grants(
+        testnet,
+        granter=event.grantId.granter,
+        grantee=event.grantId.grantee,
+    )
+    query_all_balances(testnet)
 
 
-# Quick hack to return fail without halting the trace execution.
+# This is a quick hack to return an error message without halting the execution of the trace.
+# There are two places where this happens:
+# - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L105
+# - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L212
+# The protobuf library `betterproto`, used by terra.py, throws an exception `UnicodeDecodeError` when it is not able to
+# decode to string a binary message that includes a wrong UTF-8 byte sequence.
+# The error messages from the Authz module look like this:
+#   b'failed to execute message; message index: 0: failed to update grant with key \x01\x14\x83\xc1\xde\xde\x080\xdctC\x8b...\nu4tD\x88\xb3\x14huI\x186\x15\x83\x86\xe8GA\xbeS\xa4j\xb4o\xf3M5/cosmos.bank.v1beta1.MsgSend: authorization not found'
 def catch_unicode_decode_error(fn):
     try:
         return fn()
-    except UnicodeDecodeError as e:
-        # Terra library aborts execution with UnicodeDecodeError: 'utf-8' codec can't decode byte 0x83 in position 85: invalid start byte
+    except UnicodeDecodeError:
         return TxResponse(
             codespace="authz",
             code=2,
-            raw_log="failed to execute message; UnicodeDecodeError",
+            raw_log="failed to execute message (UnicodeDecodeError)",
         )

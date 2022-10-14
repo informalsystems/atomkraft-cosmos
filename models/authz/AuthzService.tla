@@ -13,12 +13,7 @@ VARIABLE
     grantStore  
 
 \* @type: (GRANT_ID) => Bool;
-HasGrant(grantId) == grantId \in DOMAIN grantStore
-
-\* @type: (GRANT_ID) => Bool;
-IsExpired(grantId) == 
-    /\ HasGrant(grantId)
-    /\ grantStore[grantId].expiration = "past"
+ExistsGrantFor(grantId) == grantId \in DOMAIN grantStore
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -36,8 +31,8 @@ IsExpired(grantId) ==
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L14
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
 SendMsgGrant(msg) == 
-    LET grantId == grantIdOf(msg) IN
-    CASE IsValid(grantId) ->
+    LET grantId == grantIdOfMsgGrant(msg) IN
+    CASE ~ IsValid(grantId) ->
         [type |-> "response-grant", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
       [] msg.grant.expiration = "past" ->
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
@@ -52,10 +47,10 @@ SendMsgGrant(msg) ==
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L52
 \* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
 SendMsgRevoke(msg) == 
-    LET grantId == grantIdOf(msg) IN
-    CASE IsValid(grantId) ->
+    LET grantId == grantIdOfMsgRevoke(msg) IN
+    CASE ~ IsValid(grantId) ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
-      [] ~ HasGrant(grantId) ->
+      [] ~ ExistsGrantFor(grantId) ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> AUTH_NOT_FOUND]
       [] OTHER ->
         [type |-> "response-revoke", ok |-> TRUE, error |-> "none"]
@@ -82,22 +77,20 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* A comment in the code says that if granter = grantee "we implicitly
         \* accept" the message.
         [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
-    ELSE IF ~ HasGrant(grantId) THEN
-        \* The error message may be more specific than FAILED_TO_EXECUTE. There
-        \* are multiple reasons for failing to execute a message and they depend on
-        \* the kind of message being executed.
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
     ELSE 
-        CASE msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress -> 
+        CASE \/ msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress
+             \/ msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress ->
             \* CHECK: This will execute the message even when no authorization has been granted.
             Accept(auth, msg)
-        [] msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress ->
-            \* CHECK: This will execute the message even when no authorization has been granted.
-            Accept(auth, msg)
-        [] IsExpired(grantId) ->
+          [] grantStore[grantId].expiration = "past" ->
             \* CHECK: Probably unreachable: expired grants are deleted before.
             [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
-        [] OTHER -> 
+          [] ~ ExistsGrantFor(grantId) ->
+            \* The error message may be more specific than FAILED_TO_EXECUTE. There
+            \* are multiple reasons for failing to execute a message and they depend on
+            \* the kind of message being executed.
+            [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
+          [] OTHER -> 
             Accept(auth, msg)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72

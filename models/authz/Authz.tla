@@ -63,7 +63,7 @@ Init ==
 RequestGrant(granter, grantee, grant) ==
     LET 
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
-        grantId == grantIdOf(msg)
+        grantId == grantIdOfMsgGrant(msg)
         response == SendMsgGrant(msg)
     IN
     /\ event' = msg
@@ -125,10 +125,10 @@ RequestExecute(grantee, msg) ==
 (* expire).                                                                   *)
 (******************************************************************************)
 Expire(grantId) ==
-    /\ HasGrant(grantId)
-    /\ ~ IsExpired(grantId)
-    /\ grantStore[grantId].expiration = "future"
-    /\ event' = [type |-> "expire", grantId |-> grantId, authorization |-> grantStore[grantId].authorization]
+    LET grant == grantStore[grantId] IN
+    /\ ExistsGrantFor(grantId)
+    /\ grant.expiration = "future"
+    /\ event' = [type |-> "expire", grantId |-> grantId, authorization |-> grant.authorization]
     /\ expectedResponse' = NoResponse
     \* DequeueAndDeleteExpiredGrants: https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L379
     /\ DeleteGrant(grantId, TRUE)
@@ -139,12 +139,12 @@ Next ==
         RequestGrant(granter, grantee, grant)
     \/ \E grantId \in GrantIds: 
         RequestRevoke(grantId.granter, grantId.grantee, grantId.msgTypeUrl)
-    \/ \E grantId \in ValidGrantIds: 
-        Expire(grantId)
     \* NB: The implementation allows to send more than one message in an Exec
     \* request. Here we model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsg: 
         RequestExecute(grantee, msg)
+    \/ \E grantId \in ValidGrantIds: 
+        Expire(grantId)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -165,17 +165,32 @@ UnRedelegateFailToExecute ==
     /\ event.msg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
     => expectedResponse.error = FAILED_TO_EXECUTE
 
+ExecuteSimpleCasesInv ==
+    LET grantId == grantIdOfMsgExecute(event) IN
+    /\ event.type = "request-execute"
+    /\ event.msg.typeUrl \notin {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
+    =>  /\  /\ ~ IsValid(grantId)
+            => expectedResponse.error = "none"
+        /\  /\ IsValid(grantId)
+            /\ ~ ExistsGrantFor(grantId) 
+            => expectedResponse.error = FAILED_TO_EXECUTE
+        /\  /\ IsValid(grantId)
+            /\ ExistsGrantFor(grantId) 
+            /\ grantStore[grantId].expiration = "past"
+            => expectedResponse.error = AUTH_EXPIRED
+
 ValidRevokeCannotAuthNotFound ==
-    LET grantId == grantIdOf(event) IN
+    LET grantId == grantIdOfMsgRevoke(event) IN
     /\ event.type = "request-revoke"
     /\ IsValid(grantId)
-    /\ HasGrant(grantId) 
+    /\ ExistsGrantFor(grantId) 
     => expectedResponse.error # AUTH_NOT_FOUND
 
 Inv == 
     /\ TypeOK
     /\ NoExpiredGrantInStore
     /\ UnRedelegateFailToExecute
+    /\ ExecuteSimpleCasesInv
     /\ ValidRevokeCannotAuthNotFound
 
 ================================================================================

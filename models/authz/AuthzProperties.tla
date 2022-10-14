@@ -79,19 +79,10 @@ ExpireThenExecute(trace) ==
         LET state2 == trace[j] IN
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-execute" 
-        /\ state1.event.grantId = grantIdOf(state2.event)
+        /\ state1.event.grantId = grantIdOfMsgExecute(state2.event)
         \* /\ Len(trace) = 10
 
 NotExpireThenExecute(trace) == ~ ExpireThenExecute(trace)
-
-\* This property on a single state should be the same as the one above. It
-\* implies that before request-execute, there were a request-grant and an expire
-\* event.
-ExecuteExpired ==
-    /\ event.type = "request-execute" 
-    /\ expectedResponse.error = AUTH_EXPIRED
-
-NotExecuteExpired == ~ ExecuteExpired
 
 --------------------------------------------------------------------------------
 
@@ -102,24 +93,9 @@ ExpireThenRevoke(trace) ==
         LET state2 == trace[j] IN
         /\ state1.event.type = "expire"
         /\ state2.event.type = "request-revoke" 
-        /\ state2.event.grantId = grantIdOf(state1.event)
+        /\ state1.event.grantId = grantIdOfMsgRevoke(state2.event)
 
 NotExpireThenRevoke(trace) == ~ ExpireThenRevoke(trace)
-
---------------------------------------------------------------------------------
-
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
-\* @type: Seq(TRACE) => Bool;
-ExpireThenRevokeFails(trace) ==
-    \E i, j \in DOMAIN trace: i < j /\
-        LET state1 == trace[i] IN 
-        LET state2 == trace[j] IN
-        /\ state1.event.type = "expire"
-        /\ state2.event.type = "request-revoke" 
-        /\ state2.event.grantId = grantIdOf(state1.event)
-        /\ state2.expectedResponse.ok = FALSE
-
-NotExpireThenRevokeFails(trace) == ~ ExpireThenRevokeFails(trace)
 
 --------------------------------------------------------------------------------
 \* @type: Seq(TRACE) => Bool;
@@ -133,14 +109,14 @@ RequestGrantExpireAndExec(trace) ==
             /\ state1.event.type = "request-grant"
             /\ state2.event.type = "expire"
             /\ state3.event.type = "request-execute" 
-            /\ grantIdOf(state1.event) = state2.event.grantId
-            /\ state2.event.grantId = grantIdOf(state1.event)
+            /\ grantIdOfMsgGrant(state1.event) = state2.event.grantId
+            /\ state2.event.grantId = grantIdOfMsgExecute(state3.event)
 
 \* @type: Seq(TRACE) => Bool;
 RequestGrantExpireAndExec2(trace) ==
     LET 
         state1 == trace[1] 
-        g1 == grantIdOf(state1.event)
+        g1 == grantIdOfMsgGrant(state1.event)
     IN
     /\ state1.event.type = "request-grant"
     /\ state1.expectedResponse.ok = TRUE
@@ -152,8 +128,9 @@ RequestGrantExpireAndExec2(trace) ==
                 state3 == trace[k] 
             IN
             /\ state2.event.type = "request-expire"
-            /\ g1 = grantIdOf(state2.event)
+            /\ state2.event.grantId = g1
             /\ state3.event.type = "request-execute" 
+            /\ grantIdOfMsgExecute(state3.event) = g1
             /\ LET 
                 \* @type: SDK_MSG;
                 msg == CHOOSE m \in state3.event.msgs: TRUE IN
@@ -171,7 +148,7 @@ GrantFailsThenGrantSucceeds(trace) ==
         /\ state1.expectedResponse.ok = FALSE
         /\ state2.event.type = "request-grant"
         /\ state2.expectedResponse.ok = TRUE
-        /\ grantIdOf(state1.event) = grantIdOf(state2.event)
+        /\ grantIdOfMsgGrant(state1.event) = grantIdOfMsgGrant(state2.event)
 
 NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
 

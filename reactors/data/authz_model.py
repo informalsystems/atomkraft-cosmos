@@ -184,7 +184,6 @@ class SendAuthorization(Authorization):
 
 
 class MsgSend(ModelObject):
-    signer: AccAddress
     typeUrl: Literal["send"]
     fromAddress: AccAddress
     toAddress: AccAddress
@@ -198,7 +197,7 @@ class MsgSend(ModelObject):
         )
 
     def __repr__(self) -> str:
-        return f"MsgSend(typeUrl: {self.typeUrl}, signer: {self.signer}, from_address: {self.fromAddress}, toAddress: {self.toAddress}, amount: {self.amount})"
+        return f"MsgSend(typeUrl: {self.typeUrl}, from_address: {self.fromAddress}, toAddress: {self.toAddress}, amount: {self.amount})"
 
 
 ################################################################################
@@ -240,7 +239,6 @@ class StakeAuthorization(Authorization):
 
 
 class MsgDelegate(ModelObject):
-    signer: AccAddress
     typeUrl: Literal["delegate"]
     delegatorAddress: AccAddress
     validatorAddress: ValAddress
@@ -254,11 +252,10 @@ class MsgDelegate(ModelObject):
         )
 
     def __repr__(self) -> str:
-        return f"MsgDelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
+        return f"MsgDelegate(typeUrl: {self.typeUrl}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
 
 
 class MsgUndelegate(ModelObject):
-    signer: AccAddress
     typeUrl: Literal["undelegate"]
     delegatorAddress: AccAddress
     validatorAddress: ValAddress
@@ -272,11 +269,10 @@ class MsgUndelegate(ModelObject):
         )
 
     def __repr__(self) -> str:
-        return f"MsgUndelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
+        return f"MsgUndelegate(typeUrl: {self.typeUrl}, delegatorAddress: {self.delegatorAddress}, validatorAddress: {self.validatorAddress}, amount: {self.amount})"
 
 
 class MsgBeginRedelegate(ModelObject):
-    signer: AccAddress
     typeUrl: Literal["redelegate"]
     delegatorAddress: AccAddress
     validatorSrcAddress: ValAddress
@@ -292,7 +288,7 @@ class MsgBeginRedelegate(ModelObject):
         )
 
     def __repr__(self) -> str:
-        return f"MsgBeginRedelegate(typeUrl: {self.typeUrl}, signer: {self.signer}, delegatorAddress: {self.delegatorAddress}, validatorSrcAddress: {self.validatorSrcAddress}, validatorDstAddress: {self.validatorDstAddress}, amount: {self.amount})"
+        return f"MsgBeginRedelegate(typeUrl: {self.typeUrl}, delegatorAddress: {self.delegatorAddress}, validatorSrcAddress: {self.validatorSrcAddress}, validatorDstAddress: {self.validatorDstAddress}, amount: {self.amount})"
 
 
 ################################################################################

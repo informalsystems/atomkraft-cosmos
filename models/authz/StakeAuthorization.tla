@@ -41,7 +41,6 @@ ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 \* @type: Set(SDK_MSG);
 MsgDelegate == [
     typeUrl: { DELEGATE_TYPE_URL },
-    signer: Accounts, 
     delegatorAddress: Accounts,
     validatorAddress: Validators,
     amount: Coins
@@ -53,7 +52,6 @@ MsgDelegate == [
 \* @type: Set(SDK_MSG);
 MsgUndelegate == [
     typeUrl: { UNDELEGATE_TYPE_URL},
-    signer: Accounts, 
     delegatorAddress: Accounts,
     validatorAddress: Validators,
     amount: Coins
@@ -65,7 +63,6 @@ MsgUndelegate == [
 \* @type: Set(SDK_MSG);
 MsgBeginRedelegate == [
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
-    signer: Accounts, 
     delegatorAddress: Accounts,
     validatorSrcAddress: Validators,
     validatorDstAddress: Validators,

@@ -48,7 +48,7 @@ MsgExec == [
     grantee: Accounts,
 
     \* Each message must implement an Authorization interface. The x/authz module
-    \* will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
+    \* will try to find a grant matching (GetSigner(msg), grantee, MsgTypeURL(msg))
     \* triple and validate it.
     msg: SdkMsg
 ]
@@ -56,6 +56,16 @@ MsgExec == [
 \* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
 \* @type: Set(REQUEST_MSG);
 RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
+
+--------------------------------------------------------------------------------
+\* @type: (SDK_MSG) => MSG_TYPE_URL;
+GetSigner(sdkMsg) ==
+    \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L56
+    CASE sdkMsg.typeUrl = SEND_TYPE_URL -> 
+        sdkMsg.fromAddress
+    \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L215
+      [] sdkMsg.typeUrl \in {DELEGATE_TYPE_URL, UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} -> 
+        sdkMsg.delegatorAddress
 
 --------------------------------------------------------------------------------
 \* @type: (MSG_GRANT) => GRANT_ID;
@@ -75,7 +85,7 @@ grantIdOfMsgRevoke(msg) == [
 \* @type: (MSG_EXEC) => GRANT_ID;
 grantIdOfMsgExecute(msg) == [
     grantee |-> msg.grantee,
-    granter |-> msg.msg.signer,
+    granter |-> GetSigner(msg.msg),
     msgTypeUrl |-> msg.msg.typeUrl
 ]
 

@@ -19,7 +19,6 @@ MsgTypeUrls == MsgTypes
 
 \* @type: Set(SDK_MSG);
 SdkMsg == [
-    signer: Accounts, 
     typeUrl: MsgTypeUrls 
 ]
 

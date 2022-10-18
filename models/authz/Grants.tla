@@ -61,7 +61,7 @@ may contain multiple signers, but authz accepts messages with just one.  A
 message implements an Authorization interface (methods MsgTypeURL and 
 Accept). *)
 (******************************************************************************)
-\* @typeAlias: SDK_MSG = [amount: COINS, delegatorAddress: ACCOUNT, fromAddress: ACCOUNT, signer: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR];
+\* @typeAlias: SDK_MSG = [amount: COINS, delegatorAddress: ACCOUNT, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR];
 \* @type: Set(SDK_MSG);
 SdkMsg ==
     Send!MsgSend \cup 

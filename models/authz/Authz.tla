@@ -108,7 +108,7 @@ RequestExecute(grantee, msg) ==
         \* @type: ACCEPT_RESPONSE;
         acceptResponse == response[2]
         \* @type: GRANT_ID;
-        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl] 
+        grantId == [granter |-> GetSigner(msg), grantee |-> grantee, msgTypeUrl |-> msg.typeUrl] 
     IN
     /\ event' = request
     /\ expectedResponse' = response[1]

@@ -60,11 +60,6 @@ SendMsgRevoke(msg) ==
 (* Send request execute                                                       *)
 (******************************************************************************)
 
-\* @type: (ACCOUNT, SDK_MSG) => Bool;
-CanExecuteWithoutGrant(grantee, msg) ==
-    \/ msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress
-    \/ msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress 
-
 NoUpdate == [type |-> "no-update"]
 
 \* An SDK message may contain multiple signers, but authz accepts messages with just one.
@@ -73,18 +68,18 @@ NoUpdate == [type |-> "no-update"]
 \* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
+        \* @type: ACCOUNT;
+        granter == GetSigner(msg)
         \* @type: GRANT_ID;
-        grantId == [granter |-> msg.signer, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
+        grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
         \* @type: AUTH;
         auth == grantStore[grantId].authorization
     IN
-    CASE CanExecuteWithoutGrant(grantee, msg) ->
-        \* CHECK: This will execute the message even when no authorization has been granted.
+    CASE granter = grantee ->
+        \* A comment in the code says that if granter = grantee "we implicitly
+        \* accept" the message. Note that this may execute the message even when 
+        \* no authorization has been granted.
         Accept(auth, msg)
-    \*   [] grantId.granter = grantId.grantee THEN
-    \*     \* A comment in the code says that if granter = grantee "we implicitly
-    \*     \* accept" the message.
-    \*     [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
       [] ~ ExistsGrantFor(grantId) ->
         \* The error message may be more specific than FAILED_TO_EXECUTE. There
         \* are multiple reasons for failing to execute a message and they depend on

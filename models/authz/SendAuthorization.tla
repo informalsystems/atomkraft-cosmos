@@ -32,7 +32,6 @@ MsgTypeUrls == { SEND_TYPE_URL }
 \* @type: Set(SDK_MSG);
 MsgSend ==
     LET Msgs == [
-        signer: Accounts, 
         typeUrl: MsgTypeUrls,
         fromAddress: Accounts,
         toAddress: Accounts,

@@ -60,6 +60,11 @@ SendMsgRevoke(msg) ==
 (* Send request execute                                                       *)
 (******************************************************************************)
 
+\* @type: (ACCOUNT, SDK_MSG) => Bool;
+CanExecuteWithoutGrant(grantee, msg) ==
+    \/ msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress
+    \/ msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress 
+
 NoUpdate == [type |-> "no-update"]
 
 \* An SDK message may contain multiple signers, but authz accepts messages with just one.
@@ -73,25 +78,23 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* @type: AUTH;
         auth == grantStore[grantId].authorization
     IN
-    IF ~ IsValid(grantId) THEN
-        \* A comment in the code says that if granter = grantee "we implicitly
-        \* accept" the message.
-        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
-    ELSE 
-        CASE \/ msg.typeUrl = SEND_TYPE_URL /\ grantee = msg.fromAddress
-             \/ msg.typeUrl = DELEGATE_TYPE_URL /\ grantee = msg.delegatorAddress ->
-            \* CHECK: This will execute the message even when no authorization has been granted.
-            Accept(auth, msg)
-          [] grantStore[grantId].expiration = "past" ->
-            \* CHECK: Probably unreachable: expired grants are deleted before.
-            [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
-          [] ~ ExistsGrantFor(grantId) ->
-            \* The error message may be more specific than FAILED_TO_EXECUTE. There
-            \* are multiple reasons for failing to execute a message and they depend on
-            \* the kind of message being executed.
-            [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
-          [] OTHER -> 
-            Accept(auth, msg)
+    CASE CanExecuteWithoutGrant(grantee, msg) ->
+        \* CHECK: This will execute the message even when no authorization has been granted.
+        Accept(auth, msg)
+    \*   [] grantId.granter = grantId.grantee THEN
+    \*     \* A comment in the code says that if granter = grantee "we implicitly
+    \*     \* accept" the message.
+    \*     [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"]
+      [] ~ ExistsGrantFor(grantId) ->
+        \* The error message may be more specific than FAILED_TO_EXECUTE. There
+        \* are multiple reasons for failing to execute a message and they depend on
+        \* the kind of message being executed.
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
+      [] ExistsGrantFor(grantId) /\ grantStore[grantId].expiration = "past" ->
+        \* CHECK: Probably unreachable: expired grants are deleted before.
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
+      [] OTHER -> 
+        Accept(auth, msg)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/afab2f348ab36fe323b791d3fc826292474b678b/x/authz/keeper/msg_server.go#L72
 \* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;

@@ -79,11 +79,10 @@ grantIdOfMsgExecute(msg) == [
     msgTypeUrl |-> msg.msg.typeUrl
 ]
 
-\* grantIdOf(msg) ==
-\*     CHOOSE grantId \in GrantIds: 
-\*         CASE msg.type = "request-grant" -> grantId = grantIdOfMsgGrant(msg)
-\*           [] msg.type = "request-revoke" -> grantId = grantIdOfMsgRevoke(msg)
-\*           [] msg.type = "request-execute" -> grantId = grantIdOfMsgExecute(msg)
+grantIdOfMsg(msg) ==
+    CASE msg.type = "request-grant" -> grantIdOfMsgGrant(msg)
+      [] msg.type = "request-revoke" ->  grantIdOfMsgRevoke(msg)
+      [] msg.type = "request-execute" -> grantIdOfMsgExecute(msg)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)

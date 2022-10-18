@@ -1,6 +1,6 @@
 ------------------------------- MODULE Authz_MC --------------------------------
 (******************************************************************************)
-
+(* Model Checker parameters                                                   *)
 (******************************************************************************)
 EXTENDS AuthzProperties
 
@@ -28,7 +28,16 @@ ConstInit ==
 
 --------------------------------------------------------------------------------
 
-\* @type: <<Str, Str>>;
-View == <<event.type, expectedResponse.error>>
+grantIdOfEvent(e) ==
+    IF e.type = "expire" 
+    THEN e.grantId
+    ELSE grantIdOfMsg(e)
+
+\* @type: <<Str, GRANT_ID, Str>>;
+View == <<
+    event.type, 
+    grantIdOfEvent(event),
+    expectedResponse.error
+>>
 
 ================================================================================

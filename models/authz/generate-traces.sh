@@ -24,4 +24,6 @@ for TEST in "${tests[@]}"; do
     echo "cp $OUT_DIR/*.itf.json $TRACES_DIR"
     cp $OUT_DIR/*.itf.json $TRACES_DIR
     rm $TRACES_DIR/violation.itf.json
+
+    ls -a $TRACES_DIR/*.itf.json | xargs -I{} bash -c 'mv $0 ${0/violation/sample}' {}
 done

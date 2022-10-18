@@ -1,4 +1,4 @@
------------------------------ MODULE AuthzService ------------------------------
+----------------------------- MODULE AuthzMethods ------------------------------
 (******************************************************************************)
 (* Operators modeling the methods for sending request messages, as defined in *)
 (* the `Msg` service in                                                       *)

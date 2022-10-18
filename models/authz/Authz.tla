@@ -3,7 +3,7 @@
 (* Official Authz documentation: https://docs.cosmos.network/v0.46/modules/authz/ *)
 (* ADR: https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-030-authz-module.md *)
 (******************************************************************************)
-EXTENDS AuthzMessages, AuthzService, Maps, Integers
+EXTENDS AuthzMessages, AuthzMethods, Maps, Integers
 
 VARIABLES    
     \* @typeAlias: EVENT = [authorization: AUTH, grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, grantId: GRANT_ID, type: Str];

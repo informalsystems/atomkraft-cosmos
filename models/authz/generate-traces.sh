@@ -2,14 +2,14 @@
 
 declare -a tests=("ExpireThenExecute" "ExpireThenRevoke" "GrantFailsThenGrantSucceeds" "ExecuteWithoutGrants")
 
-MAIN_TLA_FILE="Authz_MC.tla"
+MAIN_TLA_FILE="AuthzMC.tla"
 
 for TEST in "${tests[@]}"; do
     echo "Sampling $TEST on $MAIN_TLA_FILE..."
     OUT_DIR=./_apalache-out/$TEST
     NEGATED_TEST=Not$TEST
     time apalache-mc check \
-        --cinit=ConstInit --length=7 --max-error=20 --view=View \
+        --cinit=ConstInit --length=5 --max-error=20 --view=View \
         --inv=$NEGATED_TEST \
         --out-dir=$OUT_DIR \
         $MAIN_TLA_FILE

@@ -2,8 +2,8 @@
 
 ```mermaid
 flowchart TB
-    Authz_MC --> AuthzProperties --> Authz --> AuthzService & AuthzMessages & Maps
-    AuthzService --> AuthzMessages --> MsgTypes & MsgErrors & Grants
+    AuthzMC --> AuthzProperties --> Authz --> AuthzMethods & AuthzMessages & Maps
+    AuthzMethods --> AuthzMessages --> MsgTypes & MsgErrors & Grants
     Grants -->|instance| GenericAuthorization & SendAuthorization & StakeAuthorization --> MsgTypes
     SendAuthorization & StakeAuthorization --> MsgErrors
 ```

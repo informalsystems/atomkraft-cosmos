@@ -19,7 +19,7 @@ NoMaxCoins = "instance_NoMaxCoins"
 # cinit = "CInit"
 
 # configuration file in TLC format
-# config = "Authz_MC.cfg"
+# config = "AuthzMC.cfg"
 
 # maximal number of Next steps; default: 10
 length = 5

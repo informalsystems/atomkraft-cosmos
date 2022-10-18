@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:58:54 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:09:08 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,8 +83,17 @@
       "event": {
         "grant": {
           "authorization": {
-            "msgTypeUrl": "delegate",
-            "type": "generic-authorization"
+            "allow": true,
+            "maxTokens": 0,
+            "msgTypeUrl": "undelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v1",
+                "v2",
+                "v3"
+              ]
+            }
           },
           "expiration": "past"
         },
@@ -131,18 +140,19 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
+            "allow": false,
             "maxTokens": 0,
-            "msgTypeUrl": "delegate",
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
                 "v1",
-                "v2"
+                "v2",
+                "v3"
               ]
             }
           },
-          "expiration": "future"
+          "expiration": "none"
         },
         "grantee": "a3",
         "granter": "a1",
@@ -159,22 +169,23 @@
             {
               "grantee": "a3",
               "granter": "a1",
-              "msgTypeUrl": "delegate"
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
-                "allow": true,
+                "allow": false,
                 "maxTokens": 0,
-                "msgTypeUrl": "delegate",
+                "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
                     "v1",
-                    "v2"
+                    "v2",
+                    "v3"
                   ]
                 }
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]

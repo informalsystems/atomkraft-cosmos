@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:54:42 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:07:52 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,16 +83,8 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 0,
             "msgTypeUrl": "delegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v1",
-                "v3"
-              ]
-            }
+            "type": "generic-authorization"
           },
           "expiration": "future"
         },
@@ -115,16 +107,8 @@
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": 0,
                 "msgTypeUrl": "delegate",
-                "type": "stake-authorization",
-                "validators": {
-                  "#set": [
-                    "v1",
-                    "v3"
-                  ]
-                }
+                "type": "generic-authorization"
               },
               "expiration": "future"
             }
@@ -159,16 +143,8 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
-          "maxTokens": 0,
           "msgTypeUrl": "delegate",
-          "type": "stake-authorization",
-          "validators": {
-            "#set": [
-              "v1",
-              "v3"
-            ]
-          }
+          "type": "generic-authorization"
         },
         "grantId": {
           "grantee": "a2",
@@ -216,11 +192,10 @@
       "event": {
         "grantee": "a2",
         "msg": {
-          "amount": 1,
+          "amount": 0,
           "delegatorAddress": "a3",
-          "signer": "a3",
           "typeUrl": "delegate",
-          "validatorAddress": "v2"
+          "validatorAddress": "v3"
         },
         "type": "request-execute"
       },

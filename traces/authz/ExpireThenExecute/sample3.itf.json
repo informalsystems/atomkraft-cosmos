@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:54:09 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:07:42 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,13 +83,14 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": -99,
+            "allow": true,
+            "maxTokens": 0,
             "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1"
+                "v1",
+                "v3"
               ]
             }
           },
@@ -114,13 +115,14 @@
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": -99,
+                "allow": true,
+                "maxTokens": 0,
                 "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1"
+                    "v1",
+                    "v3"
                   ]
                 }
               },
@@ -157,13 +159,14 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
-          "maxTokens": -99,
+          "allow": true,
+          "maxTokens": 0,
           "msgTypeUrl": "undelegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v1"
+              "v1",
+              "v3"
             ]
           }
         },
@@ -213,11 +216,10 @@
       "event": {
         "grantee": "a1",
         "msg": {
-          "amount": 0,
-          "delegatorAddress": "a1",
-          "signer": "a2",
+          "amount": 1,
+          "delegatorAddress": "a2",
           "typeUrl": "undelegate",
-          "validatorAddress": "v1"
+          "validatorAddress": "v3"
         },
         "type": "request-execute"
       },

@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:59:22 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:09:18 CEST 2022"
   },
   "params": [
     "Validators",
@@ -81,19 +81,19 @@
         ]
       },
       "event": {
-        "grantee": "a1",
+        "grantee": "a3",
         "msg": {
           "amount": 1,
-          "delegatorAddress": "a1",
-          "signer": "a3",
-          "typeUrl": "delegate",
-          "validatorAddress": "v3"
+          "delegatorAddress": "a2",
+          "typeUrl": "redelegate",
+          "validatorDstAddress": "v3",
+          "validatorSrcAddress": "v3"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
+        "error": "failed to execute message",
+        "ok": false,
         "type": "response-execute"
       },
       "grantStore": {

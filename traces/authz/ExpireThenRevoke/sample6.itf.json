@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:56:28 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:08:25 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,17 +83,8 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": 1,
             "msgTypeUrl": "redelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v1",
-                "v2",
-                "v3"
-              ]
-            }
+            "type": "generic-authorization"
           },
           "expiration": "future"
         },
@@ -116,17 +107,8 @@
             },
             {
               "authorization": {
-                "allow": true,
-                "maxTokens": 1,
                 "msgTypeUrl": "redelegate",
-                "type": "stake-authorization",
-                "validators": {
-                  "#set": [
-                    "v1",
-                    "v2",
-                    "v3"
-                  ]
-                }
+                "type": "generic-authorization"
               },
               "expiration": "future"
             }
@@ -161,17 +143,8 @@
       },
       "event": {
         "authorization": {
-          "allow": true,
-          "maxTokens": 1,
           "msgTypeUrl": "redelegate",
-          "type": "stake-authorization",
-          "validators": {
-            "#set": [
-              "v1",
-              "v2",
-              "v3"
-            ]
-          }
+          "type": "generic-authorization"
         },
         "grantId": {
           "grantee": "a3",

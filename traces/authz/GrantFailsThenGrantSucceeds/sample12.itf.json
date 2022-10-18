@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:58:29 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:09:01 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,22 +83,21 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": 1,
-            "msgTypeUrl": "delegate",
-            "type": "stake-authorization",
-            "validators": {
+            "allowList": {
               "#set": [
-                "v1",
-                "v2",
-                "v3"
+                "a1",
+                "a2",
+                "a3"
               ]
-            }
+            },
+            "msgTypeUrl": "send",
+            "spendLimit": 1,
+            "type": "send-authorization"
           },
           "expiration": "past"
         },
         "grantee": "a1",
-        "granter": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -140,21 +139,19 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": -99,
-            "msgTypeUrl": "delegate",
-            "type": "stake-authorization",
-            "validators": {
+            "allowList": {
               "#set": [
-                "v2",
-                "v3"
+                
               ]
-            }
+            },
+            "msgTypeUrl": "send",
+            "spendLimit": 1,
+            "type": "send-authorization"
           },
           "expiration": "future"
         },
         "grantee": "a1",
-        "granter": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -167,21 +164,19 @@
           [
             {
               "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "delegate"
+              "granter": "a2",
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "allow": true,
-                "maxTokens": -99,
-                "msgTypeUrl": "delegate",
-                "type": "stake-authorization",
-                "validators": {
+                "allowList": {
                   "#set": [
-                    "v2",
-                    "v3"
+                    
                   ]
-                }
+                },
+                "msgTypeUrl": "send",
+                "spendLimit": 1,
+                "type": "send-authorization"
               },
               "expiration": "future"
             }

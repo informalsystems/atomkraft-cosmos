@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 00:57:06 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 18 17:08:36 CEST 2022"
   },
   "params": [
     "Validators",
@@ -89,15 +89,13 @@
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1",
-                "v2",
-                "v3"
+                "v1"
               ]
             }
           },
           "expiration": "future"
         },
-        "grantee": "a2",
+        "grantee": "a3",
         "granter": "a1",
         "type": "request-grant"
       },
@@ -110,7 +108,7 @@
         "#map": [
           [
             {
-              "grantee": "a2",
+              "grantee": "a3",
               "granter": "a1",
               "msgTypeUrl": "delegate"
             },
@@ -122,9 +120,7 @@
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1",
-                    "v2",
-                    "v3"
+                    "v1"
                   ]
                 }
               },
@@ -167,14 +163,12 @@
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v1",
-              "v2",
-              "v3"
+              "v1"
             ]
           }
         },
         "grantId": {
-          "grantee": "a2",
+          "grantee": "a3",
           "granter": "a1",
           "msgTypeUrl": "delegate"
         },
@@ -217,7 +211,7 @@
         ]
       },
       "event": {
-        "grantee": "a2",
+        "grantee": "a3",
         "granter": "a1",
         "msgTypeUrl": "delegate",
         "type": "request-revoke"

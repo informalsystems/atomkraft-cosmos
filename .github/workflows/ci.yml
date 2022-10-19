@@ -68,5 +68,8 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          atomkraft test trace --path traces/authz/ExpireThenExecute/violation1.itf.json --reactor reactors/authz.py --keypath event.type
           atomkraft test trace --path traces/bank/TestSuccess --reactor reactors/bank.py --keypath action.tag
+          atomkraft test trace --path traces/authz/ExecuteWithoutGrants/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/ExpireThenExecute/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/ExpireThenRevoke/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/GrantFailsThenGrantSucceeds/sample1.itf.json --reactor reactors/authz.py --keypath event.type

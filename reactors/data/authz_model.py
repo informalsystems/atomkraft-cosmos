@@ -16,9 +16,59 @@ from terra_sdk.core.authz import (  # type: ignore
     MsgRevokeAuthorization,
 )
 
-NO_MAX_COINS = -99
 
 ################################################################################
+
+
+class ModelObject:
+    def __init__(self, *args, **kwargs):
+        if args and len(args) > 0 and isinstance(args[0], dict):
+            for varname, expected_type in self.__annotations__.items():
+                self._assign_type(varname, expected_type, args[0])
+        else:
+            self.__dict__.update(kwargs)
+
+    def _assign_type(self, var_name, expected_type, var_values):
+        if var_name not in var_values:
+            raise TypeError(f"Field '{var_name}' not in {var_values}")
+        type_ = var_values[var_name]
+
+        if expected_type.__class__.__name__ == "EnumMeta":
+            # Try to instantiate var_name as an enum type
+            setattr(self, var_name, eval(f"{expected_type.__name__}.{type_}"))
+        elif expected_type.__name__ == "Literal":
+            # Try to instantiate var_name as one of the strings in the Literal type.
+            if type_ in expected_type.__args__:
+                setattr(self, var_name, type_)
+            else:
+                raise TypeError(
+                    f"Could not find a matching type for {var_name}={type_} in {expected_type}"
+                )
+        elif expected_type.__name__ == "Union":
+            # Try to instantiate var_name as one of the types of the union.
+            for t in expected_type.__args__:
+                try:
+                    self._assign_type(var_name, t, var_values)
+                    return
+                except:
+                    pass
+            raise TypeError(
+                f"Could not find a matching type for {var_name}={type_} in {expected_type.__args__}"
+            )
+        elif isinstance(type_, (int, str)):
+            setattr(self, var_name, type_)
+        else:
+            # Instantiate var_name with a class of expected_type
+            setattr(
+                self,
+                var_name,
+                eval(f"{expected_type.__name__}({type_})"),
+            )
+
+
+################################################################################
+
+NO_MAX_COINS = -99
 
 AccAddress = str
 ValAddress = str
@@ -48,51 +98,6 @@ def to_real_coins(testnet: Testnet, coin_list: list[int]):
 ################################################################################
 
 
-class ModelObject:
-    def __init__(self, *args, **kwargs):
-        if args and len(args) > 0 and isinstance(args[0], dict):
-            for varname, expected_type in self.__annotations__.items():
-                self._assign_type(varname, expected_type, args[0])
-        else:
-            self.__dict__.update(kwargs)
-
-    def _assign_type(self, var_name, expected_type, var_values):
-        if var_name not in var_values:
-            raise TypeError(f"Field '{var_name}' not in {var_values}")
-        elif expected_type.__class__.__name__ == "EnumMeta":
-            setattr(
-                self, var_name, eval(f"{expected_type.__name__}.{var_values[var_name]}")
-            )
-        elif expected_type.__name__ == "Literal":
-            if var_values[var_name] in expected_type.__args__:
-                setattr(self, var_name, var_values[var_name])
-            else:
-                raise TypeError(
-                    f"Could not find a matching type for {var_name}={var_values[var_name]} in {expected_type}"
-                )
-        elif expected_type.__name__ == "Union":
-            for t in expected_type.__args__:
-                try:
-                    self._assign_type(var_name, t, var_values)
-                    return
-                except:
-                    pass
-            raise TypeError(
-                f"Could not find a matching type for {var_name}={var_values[var_name]} in {expected_type.__args__}"
-            )
-        elif isinstance(var_values[var_name], (int, str)):
-            setattr(self, var_name, var_values[var_name])
-        else:
-            setattr(
-                self,
-                var_name,
-                eval(f"{expected_type.__name__}({var_values[var_name]})"),
-            )
-
-
-################################################################################
-
-
 @unique
 class MsgTypeUrls(Enum):
     generic = 1
@@ -117,7 +122,7 @@ class MsgTypeUrls(Enum):
 
 ################################################################################
 
-EXPIRES_SOON_TIME = 1 # seconds to expire after 'now'
+EXPIRES_SOON_TIME = 1  # seconds to expire after 'now'
 
 
 class ExpirationTime(Enum):
@@ -325,10 +330,10 @@ class MsgGrant(ModelObject):
 
     def to_real(self, testnet: Testnet):
         granter = testnet.acc_addr(self.granter)
-        logging.info(f"‣ granter: {self.granter} ({granter})")
+        logging.debug(f"‣ granter: {self.granter} ({granter})")
 
         grantee = testnet.acc_addr(self.grantee)
-        logging.info(f"‣ grantee: {self.grantee} ({grantee})")
+        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         grant = self.grant.to_real(testnet)
         logging.debug(f"‣ grant: {grant}")
@@ -347,13 +352,13 @@ class MsgRevoke(ModelObject):
 
     def to_real(self, testnet: Testnet):
         granter = testnet.acc_addr(self.granter)
-        logging.info(f"‣ granter: {self.granter} ({granter})")
+        logging.debug(f"‣ granter: {self.granter} ({granter})")
 
         grantee = testnet.acc_addr(self.grantee)
-        logging.info(f"‣ grantee: {self.grantee} ({grantee})")
+        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         msg_type_url = self.msgTypeUrl.to_real()
-        logging.info(f"‣ msgTypeUrl: {self.msgTypeUrl} ({msg_type_url})")
+        logging.debug(f"‣ msgTypeUrl: {self.msgTypeUrl} ({msg_type_url})")
 
         return MsgRevokeAuthorization(granter, grantee, msg_type_url)
 
@@ -368,11 +373,11 @@ class MsgExec(ModelObject):
 
     def to_real(self, testnet: Testnet):
         grantee = testnet.acc_addr(self.grantee)
-        logging.info(f"‣ grantee: {self.grantee} ({grantee})")
+        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         # the current model allows only one exec message
         msg = self.msg.to_real(testnet)
-        logging.info(f"‣ real msg: {msg}")
+        logging.debug(f"‣ real msg: {msg}")
 
         return MsgExecAuthorized(grantee=grantee, msgs=[msg])
 
@@ -399,17 +404,7 @@ class Response(ModelObject):
         "no-response", "response-grant", "response-revoke", "response-execute"
     ]
     ok: bool
-    error: Literal[
-        "none",
-        "granter-equal-grantee",
-        "authorization-expired",
-        "grant-not-found",
-        "authorization-expired",
-        "insufficient-amount",
-        "account-not-allowed",
-        "validator-not-allowed",
-        "validator-denied",
-    ]
+    error: str
 
 
 ################################################################################

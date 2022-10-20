@@ -13,15 +13,12 @@ GRANT_KEY_NOT_FOUND == "grant key not found" \* code 5
 AUTH_EXPIRED == "authorization expired" \* code 6
 GRANTER_EQUALS_GRANTEE == "grantee and granter should be different" \* code 7
 MAX_TOKENS_NOT_POSITIVE == "max tokens should be positive" \* code 12
-\* "invalid granter address"
-\* "invalid granter address"
 
 \* Bank
 INSUFFICIENT_AMOUNT == "requested amount is more than spend limit"
 SPEND_LIMIT_IS_NIL == "spend limit cannot be nil"
 SPEND_LIMIT_IS_NEGATIVE == "spend limit cannot be negitive"
 ADDRESS_NOT_ALLOWED == "cannot send to .* address"
-\* TYPE_MISMATCH == "type mismatch"
 
 \* Staking
 FAILED_TO_EXECUTE == "failed to execute message"
@@ -30,8 +27,6 @@ NEGATIVE_COIN_AMOUNT == "negative coin amount"
 INVALID_DELEGATION_AMOUNT == "invalid delegation amount"
 INVALID_SHARES_AMOUNT == "invalid shares amount" \* code 18
 NO_DELEGATION == "no delegation for (address, validator) tuple" \* code 19; parentheses should be escaped in the reactor; here will break the ITF json files
-\* UNKNOWN_MSG_TYPE == "unknown msg type"
-\* UNKNOWN_AUTH_TYPE == "unknown authorization type"
 \* ALLOWED_OR_DENY_IS_EMPTY == "both allowed & deny list cannot be empty"
 \* ALLOWED_AND_DENY_SET == "cannot set both allowed & deny list"
 

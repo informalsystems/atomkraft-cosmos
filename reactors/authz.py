@@ -43,7 +43,7 @@ INITIAL_BALANCE = 1000000
 
 @step("no-event")
 def init(testnet: Testnet, Accounts: list[str], Validators: list[str]):
-    logging.info("🔶🔶🔶 Step: init")
+    logging.info("🔶 Step: init")
 
     testnet.set_accounts(sorted(Accounts))
     testnet.set_validators(sorted(Validators))
@@ -78,27 +78,18 @@ def request_grant(
     event: model.MsgGrant,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶🔶🔶 Step: request grant")
+    logging.info("🔶 Step: request grant")
     assert event.type == "request-grant"
     request = model.MsgGrant(unmunchify(event))
     logging.info(f"request: {request}")
 
-    request_msg = request.to_real(testnet)
-    logging.info(f"request_msg: {request_msg}")
     result = testnet.broadcast_transaction(
         request.granter,
-        request_msg,
+        request.to_real(testnet),
     )
-
+    query_grants(testnet, request.granter, request.grantee)
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
-
-    query_grants(
-        testnet,
-        granter=request.granter,
-        grantee=request.grantee,
-    )
-    query_all_balances(testnet)
 
 
 @step("request-revoke")
@@ -107,7 +98,7 @@ def request_revoke(
     event: model.MsgRevoke,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶🔶🔶 Step: revoke grant")
+    logging.info("🔶 Step: revoke grant")
     assert event.type == "request-revoke"
     request = model.MsgRevoke(unmunchify(event))
     logging.info(f"request: {request}")
@@ -118,16 +109,9 @@ def request_revoke(
             request.to_real(testnet),
         )
     )
-
+    query_grants(testnet, request.granter, request.grantee)
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
-
-    query_grants(
-        testnet,
-        granter=request.granter,
-        grantee=request.grantee,
-    )
-    query_all_balances(testnet)
 
 
 @step("request-execute")
@@ -136,7 +120,7 @@ def request_execute(
     event: model.MsgExec,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶🔶🔶 Step: execute grant")
+    logging.info("🔶 Step: execute grant")
     assert event.type == "request-execute"
     request = model.MsgExec(unmunchify(event))
     logging.info(f"request: {request}")
@@ -167,9 +151,7 @@ def expire(
     # `model.EXPIRES_SOON_TIME`. This time is small enough that we can wait for
     # it to pass and thus the grant will expire. It cannot be a `past` time
     # because the request would be rejected.
-    # logging.info(f"‣ event.authorization: {unmunchify(event.authorization)}")
-
-    request_grant_msg = model.MsgGrant(
+    request = model.MsgGrant(
         {
             "type": "request-grant",
             "granter": event.grantId.granter,
@@ -180,11 +162,9 @@ def expire(
             },
         }
     )
-
-    request_msg = request_grant_msg.to_real(testnet)
-    logging.info(f"request_msg: {request_msg}")
-
-    result = testnet.broadcast_transaction(event.grantId.granter, request_msg)
+    result = testnet.broadcast_transaction(
+        event.grantId.granter, request.to_real(testnet)
+    )
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
 
@@ -192,11 +172,7 @@ def expire(
     logging.info(f"Waiting {wait_time} seconds for the grant to expire...\n")
     time.sleep(wait_time)
 
-    query_grants(
-        testnet,
-        granter=event.grantId.granter,
-        grantee=event.grantId.grantee,
-    )
+    query_grants(testnet, event.grantId.granter, event.grantId.grantee)
     query_all_balances(testnet)
 
 

@@ -1,5 +1,4 @@
 import asyncio
-from datetime import datetime
 import contextlib
 import logging
 
@@ -10,28 +9,27 @@ from atomkraft.chain import Testnet
 
 
 def query_grants(testnet: Testnet, granter, grantee):
-    logging.info(f"🔺 now: {datetime.now()}")
-    with contextlib.closing(testnet.get_grpc_channel()) as channel:
-        stub = QueryStub(channel)
-        result = asyncio.run(
-            stub.grants(
-                granter=testnet.acc_addr(granter), grantee=testnet.acc_addr(grantee)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        with contextlib.closing(testnet.get_grpc_channel()) as channel:
+            stub = QueryStub(channel)
+            result = asyncio.run(
+                stub.grants(
+                    granter=testnet.acc_addr(granter), grantee=testnet.acc_addr(grantee)
+                )
             )
-        )
-        logging.info(f"🔺 grants from {granter} to {grantee}: {result}")
-        # logging.info(f"🔺 grant time: {datetime(result.grants[0].expiration)}")
-        logging.info(f"🔺 now: {datetime.now()}\n")
+            logging.debug(f"grants from {granter} to {grantee}: {result.grants}")
 
 
-def query_bank(testnet: Testnet, address):
+def query_balance(testnet: Testnet, address):
     with contextlib.closing(testnet.get_grpc_channel()) as channel:
         stub = QueryStubBank(channel)
         result = asyncio.run(
             stub.balance(address=testnet.acc_addr(address), denom=testnet.denom)
         )
-        logging.info(f"🔥 balance {address}: {result.balance.amount}")
+        return result.balance.amount
 
 
 def query_all_balances(testnet: Testnet):
-    for acc in testnet.accounts.keys():
-        query_bank(testnet, acc)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        balances = [f"{a}: {query_balance(testnet, a)}" for a in testnet.accounts.keys()]
+        logging.debug(f"balances: {balances}")

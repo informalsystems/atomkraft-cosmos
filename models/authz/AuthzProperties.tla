@@ -152,6 +152,20 @@ GrantFailsThenGrantSucceeds(trace) ==
 
 NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
 
+\* @type: Seq(TRACE) => Bool;
+DelegateThenUndelegate(trace) ==
+    \E i, j \in DOMAIN trace: i < j /\
+        LET state1 == trace[i] IN 
+        LET state2 == trace[j] IN
+        /\ state1.event.type = "request-execute"
+        /\ state1.event.msgTypeUrl = DELEGATE_TYPE_URL
+        /\ state1.expectedResponse.error = "none"
+        /\ state2.event.type = "request-execute" 
+        /\ state2.event.msgTypeUrl = UNDELEGATE_TYPE_URL
+        /\ grantIdOfMsg(state1.event) = grantIdOfMsg(state2.event)
+
+NotDelegateThenUndelegate(trace) == ~ DelegateThenUndelegate(trace)
+
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022
 Last modified by Hernán Vanzetto on 20 September 2022

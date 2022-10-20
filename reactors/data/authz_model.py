@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from enum import Enum, unique
-import logging
 from typing import Literal, Optional, Union
 
 from atomkraft.chain import Testnet
@@ -16,54 +15,53 @@ from terra_sdk.core.authz import (  # type: ignore
     MsgRevokeAuthorization,
 )
 
+from reactors.authz import logger
 
 ################################################################################
 
 
 class ModelObject:
     def __init__(self, *args, **kwargs):
+        """Initialize object from a dictionary and recursively create instances of nested ModelObjects"""
         if args and len(args) > 0 and isinstance(args[0], dict):
-            for varname, expected_type in self.__annotations__.items():
-                self._assign_type(varname, expected_type, args[0])
+            for var_name, expected_type in self.__annotations__.items():
+                self._assign_type(var_name, expected_type, args[0])
         else:
             self.__dict__.update(kwargs)
 
-    def _assign_type(self, var_name, expected_type, var_values):
-        if var_name not in var_values:
-            raise TypeError(f"Field '{var_name}' not in {var_values}")
-        type_ = var_values[var_name]
+    def _assign_type(self, var_name, type_annotation, values):
+        if var_name not in values:
+            raise TypeError(f"Field '{var_name}' not in {values}")
+        value = values[var_name]
 
-        if expected_type.__class__.__name__ == "EnumMeta":
+        expected_type = type_annotation.__name__
+        if type_annotation.__class__.__name__ == "EnumMeta":
             # Try to instantiate var_name as an enum type
-            setattr(self, var_name, eval(f"{expected_type.__name__}.{type_}"))
-        elif expected_type.__name__ == "Literal":
+            setattr(self, var_name, eval(f"{expected_type}.{value}"))
+        elif expected_type == "Literal":
             # Try to instantiate var_name as one of the strings in the Literal type.
-            if type_ in expected_type.__args__:
-                setattr(self, var_name, type_)
+            if value in type_annotation.__args__:
+                setattr(self, var_name, value)
             else:
                 raise TypeError(
-                    f"Could not find a matching type for {var_name}={type_} in {expected_type}"
+                    f"Could not find a matching type for {var_name}={value} in {type_annotation}"
                 )
-        elif expected_type.__name__ == "Union":
+        elif expected_type == "Union":
             # Try to instantiate var_name as one of the types of the union.
-            for t in expected_type.__args__:
+            for t in type_annotation.__args__:
                 try:
-                    self._assign_type(var_name, t, var_values)
+                    self._assign_type(var_name, t, values)
                     return
                 except:
                     pass
             raise TypeError(
-                f"Could not find a matching type for {var_name}={type_} in {expected_type.__args__}"
+                f"Could not find a matching type for {var_name}={value} in {type_annotation.__args__}"
             )
-        elif isinstance(type_, (int, str)):
-            setattr(self, var_name, type_)
+        elif isinstance(value, (int, str)):
+            setattr(self, var_name, value)
         else:
             # Instantiate var_name with a class of expected_type
-            setattr(
-                self,
-                var_name,
-                eval(f"{expected_type.__name__}({type_})"),
-            )
+            setattr(self, var_name, eval(f"{expected_type}({value})"))
 
 
 ################################################################################
@@ -181,7 +179,7 @@ class SendAuthorization(Authorization):
     def to_real(self, testnet: Testnet):
         return terra.SendAuthorization(
             spend_limit=to_real_coins(testnet, [self.spendLimit])
-            # FIX: terra library does not support `allow_list``
+            # FIX: terra library does not support `allow_list`
         )
 
     def __repr__(self) -> str:
@@ -330,13 +328,13 @@ class MsgGrant(ModelObject):
 
     def to_real(self, testnet: Testnet):
         granter = testnet.acc_addr(self.granter)
-        logging.debug(f"‣ granter: {self.granter} ({granter})")
+        logger.debug(f"‣ granter: {self.granter} ({granter})")
 
         grantee = testnet.acc_addr(self.grantee)
-        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
+        logger.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         grant = self.grant.to_real(testnet)
-        logging.debug(f"‣ grant: {grant}")
+        logger.debug(f"‣ grant: {grant}")
 
         return MsgGrantAuthorization(granter, grantee, grant)
 
@@ -352,13 +350,13 @@ class MsgRevoke(ModelObject):
 
     def to_real(self, testnet: Testnet):
         granter = testnet.acc_addr(self.granter)
-        logging.debug(f"‣ granter: {self.granter} ({granter})")
+        logger.debug(f"‣ granter: {self.granter} ({granter})")
 
         grantee = testnet.acc_addr(self.grantee)
-        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
+        logger.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         msg_type_url = self.msgTypeUrl.to_real()
-        logging.debug(f"‣ msgTypeUrl: {self.msgTypeUrl} ({msg_type_url})")
+        logger.debug(f"‣ msgTypeUrl: {self.msgTypeUrl} ({msg_type_url})")
 
         return MsgRevokeAuthorization(granter, grantee, msg_type_url)
 
@@ -373,11 +371,11 @@ class MsgExec(ModelObject):
 
     def to_real(self, testnet: Testnet):
         grantee = testnet.acc_addr(self.grantee)
-        logging.debug(f"‣ grantee: {self.grantee} ({grantee})")
+        logger.debug(f"‣ grantee: {self.grantee} ({grantee})")
 
         # the current model allows only one exec message
         msg = self.msg.to_real(testnet)
-        logging.debug(f"‣ real msg: {msg}")
+        logger.debug(f"‣ real msg: {msg}")
 
         return MsgExecAuthorized(grantee=grantee, msgs=[msg])
 

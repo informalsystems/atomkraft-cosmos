@@ -10,22 +10,24 @@ from atomkraft.chain import Testnet
 from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 
+logger = logging.getLogger("authz")
+
 from reactors.data import authz_model as model
 from reactors.data.authz_queries import query_all_balances, query_grants
 
 
 def show_result(result: TxResponse, expected: model.Response):
     if result.code == 0:
-        logging.info(f"Status:\tOK")
+        logger.info(f"Status:\tOK")
     else:
-        logging.info(f"Status:\tERROR (code: {result.code}, log: {result.raw_log})")
+        logger.info(f"Status:\tERROR (code: {result.code}, log: {result.raw_log})")
 
     if expected.error == "none":
         assert expected.ok
-        logging.info(f"Expected:\tOK\n")
+        logger.info(f"Expected:\tOK\n")
     else:
         assert not expected.ok
-        logging.info(f"Expected:\tERROR ({expected.error})\n")
+        logger.info(f"Expected:\tERROR ({expected.error})\n")
 
 
 def check_result(result: TxResponse, expected: model.Response):
@@ -43,7 +45,7 @@ INITIAL_BALANCE = 1000000
 
 @step("no-event")
 def init(testnet: Testnet, Accounts: list[str], Validators: list[str]):
-    logging.info("🔶 Step: init")
+    logger.info("🔶 Step: init")
 
     testnet.set_accounts(sorted(Accounts))
     testnet.set_validators(sorted(Validators))
@@ -55,21 +57,21 @@ def init(testnet: Testnet, Accounts: list[str], Validators: list[str]):
     )
     testnet.verbose = True
 
-    logging.info(f"Preparing testnet...")
+    logger.info(f"Preparing testnet...")
     start_time = timer()
     testnet.prepare()
-    logging.debug(f"Prapare time: {(timer() - start_time):.2f} seconds")
+    logger.debug(f"Prapare time: {(timer() - start_time):.2f} seconds")
 
-    logging.info(f"Spining up testnet...")
+    logger.info(f"Spining up testnet...")
     start_time = timer()
     testnet.spinup()
-    logging.debug(f"Spinup time: {(timer() - start_time):.2f} seconds")
+    logger.debug(f"Spinup time: {(timer() - start_time):.2f} seconds")
 
-    logging.info(f"Wait for testnet to be ready...")
+    logger.info(f"Wait for testnet to be ready...")
     start_time = timer()
     with TmEventSubscribe({"tm.event": "NewBlock"}):
-        logging.debug(f"Waiting time: {(timer() - start_time):.2f} seconds")
-        logging.info("Testnet launched! 🚀\n")
+        logger.debug(f"Waiting time: {(timer() - start_time):.2f} seconds")
+        logger.info("Testnet launched! 🚀\n")
 
 
 @step("request-grant")
@@ -78,10 +80,11 @@ def request_grant(
     event: model.MsgGrant,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: request grant")
-    assert event.type == "request-grant"
+    logger.info("🔶 Step: request grant")
+    start_time = timer()
+
     request = model.MsgGrant(unmunchify(event))
-    logging.info(f"request: {request}")
+    logger.info(f"request: {request}")
 
     result = testnet.broadcast_transaction(
         request.granter,
@@ -90,6 +93,7 @@ def request_grant(
     query_grants(testnet, request.granter, request.grantee)
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
+    logger.debug(f"Elapsed time: {(timer() - start_time):.2f} seconds\n")
 
 
 @step("request-revoke")
@@ -98,10 +102,11 @@ def request_revoke(
     event: model.MsgRevoke,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: revoke grant")
-    assert event.type == "request-revoke"
+    logger.info("🔶 Step: revoke grant")
+    start_time = timer()
+
     request = model.MsgRevoke(unmunchify(event))
-    logging.info(f"request: {request}")
+    logger.info(f"request: {request}")
 
     result = catch_unicode_decode_error(
         lambda: testnet.broadcast_transaction(
@@ -112,6 +117,7 @@ def request_revoke(
     query_grants(testnet, request.granter, request.grantee)
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
+    logger.debug(f"Elapsed time: {(timer() - start_time):.2f} seconds")
 
 
 @step("request-execute")
@@ -120,10 +126,11 @@ def request_execute(
     event: model.MsgExec,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶 Step: execute grant")
-    assert event.type == "request-execute"
+    logger.info("🔶 Step: execute grant")
+    start_time = timer()
+
     request = model.MsgExec(unmunchify(event))
-    logging.info(f"request: {request}")
+    logger.info(f"request: {request}")
 
     result = catch_unicode_decode_error(
         lambda: testnet.broadcast_transaction(
@@ -131,11 +138,10 @@ def request_execute(
             request.to_real(testnet),
         )
     )
-
     query_all_balances(testnet)
-
     show_result(result, expectedResponse)
     check_result(result, expectedResponse)
+    logger.debug(f"Elapsed time: {(timer() - start_time):.2f} seconds")
 
 
 @step("expire")
@@ -144,8 +150,8 @@ def expire(
     event: model.ExpireEvent,
     expectedResponse: model.Response,
 ):
-    logging.info("🔶🔶🔶 Step: expire grant")
-    assert event.type == "expire"
+    logger.info("🔶 Step: expire grant")
+    start_time = timer()
 
     # To force a grant to expire, we update the grant with a new expiration time
     # `model.EXPIRES_SOON_TIME`. This time is small enough that we can wait for
@@ -169,11 +175,12 @@ def expire(
     check_result(result, expectedResponse)
 
     wait_time = model.EXPIRES_SOON_TIME + 1
-    logging.info(f"Waiting {wait_time} seconds for the grant to expire...\n")
+    logger.info(f"Waiting {wait_time} seconds for the grant to expire...\n")
     time.sleep(wait_time)
 
     query_grants(testnet, event.grantId.granter, event.grantId.grantee)
     query_all_balances(testnet)
+    logger.debug(f"Elapsed time: {(timer() - start_time):.2f} seconds")
 
 
 # This is a quick hack to return an error message without halting the execution of the trace.

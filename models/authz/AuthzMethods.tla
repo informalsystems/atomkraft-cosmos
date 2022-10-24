@@ -32,7 +32,7 @@ ExistsGrantFor(grantId) == grantId \in DOMAIN grantStore
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
 SendMsgGrant(msg) == 
     LET grantId == grantIdOfMsgGrant(msg) IN
-    CASE ~ IsValid(grantId) ->
+    CASE grantId.granter = grantId.grantee ->
         [type |-> "response-grant", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
       [] msg.grant.expiration = "past" ->
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
@@ -48,7 +48,7 @@ SendMsgGrant(msg) ==
 \* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
 SendMsgRevoke(msg) == 
     LET grantId == grantIdOfMsgRevoke(msg) IN
-    CASE ~ IsValid(grantId) ->
+    CASE grantId.granter = grantId.grantee ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
       [] ~ ExistsGrantFor(grantId) ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> AUTH_NOT_FOUND]
@@ -99,7 +99,10 @@ SendMsgExecute(msg) ==
         acceptResponse == DispatchActionsOneMsg(msg.grantee, msg.msg)
     IN
     IF acceptResponse.accept /\ msg.msg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} THEN
-        \* Message is accepted but execution will fail because there are no delegations to un/redelegate.
+        \* Even if an undelegate or redelegate message is accepted, execution
+        \* will fail because there are no delegations to un/redelegate. If we want
+        \* to properly handle these cases, we need to keep track of delegations in
+        \* the model.
         <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], 
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE]>>
     ELSE 

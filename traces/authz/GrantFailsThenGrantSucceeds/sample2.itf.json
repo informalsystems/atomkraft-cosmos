@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:08:54 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:02:16 CEST 2022"
   },
   "params": [
     "Validators",
@@ -84,8 +84,8 @@
         "grant": {
           "authorization": {
             "allow": false,
-            "maxTokens": 0,
-            "msgTypeUrl": "redelegate",
+            "maxTokens": 1,
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
@@ -96,8 +96,8 @@
           },
           "expiration": "past"
         },
-        "grantee": "a1",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -139,20 +139,20 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
+            "allow": true,
             "maxTokens": 1,
-            "msgTypeUrl": "redelegate",
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1"
+                "v2"
               ]
             }
           },
-          "expiration": "future"
+          "expiration": "none"
         },
-        "grantee": "a1",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -164,23 +164,23 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "redelegate"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
-                "allow": false,
+                "allow": true,
                 "maxTokens": 1,
-                "msgTypeUrl": "redelegate",
+                "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1"
+                    "v2"
                   ]
                 }
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]

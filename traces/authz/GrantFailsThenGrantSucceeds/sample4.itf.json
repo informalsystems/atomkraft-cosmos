@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:08:55 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:02:18 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,16 +83,8 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 0,
-            "msgTypeUrl": "redelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v1",
-                "v3"
-              ]
-            }
+            "msgTypeUrl": "send",
+            "type": "generic-authorization"
           },
           "expiration": "past"
         },
@@ -139,17 +131,16 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 1,
-            "msgTypeUrl": "redelegate",
-            "type": "stake-authorization",
-            "validators": {
+            "allowList": {
               "#set": [
-                "v1"
+                "a1"
               ]
-            }
+            },
+            "msgTypeUrl": "send",
+            "spendLimit": 1,
+            "type": "send-authorization"
           },
-          "expiration": "none"
+          "expiration": "future"
         },
         "grantee": "a3",
         "granter": "a1",
@@ -166,21 +157,20 @@
             {
               "grantee": "a3",
               "granter": "a1",
-              "msgTypeUrl": "redelegate"
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": 1,
-                "msgTypeUrl": "redelegate",
-                "type": "stake-authorization",
-                "validators": {
+                "allowList": {
                   "#set": [
-                    "v1"
+                    "a1"
                   ]
-                }
+                },
+                "msgTypeUrl": "send",
+                "spendLimit": 1,
+                "type": "send-authorization"
               },
-              "expiration": "none"
+              "expiration": "future"
             }
           ]
         ]

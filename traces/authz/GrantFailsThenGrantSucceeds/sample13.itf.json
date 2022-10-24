@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:09:02 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:02:30 CEST 2022"
   },
   "params": [
     "Validators",
@@ -81,29 +81,20 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "allowList": {
-              "#set": [
-                "a1",
-                "a2",
-                "a3"
-              ]
-            },
-            "msgTypeUrl": "send",
-            "spendLimit": 1,
-            "type": "send-authorization"
-          },
-          "expiration": "past"
-        },
         "grantee": "a3",
-        "granter": "a2",
-        "type": "request-grant"
+        "msg": {
+          "amount": 1,
+          "delegatorAddress": "a1",
+          "typeUrl": "redelegate",
+          "validatorDstAddress": "v1",
+          "validatorSrcAddress": "v1"
+        },
+        "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "expiration time of authorization should be more than current time",
+        "error": "authorization not found",
         "ok": false,
-        "type": "response-grant"
+        "type": "response-execute"
       },
       "grantStore": {
         "#map": [
@@ -139,18 +130,75 @@
       "event": {
         "grant": {
           "authorization": {
-            "allowList": {
+            "allow": false,
+            "maxTokens": 0,
+            "msgTypeUrl": "undelegate",
+            "type": "stake-authorization",
+            "validators": {
               "#set": [
-                
+                "v1"
               ]
-            },
-            "msgTypeUrl": "send",
-            "spendLimit": 1,
-            "type": "send-authorization"
+            }
           },
-          "expiration": "future"
+          "expiration": "past"
         },
-        "grantee": "a3",
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
+      },
+      "expectedResponse": {
+        "error": "expiration time of authorization should be more than current time",
+        "ok": false,
+        "type": "response-grant"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 3
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grant": {
+          "authorization": {
+            "allow": false,
+            "maxTokens": 1,
+            "msgTypeUrl": "undelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v2",
+                "v3"
+              ]
+            }
+          },
+          "expiration": "none"
+        },
+        "grantee": "a1",
         "granter": "a2",
         "type": "request-grant"
       },
@@ -163,22 +211,24 @@
         "#map": [
           [
             {
-              "grantee": "a3",
+              "grantee": "a1",
               "granter": "a2",
-              "msgTypeUrl": "send"
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
-                "allowList": {
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "undelegate",
+                "type": "stake-authorization",
+                "validators": {
                   "#set": [
-                    
+                    "v2",
+                    "v3"
                   ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
+                }
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]

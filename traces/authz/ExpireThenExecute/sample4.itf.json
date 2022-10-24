@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:07:43 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:00:52 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,14 +83,12 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 0,
+            "allow": true,
+            "maxTokens": -99,
             "msgTypeUrl": "redelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1",
-                "v2",
                 "v3"
               ]
             }
@@ -116,14 +114,12 @@
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": 0,
+                "allow": true,
+                "maxTokens": -99,
                 "msgTypeUrl": "redelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1",
-                    "v2",
                     "v3"
                   ]
                 }
@@ -161,14 +157,12 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
-          "maxTokens": 0,
+          "allow": true,
+          "maxTokens": -99,
           "msgTypeUrl": "redelegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v1",
-              "v2",
               "v3"
             ]
           }
@@ -222,13 +216,13 @@
           "amount": 1,
           "delegatorAddress": "a2",
           "typeUrl": "redelegate",
-          "validatorDstAddress": "v3",
+          "validatorDstAddress": "v1",
           "validatorSrcAddress": "v3"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "failed to execute message",
+        "error": "authorization not found",
         "ok": false,
         "type": "response-execute"
       },

@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:07:42 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:00:51 CEST 2022"
   },
   "params": [
     "Validators",
@@ -90,14 +90,15 @@
             "validators": {
               "#set": [
                 "v1",
+                "v2",
                 "v3"
               ]
             }
           },
           "expiration": "future"
         },
-        "grantee": "a1",
-        "granter": "a2",
+        "grantee": "a2",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -109,8 +110,8 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a2",
+              "grantee": "a2",
+              "granter": "a3",
               "msgTypeUrl": "undelegate"
             },
             {
@@ -122,6 +123,7 @@
                 "validators": {
                   "#set": [
                     "v1",
+                    "v2",
                     "v3"
                   ]
                 }
@@ -166,13 +168,14 @@
           "validators": {
             "#set": [
               "v1",
+              "v2",
               "v3"
             ]
           }
         },
         "grantId": {
-          "grantee": "a1",
-          "granter": "a2",
+          "grantee": "a2",
+          "granter": "a3",
           "msgTypeUrl": "undelegate"
         },
         "type": "expire"
@@ -214,17 +217,17 @@
         ]
       },
       "event": {
-        "grantee": "a1",
+        "grantee": "a2",
         "msg": {
           "amount": 1,
-          "delegatorAddress": "a2",
+          "delegatorAddress": "a3",
           "typeUrl": "undelegate",
-          "validatorAddress": "v3"
+          "validatorAddress": "v2"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "failed to execute message",
+        "error": "authorization not found",
         "ok": false,
         "type": "response-execute"
       },

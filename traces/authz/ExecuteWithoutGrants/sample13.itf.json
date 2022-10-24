@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:09:20 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:02:55 CEST 2022"
   },
   "params": [
     "Validators",
@@ -81,18 +81,60 @@
         ]
       },
       "event": {
-        "grantee": "a1",
+        "grantee": "a3",
+        "granter": "a3",
+        "msgTypeUrl": "redelegate",
+        "type": "request-revoke"
+      },
+      "expectedResponse": {
+        "error": "grantee and granter should be different",
+        "ok": false,
+        "type": "response-revoke"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 2
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grantee": "a3",
         "msg": {
-          "amount": 1,
-          "delegatorAddress": "a1",
-          "typeUrl": "undelegate",
-          "validatorAddress": "v3"
+          "amount": 0,
+          "delegatorAddress": "a3",
+          "typeUrl": "delegate",
+          "validatorAddress": "v1"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "failed to execute message",
-        "ok": false,
+        "error": "none",
+        "ok": true,
         "type": "response-execute"
       },
       "grantStore": {

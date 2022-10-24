@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:08:39 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:02:01 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,9 +83,9 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
+            "allow": false,
             "maxTokens": 1,
-            "msgTypeUrl": "undelegate",
+            "msgTypeUrl": "redelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
@@ -97,7 +97,7 @@
           },
           "expiration": "future"
         },
-        "grantee": "a2",
+        "grantee": "a1",
         "granter": "a3",
         "type": "request-grant"
       },
@@ -110,15 +110,15 @@
         "#map": [
           [
             {
-              "grantee": "a2",
+              "grantee": "a1",
               "granter": "a3",
-              "msgTypeUrl": "undelegate"
+              "msgTypeUrl": "redelegate"
             },
             {
               "authorization": {
-                "allow": true,
+                "allow": false,
                 "maxTokens": 1,
-                "msgTypeUrl": "undelegate",
+                "msgTypeUrl": "redelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
@@ -161,9 +161,9 @@
       },
       "event": {
         "authorization": {
-          "allow": true,
+          "allow": false,
           "maxTokens": 1,
-          "msgTypeUrl": "undelegate",
+          "msgTypeUrl": "redelegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
@@ -174,9 +174,9 @@
           }
         },
         "grantId": {
-          "grantee": "a2",
+          "grantee": "a1",
           "granter": "a3",
-          "msgTypeUrl": "undelegate"
+          "msgTypeUrl": "redelegate"
         },
         "type": "expire"
       },
@@ -217,9 +217,51 @@
         ]
       },
       "event": {
-        "grantee": "a2",
+        "grantee": "a3",
         "granter": "a3",
-        "msgTypeUrl": "undelegate",
+        "msgTypeUrl": "delegate",
+        "type": "request-revoke"
+      },
+      "expectedResponse": {
+        "error": "grantee and granter should be different",
+        "ok": false,
+        "type": "response-revoke"
+      },
+      "grantStore": {
+        "#map": [
+          
+        ]
+      }
+    },
+    {
+      "#meta": {
+        "index": 4
+      },
+      "Accounts": {
+        "#set": [
+          "a1",
+          "a2",
+          "a3"
+        ]
+      },
+      "Coins": {
+        "#set": [
+          0,
+          1
+        ]
+      },
+      "NoMaxCoins": -99,
+      "Validators": {
+        "#set": [
+          "v1",
+          "v2",
+          "v3"
+        ]
+      },
+      "event": {
+        "grantee": "a1",
+        "granter": "a3",
+        "msgTypeUrl": "redelegate",
         "type": "request-revoke"
       },
       "expectedResponse": {

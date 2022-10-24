@@ -33,11 +33,14 @@ grantIdOfEvent(e) ==
     THEN e.grantId
     ELSE grantIdOfMsg(e)
 
-\* @type: <<Str, GRANT_ID, Str>>;
-View == <<
-    event.type, 
-    grantIdOfEvent(event),
-    expectedResponse.error
->>
+\* @type: <<Str, Bool, Str, Str>>;
+View == 
+    LET grantId == grantIdOfEvent(event) IN
+    <<
+        event.type, 
+        grantId.granter = grantId.grantee,
+        grantId.msgTypeUrl,
+        expectedResponse.error
+    >>
 
 ================================================================================

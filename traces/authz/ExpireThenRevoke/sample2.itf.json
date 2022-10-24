@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 18 17:08:21 CEST 2022"
+    "description": "Created by Apalache on Mon Oct 24 12:01:36 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,13 +83,12 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
+            "allow": true,
             "maxTokens": 1,
-            "msgTypeUrl": "redelegate",
+            "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1",
                 "v2",
                 "v3"
               ]
@@ -97,8 +96,8 @@
           },
           "expiration": "future"
         },
-        "grantee": "a1",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a1",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -110,19 +109,18 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "redelegate"
+              "grantee": "a3",
+              "granter": "a1",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allow": false,
+                "allow": true,
                 "maxTokens": 1,
-                "msgTypeUrl": "redelegate",
+                "msgTypeUrl": "delegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1",
                     "v2",
                     "v3"
                   ]
@@ -161,22 +159,21 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
+          "allow": true,
           "maxTokens": 1,
-          "msgTypeUrl": "redelegate",
+          "msgTypeUrl": "delegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v1",
               "v2",
               "v3"
             ]
           }
         },
         "grantId": {
-          "grantee": "a1",
-          "granter": "a3",
-          "msgTypeUrl": "redelegate"
+          "grantee": "a3",
+          "granter": "a1",
+          "msgTypeUrl": "delegate"
         },
         "type": "expire"
       },
@@ -217,9 +214,9 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "granter": "a3",
-        "msgTypeUrl": "redelegate",
+        "grantee": "a3",
+        "granter": "a1",
+        "msgTypeUrl": "delegate",
         "type": "request-revoke"
       },
       "expectedResponse": {

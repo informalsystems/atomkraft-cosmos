@@ -85,12 +85,6 @@ GrantIds == [
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* @type: (GRANT_ID) => Bool;
-IsValid(grantId) == grantId.granter # grantId.grantee
-
-\* @type: Set(GRANT_ID);
-ValidGrantIds == { g \in GrantIds: IsValid(g) }
-
 \* Grant gives permissions to execute the provide method with expiration time.
 \* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L74
 \* @typeAlias: GRANT = [authorization: AUTH, expiration: Str];

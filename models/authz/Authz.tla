@@ -29,7 +29,7 @@ EmptyStore == [x \in {} |-> NoGrant]
 \* @type: Set(EXPIRE_EVENT);
 ExpireEvents == [
     type: {"expire"}, 
-    grantId: ValidGrantIds,
+    grantId: { grantId \in GrantIds: grantId.granter # grantId.grantee },
     authorization: Authorization
 ]
 
@@ -126,6 +126,7 @@ RequestExecute(grantee, msg) ==
 (******************************************************************************)
 Expire(grantId) ==
     LET grant == grantStore[grantId] IN
+    /\ grantId.granter # grantId.grantee
     /\ ExistsGrantFor(grantId)
     /\ grant.expiration = "future"
     /\ event' = [type |-> "expire", grantId |-> grantId, authorization |-> grant.authorization]
@@ -143,7 +144,7 @@ Next ==
     \* request. Here we model execution requests of only one message per call.
     \/ \E grantee \in Accounts, msg \in SdkMsg: 
         RequestExecute(grantee, msg)
-    \/ \E grantId \in ValidGrantIds: 
+    \/ \E grantId \in GrantIds: 
         Expire(grantId)
 
 --------------------------------------------------------------------------------
@@ -169,12 +170,12 @@ ExecuteSimpleCasesInv ==
     LET grantId == grantIdOfMsgExecute(event) IN
     /\ event.type = "request-execute"
     /\ event.msg.typeUrl \notin {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
-    =>  /\  /\ ~ IsValid(grantId)
+    =>  /\  /\ grantId.granger = grantId.grantee
             => expectedResponse.error = "none"
-        /\  /\ IsValid(grantId)
+        /\  /\ grantId.granger # grantId.grantee
             /\ ~ ExistsGrantFor(grantId) 
             => expectedResponse.error = FAILED_TO_EXECUTE
-        /\  /\ IsValid(grantId)
+        /\  /\ grantId.granger # grantId.grantee
             /\ ExistsGrantFor(grantId) 
             /\ grantStore[grantId].expiration = "past"
             => expectedResponse.error = AUTH_EXPIRED
@@ -182,7 +183,7 @@ ExecuteSimpleCasesInv ==
 ValidRevokeCannotAuthNotFound ==
     LET grantId == grantIdOfMsgRevoke(event) IN
     /\ event.type = "request-revoke"
-    /\ IsValid(grantId)
+    /\ grantId.granger # grantId.grantee
     /\ ExistsGrantFor(grantId) 
     => expectedResponse.error # AUTH_NOT_FOUND
 

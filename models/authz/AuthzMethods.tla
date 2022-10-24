@@ -81,12 +81,10 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* no authorization has been granted.
         Accept(auth, msg)
       [] ~ ExistsGrantFor(grantId) ->
-        \* The error message may be more specific than FAILED_TO_EXECUTE. There
-        \* are multiple reasons for failing to execute a message and they depend on
-        \* the kind of message being executed.
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE] 
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_NOT_FOUND] 
       [] ExistsGrantFor(grantId) /\ grantStore[grantId].expiration = "past" ->
-        \* CHECK: Probably unreachable: expired grants are deleted before.
+        \* CHECK: This is checked in the code but it's probably unreachable: expired grants are deleted before.
+        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L110
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
       [] OTHER -> 
         Accept(auth, msg)

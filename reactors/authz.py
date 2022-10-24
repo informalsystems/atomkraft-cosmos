@@ -186,7 +186,7 @@ def expire(
 # This is a quick hack to return an error message without halting the execution of the trace.
 # There are two places where this happens:
 # - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L105
-# - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L212
+# - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L210
 # The protobuf library `betterproto`, used by terra.py, throws an exception `UnicodeDecodeError` when it is not able to
 # decode to string a binary message that includes a wrong UTF-8 byte sequence.
 # The error messages from the Authz module look like this:
@@ -198,5 +198,5 @@ def catch_unicode_decode_error(fn):
         return TxResponse(
             codespace="authz",
             code=2,
-            raw_log="failed to execute message (UnicodeDecodeError)",
+            raw_log="failed to execute message; authorization not found (UnicodeDecodeError)",
         )

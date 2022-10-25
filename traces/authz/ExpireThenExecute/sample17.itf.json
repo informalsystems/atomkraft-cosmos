@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:01:14 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 25 09:00:26 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -84,20 +86,20 @@
         "grant": {
           "authorization": {
             "allow": true,
-            "maxTokens": 0,
-            "msgTypeUrl": "delegate",
+            "maxTokens": 1,
+            "msgTypeUrl": "redelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
                 "v1",
-                "v2"
+                "v3"
               ]
             }
           },
           "expiration": "future"
         },
-        "grantee": "a1",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -109,20 +111,20 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "delegate"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "redelegate"
             },
             {
               "authorization": {
                 "allow": true,
-                "maxTokens": 0,
-                "msgTypeUrl": "delegate",
+                "maxTokens": 1,
+                "msgTypeUrl": "redelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
                     "v1",
-                    "v2"
+                    "v3"
                   ]
                 }
               },
@@ -145,6 +147,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -160,20 +163,20 @@
       "event": {
         "authorization": {
           "allow": true,
-          "maxTokens": 0,
-          "msgTypeUrl": "delegate",
+          "maxTokens": 1,
+          "msgTypeUrl": "redelegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
               "v1",
-              "v2"
+              "v3"
             ]
           }
         },
         "grantId": {
-          "grantee": "a1",
-          "granter": "a3",
-          "msgTypeUrl": "delegate"
+          "grantee": "a3",
+          "granter": "a2",
+          "msgTypeUrl": "redelegate"
         },
         "type": "expire"
       },
@@ -201,6 +204,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -214,12 +218,13 @@
         ]
       },
       "event": {
-        "grantee": "a1",
+        "grantee": "a3",
         "msg": {
           "amount": 1,
-          "delegatorAddress": "a3",
-          "typeUrl": "delegate",
-          "validatorAddress": "v3"
+          "delegatorAddress": "a2",
+          "typeUrl": "redelegate",
+          "validatorDstAddress": "v1",
+          "validatorSrcAddress": "v1"
         },
         "type": "request-execute"
       },
@@ -247,6 +252,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -260,20 +266,15 @@
         ]
       },
       "event": {
-        "grantee": "a3",
-        "msg": {
-          "amount": 0,
-          "delegatorAddress": "a3",
-          "typeUrl": "redelegate",
-          "validatorDstAddress": "v1",
-          "validatorSrcAddress": "v3"
-        },
-        "type": "request-execute"
+        "grantee": "a1",
+        "granter": "a2",
+        "msgTypeUrl": "delegate",
+        "type": "request-revoke"
       },
       "expectedResponse": {
-        "error": "failed to execute message",
+        "error": "authorization not found",
         "ok": false,
-        "type": "response-execute"
+        "type": "response-revoke"
       },
       "grantStore": {
         "#map": [

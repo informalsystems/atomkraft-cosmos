@@ -73,6 +73,23 @@ MsgBeginRedelegate == [
 \* @type: Set(MSG_TYPE_URL);
 MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate }
 
+\* @type: (SDK_MSG) => Str;
+SdkMsgValidateBasic(sdkMsg) == 
+    CASE sdkMsg.typeUrl = DELEGATE_TYPE_URL ->
+        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L227
+        IF sdkMsg.amount <= 0 /\ sdkMsg.amount # NoMaxCoins THEN 
+            INVALID_DELEGATION_AMOUNT 
+        ELSE 
+            "none"
+      [] sdkMsg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} ->
+        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L329
+        IF sdkMsg.amount <= 0 /\ sdkMsg.amount # NoMaxCoins THEN 
+            INVALID_SHARES_AMOUNT
+        ELSE 
+            "none"
+      [] OTHER ->
+        "none"
+
 --------------------------------------------------------------------------------
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
@@ -99,6 +116,15 @@ Authorization == [
     \* Specifies one of three authorization types.
     msgTypeUrl: MsgTypeUrls
 ]
+
+\* @type: (AUTH) => Str;
+AuthValidateBasic(auth) ==
+    IF auth.maxTokens < 0 THEN
+        NEGATIVE_COIN_AMOUNT
+    ELSE aut.amount = 0 THEN
+        INVALID_COINS
+    ELSE
+        "none"
 
 \* Apalache does not like the expression:
 \*      [auth EXCEPT !.maxTokens = auth.maxTokens - amount]

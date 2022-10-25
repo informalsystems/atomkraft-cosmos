@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:01:03 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 25 09:00:02 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -81,54 +83,23 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "allowList": {
-              "#set": [
-                "a1",
-                "a2",
-                "a3"
-              ]
-            },
-            "msgTypeUrl": "send",
-            "spendLimit": 1,
-            "type": "send-authorization"
-          },
-          "expiration": "future"
+        "grantee": "a3",
+        "msg": {
+          "amount": 0,
+          "delegatorAddress": "a1",
+          "typeUrl": "delegate",
+          "validatorAddress": "v2"
         },
-        "grantee": "a1",
-        "granter": "a2",
-        "type": "request-grant"
+        "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
-        "type": "response-grant"
+        "error": "authorization not found",
+        "ok": false,
+        "type": "response-execute"
       },
       "grantStore": {
         "#map": [
-          [
-            {
-              "grantee": "a1",
-              "granter": "a2",
-              "msgTypeUrl": "send"
-            },
-            {
-              "authorization": {
-                "allowList": {
-                  "#set": [
-                    "a1",
-                    "a2",
-                    "a3"
-                  ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
-              },
-              "expiration": "future"
-            }
-          ]
+          
         ]
       }
     },
@@ -145,6 +116,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -158,33 +130,38 @@
         ]
       },
       "event": {
-        "authorization": {
-          "allowList": {
-            "#set": [
-              "a1",
-              "a2",
-              "a3"
-            ]
+        "grant": {
+          "authorization": {
+            "msgTypeUrl": "send",
+            "type": "generic-authorization"
           },
-          "msgTypeUrl": "send",
-          "spendLimit": 1,
-          "type": "send-authorization"
+          "expiration": "future"
         },
-        "grantId": {
-          "grantee": "a1",
-          "granter": "a2",
-          "msgTypeUrl": "send"
-        },
-        "type": "expire"
+        "grantee": "a1",
+        "granter": "a3",
+        "type": "request-grant"
       },
       "expectedResponse": {
         "error": "none",
         "ok": true,
-        "type": "no-response"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
-          
+          [
+            {
+              "grantee": "a1",
+              "granter": "a3",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "msgTypeUrl": "send",
+                "type": "generic-authorization"
+              },
+              "expiration": "future"
+            }
+          ]
         ]
       }
     },
@@ -201,6 +178,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -214,19 +192,21 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 1,
-          "fromAddress": "a2",
-          "toAddress": "a3",
-          "typeUrl": "send"
+        "authorization": {
+          "msgTypeUrl": "send",
+          "type": "generic-authorization"
         },
-        "type": "request-execute"
+        "grantId": {
+          "grantee": "a1",
+          "granter": "a3",
+          "msgTypeUrl": "send"
+        },
+        "type": "expire"
       },
       "expectedResponse": {
-        "error": "authorization not found",
-        "ok": false,
-        "type": "response-execute"
+        "error": "none",
+        "ok": true,
+        "type": "no-response"
       },
       "grantStore": {
         "#map": [
@@ -247,6 +227,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -260,12 +241,12 @@
         ]
       },
       "event": {
-        "grantee": "a3",
+        "grantee": "a1",
         "msg": {
-          "amount": 1,
-          "delegatorAddress": "a2",
-          "typeUrl": "undelegate",
-          "validatorAddress": "v1"
+          "amount": -1,
+          "fromAddress": "a3",
+          "toAddress": "a2",
+          "typeUrl": "send"
         },
         "type": "request-execute"
       },

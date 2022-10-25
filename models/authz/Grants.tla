@@ -29,19 +29,19 @@ MsgTypeUrls ==
     Stake!MsgTypeUrls
 
 MsgTypeURL(auth) ==
-    CASE auth.msgTypeUrl \in Generic!MsgTypeUrls -> 
+    CASE auth.type = "generic-authorization" -> 
         Generic!MsgTypeURL(auth)
-      [] auth.msgTypeUrl \in Send!MsgTypeUrls -> 
+      [] auth.type = "send-authorization" -> 
         Send!MsgTypeURL(auth)
-      [] auth.msgTypeUrl \in Stake!MsgTypeUrls -> 
+      [] auth.type = "stake-authorization" -> 
         Stake!MsgTypeURL(auth)
 
 Accept(auth, msg) ==
-    CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
+    CASE auth.type = "generic-authorization" -> 
         Generic!Accept(auth, msg)
-      [] msg.typeUrl \in Send!MsgTypeUrls -> 
+      [] auth.type = "send-authorization" -> 
         Send!Accept(auth, msg)
-      [] msg.typeUrl \in Stake!MsgTypeUrls -> 
+      [] auth.type = "stake-authorization" -> 
         Stake!Accept(auth, msg)
 
 --------------------------------------------------------------------------------
@@ -51,6 +51,14 @@ Authorization ==
     Generic!Authorization \cup 
     Send!Authorization \cup 
     Stake!Authorization
+
+AuthValidateBasic(auth) ==
+    CASE auth.type = "generic-authorization" -> 
+        Generic!AuthValidateBasic(auth)
+      [] auth.type = "send-authorization" -> 
+        Send!AuthValidateBasic(auth)
+      [] auth.type = "stake-authorization" -> 
+        Stake!AuthValidateBasic(auth)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -68,6 +76,12 @@ SdkMsg ==
     Stake!MsgDelegate \cup 
     Stake!MsgUndelegate \cup 
     Stake!MsgBeginRedelegate
+
+SdkMsgValidateBasic(msg) ==
+    CASE msg.typeUrl \in Send!MsgTypeUrls -> 
+        Send!SdkMsgValidateBasic(msg)
+      [] msg.typeUrl \in Stake!MsgTypeUrls -> 
+        Stake!SdkMsgValidateBasic(msg)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -98,6 +112,11 @@ Grants == [
     \* invalidate it.
     expiration: {"past", "future", "none"}
 ]
+
+\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/authorization_grant.go#L54
+\* @type: (GRANT) => Str;
+GrantValidateBasic(grant) ==
+    AuthValidateBasic(grant.authorization)
 
 \* @type: AUTH;
 NoAuthorization == [ type |-> "NoAuthorization" ]

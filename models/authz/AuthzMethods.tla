@@ -32,8 +32,8 @@ ExistsGrantFor(grantId) == grantId \in DOMAIN grantStore
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
 SendMsgGrant(msg) == 
     LET grantId == grantIdOfMsgGrant(msg) IN
-    CASE grantId.granter = grantId.grantee ->
-        [type |-> "response-grant", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
+    CASE MsgGrantValidateBasic(msg) # "none" ->
+        [type |-> "response-grant", ok |-> FALSE, error |-> MsgGrantValidateBasic(msg)]
       [] msg.grant.expiration = "past" ->
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
       [] OTHER ->
@@ -48,8 +48,8 @@ SendMsgGrant(msg) ==
 \* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
 SendMsgRevoke(msg) == 
     LET grantId == grantIdOfMsgRevoke(msg) IN
-    CASE grantId.granter = grantId.grantee ->
-        [type |-> "response-revoke", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
+    CASE MsgRevokeValidateBasic(msg) # "none" ->
+        [type |-> "response-revoke", ok |-> FALSE, error |-> MsgRevokeValidateBasic(msg)]
       [] ~ ExistsGrantFor(grantId) ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> AUTH_NOT_FOUND]
       [] OTHER ->
@@ -79,13 +79,15 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* A comment in the code says that if granter = grantee "we implicitly
         \* accept" the message. Note that this may execute the message even when 
         \* no authorization has been granted.
-        Accept(auth, msg)
+        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"] 
       [] ~ ExistsGrantFor(grantId) ->
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_NOT_FOUND] 
       [] ExistsGrantFor(grantId) /\ grantStore[grantId].expiration = "past" ->
         \* CHECK: This is checked in the code but it's probably unreachable: expired grants are deleted before.
         \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L110
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
+      [] SdkMsgValidateBasic(msg) # "none" ->
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> SdkMsgValidateBasic(msg)] 
       [] OTHER -> 
         Accept(auth, msg)
 

@@ -5,7 +5,6 @@
 
 \* x/authz module sentinel errors
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/errors.go#L8
-\* "Authorization is not present in the msg"
 AUTH_NOT_FOUND == "authorization not found" \* code 2
 INVALID_EXPIRATION == "expiration time of authorization should be more than current time" \* code 3
 UNKNOWN_AUTH == "unknown authorization type" \* code 4
@@ -15,6 +14,8 @@ GRANTER_EQUALS_GRANTEE == "grantee and granter should be different" \* code 7
 MAX_TOKENS_NOT_POSITIVE == "max tokens should be positive" \* code 12
 
 \* Bank
+SPEND_LIMIT_MUST_BE_POSITIVE == "spend limit must be positive"
+INVALID_COINS == "invalid coins"
 INSUFFICIENT_AMOUNT == "requested amount is more than spend limit"
 SPEND_LIMIT_IS_NIL == "spend limit cannot be nil"
 SPEND_LIMIT_IS_NEGATIVE == "spend limit cannot be negitive"

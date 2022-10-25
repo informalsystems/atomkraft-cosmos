@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:01:46 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 25 09:01:34 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -81,19 +83,38 @@
         ]
       },
       "event": {
+        "grant": {
+          "authorization": {
+            "msgTypeUrl": "redelegate",
+            "type": "generic-authorization"
+          },
+          "expiration": "future"
+        },
         "grantee": "a2",
-        "granter": "a3",
-        "msgTypeUrl": "delegate",
-        "type": "request-revoke"
+        "granter": "a1",
+        "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "authorization not found",
-        "ok": false,
-        "type": "response-revoke"
+        "error": "none",
+        "ok": true,
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
-          
+          [
+            {
+              "grantee": "a2",
+              "granter": "a1",
+              "msgTypeUrl": "redelegate"
+            },
+            {
+              "authorization": {
+                "msgTypeUrl": "redelegate",
+                "type": "generic-authorization"
+              },
+              "expiration": "future"
+            }
+          ]
         ]
       }
     },
@@ -110,6 +131,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -123,48 +145,28 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "allow": false,
-            "maxTokens": 1,
-            "msgTypeUrl": "undelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v3"
-              ]
-            }
-          },
-          "expiration": "future"
-        },
         "grantee": "a3",
-        "granter": "a1",
-        "type": "request-grant"
+        "granter": "a2",
+        "msgTypeUrl": "redelegate",
+        "type": "request-revoke"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
-        "type": "response-grant"
+        "error": "authorization not found",
+        "ok": false,
+        "type": "response-revoke"
       },
       "grantStore": {
         "#map": [
           [
             {
-              "grantee": "a3",
+              "grantee": "a2",
               "granter": "a1",
-              "msgTypeUrl": "undelegate"
+              "msgTypeUrl": "redelegate"
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": 1,
-                "msgTypeUrl": "undelegate",
-                "type": "stake-authorization",
-                "validators": {
-                  "#set": [
-                    "v3"
-                  ]
-                }
+                "msgTypeUrl": "redelegate",
+                "type": "generic-authorization"
               },
               "expiration": "future"
             }
@@ -185,6 +187,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -199,20 +202,13 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
-          "maxTokens": 1,
-          "msgTypeUrl": "undelegate",
-          "type": "stake-authorization",
-          "validators": {
-            "#set": [
-              "v3"
-            ]
-          }
+          "msgTypeUrl": "redelegate",
+          "type": "generic-authorization"
         },
         "grantId": {
-          "grantee": "a3",
+          "grantee": "a2",
           "granter": "a1",
-          "msgTypeUrl": "undelegate"
+          "msgTypeUrl": "redelegate"
         },
         "type": "expire"
       },
@@ -240,6 +236,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -253,9 +250,9 @@
         ]
       },
       "event": {
-        "grantee": "a3",
+        "grantee": "a2",
         "granter": "a1",
-        "msgTypeUrl": "undelegate",
+        "msgTypeUrl": "redelegate",
         "type": "request-revoke"
       },
       "expectedResponse": {

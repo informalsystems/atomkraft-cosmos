@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:01:35 CEST 2022"
+    "description": "Created by Apalache on Tue Oct 25 09:01:10 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -83,16 +85,8 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 1,
-            "msgTypeUrl": "undelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v1",
-                "v3"
-              ]
-            }
+            "msgTypeUrl": "send",
+            "type": "generic-authorization"
           },
           "expiration": "future"
         },
@@ -111,20 +105,12 @@
             {
               "grantee": "a3",
               "granter": "a1",
-              "msgTypeUrl": "undelegate"
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "allow": false,
-                "maxTokens": 1,
-                "msgTypeUrl": "undelegate",
-                "type": "stake-authorization",
-                "validators": {
-                  "#set": [
-                    "v1",
-                    "v3"
-                  ]
-                }
+                "msgTypeUrl": "send",
+                "type": "generic-authorization"
               },
               "expiration": "future"
             }
@@ -145,6 +131,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -159,21 +146,13 @@
       },
       "event": {
         "authorization": {
-          "allow": false,
-          "maxTokens": 1,
-          "msgTypeUrl": "undelegate",
-          "type": "stake-authorization",
-          "validators": {
-            "#set": [
-              "v1",
-              "v3"
-            ]
-          }
+          "msgTypeUrl": "send",
+          "type": "generic-authorization"
         },
         "grantId": {
           "grantee": "a3",
           "granter": "a1",
-          "msgTypeUrl": "undelegate"
+          "msgTypeUrl": "send"
         },
         "type": "expire"
       },
@@ -201,6 +180,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -216,7 +196,7 @@
       "event": {
         "grantee": "a3",
         "granter": "a1",
-        "msgTypeUrl": "undelegate",
+        "msgTypeUrl": "send",
         "type": "request-revoke"
       },
       "expectedResponse": {

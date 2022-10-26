@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 09:02:13 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:35:39 CEST 2022"
   },
   "params": [
     "Validators",
@@ -83,23 +83,38 @@
         ]
       },
       "event": {
-        "grantee": "a3",
-        "msg": {
-          "amount": -1,
-          "fromAddress": "a3",
-          "toAddress": "a2",
-          "typeUrl": "send"
+        "grant": {
+          "authorization": {
+            "msgTypeUrl": "delegate",
+            "type": "generic-authorization"
+          },
+          "expiration": "future"
         },
-        "type": "request-execute"
+        "grantee": "a2",
+        "granter": "a3",
+        "type": "request-grant"
       },
       "expectedResponse": {
         "error": "none",
         "ok": true,
-        "type": "response-execute"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
-          
+          [
+            {
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "delegate"
+            },
+            {
+              "authorization": {
+                "msgTypeUrl": "delegate",
+                "type": "generic-authorization"
+              },
+              "expiration": "future"
+            }
+          ]
         ]
       }
     },
@@ -130,48 +145,28 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "allowList": {
-              "#set": [
-                "a1",
-                "a2"
-              ]
-            },
-            "msgTypeUrl": "send",
-            "spendLimit": 1,
-            "type": "send-authorization"
-          },
-          "expiration": "future"
-        },
-        "grantee": "a1",
+        "grantee": "a2",
         "granter": "a2",
-        "type": "request-grant"
+        "msgTypeUrl": "redelegate",
+        "type": "request-revoke"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
-        "type": "response-grant"
+        "error": "grantee and granter should be different",
+        "ok": false,
+        "type": "response-revoke"
       },
       "grantStore": {
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a2",
-              "msgTypeUrl": "send"
+              "grantee": "a2",
+              "granter": "a3",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allowList": {
-                  "#set": [
-                    "a1",
-                    "a2"
-                  ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
+                "msgTypeUrl": "delegate",
+                "type": "generic-authorization"
               },
               "expiration": "future"
             }
@@ -207,20 +202,13 @@
       },
       "event": {
         "authorization": {
-          "allowList": {
-            "#set": [
-              "a1",
-              "a2"
-            ]
-          },
-          "msgTypeUrl": "send",
-          "spendLimit": 1,
-          "type": "send-authorization"
+          "msgTypeUrl": "delegate",
+          "type": "generic-authorization"
         },
         "grantId": {
-          "grantee": "a1",
-          "granter": "a2",
-          "msgTypeUrl": "send"
+          "grantee": "a2",
+          "granter": "a3",
+          "msgTypeUrl": "delegate"
         },
         "type": "expire"
       },
@@ -262,9 +250,9 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "granter": "a2",
-        "msgTypeUrl": "send",
+        "grantee": "a2",
+        "granter": "a3",
+        "msgTypeUrl": "delegate",
         "type": "request-revoke"
       },
       "expectedResponse": {

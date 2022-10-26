@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 08:59:36 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:32:40 CEST 2022"
   },
   "params": [
     "Validators",
@@ -86,20 +86,19 @@
         "grant": {
           "authorization": {
             "allow": false,
-            "maxTokens": 0,
-            "msgTypeUrl": "undelegate",
+            "maxTokens": 1,
+            "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v2",
-                "v3"
+                "v2"
               ]
             }
           },
           "expiration": "future"
         },
-        "grantee": "a3",
-        "granter": "a2",
+        "grantee": "a1",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -111,20 +110,19 @@
         "#map": [
           [
             {
-              "grantee": "a3",
-              "granter": "a2",
-              "msgTypeUrl": "undelegate"
+              "grantee": "a1",
+              "granter": "a3",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
                 "allow": false,
-                "maxTokens": 0,
-                "msgTypeUrl": "undelegate",
+                "maxTokens": 1,
+                "msgTypeUrl": "delegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v2",
-                    "v3"
+                    "v2"
                   ]
                 }
               },
@@ -163,20 +161,19 @@
       "event": {
         "authorization": {
           "allow": false,
-          "maxTokens": 0,
-          "msgTypeUrl": "undelegate",
+          "maxTokens": 1,
+          "msgTypeUrl": "delegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v2",
-              "v3"
+              "v2"
             ]
           }
         },
         "grantId": {
-          "grantee": "a3",
-          "granter": "a2",
-          "msgTypeUrl": "undelegate"
+          "grantee": "a1",
+          "granter": "a3",
+          "msgTypeUrl": "delegate"
         },
         "type": "expire"
       },
@@ -218,12 +215,12 @@
         ]
       },
       "event": {
-        "grantee": "a3",
+        "grantee": "a1",
         "msg": {
-          "amount": 1,
-          "delegatorAddress": "a2",
-          "typeUrl": "undelegate",
-          "validatorAddress": "v3"
+          "amount": -1,
+          "delegatorAddress": "a3",
+          "typeUrl": "delegate",
+          "validatorAddress": "v1"
         },
         "type": "request-execute"
       },

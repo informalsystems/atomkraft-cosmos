@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 09:03:49 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:37:55 CEST 2022"
   },
   "params": [
     "Validators",
@@ -86,14 +86,14 @@
         "grantee": "a3",
         "msg": {
           "amount": -1,
-          "fromAddress": "a1",
-          "toAddress": "a3",
-          "typeUrl": "send"
+          "delegatorAddress": "a3",
+          "typeUrl": "delegate",
+          "validatorAddress": "v3"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "authorization not found",
+        "error": "invalid delegation amount",
         "ok": false,
         "type": "response-execute"
       },

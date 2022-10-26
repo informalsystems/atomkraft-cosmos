@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 09:01:43 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:35:06 CEST 2022"
   },
   "params": [
     "Validators",
@@ -85,13 +85,20 @@
       "event": {
         "grant": {
           "authorization": {
-            "msgTypeUrl": "send",
-            "type": "generic-authorization"
+            "allow": false,
+            "maxTokens": 1,
+            "msgTypeUrl": "undelegate",
+            "type": "stake-authorization",
+            "validators": {
+              "#set": [
+                "v3"
+              ]
+            }
           },
           "expiration": "future"
         },
-        "grantee": "a2",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -103,14 +110,21 @@
         "#map": [
           [
             {
-              "grantee": "a2",
-              "granter": "a3",
-              "msgTypeUrl": "send"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
-                "msgTypeUrl": "send",
-                "type": "generic-authorization"
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "undelegate",
+                "type": "stake-authorization",
+                "validators": {
+                  "#set": [
+                    "v3"
+                  ]
+                }
               },
               "expiration": "future"
             }
@@ -146,13 +160,20 @@
       },
       "event": {
         "authorization": {
-          "msgTypeUrl": "send",
-          "type": "generic-authorization"
+          "allow": false,
+          "maxTokens": 1,
+          "msgTypeUrl": "undelegate",
+          "type": "stake-authorization",
+          "validators": {
+            "#set": [
+              "v3"
+            ]
+          }
         },
         "grantId": {
-          "grantee": "a2",
-          "granter": "a3",
-          "msgTypeUrl": "send"
+          "grantee": "a3",
+          "granter": "a2",
+          "msgTypeUrl": "undelegate"
         },
         "type": "expire"
       },
@@ -194,9 +215,9 @@
         ]
       },
       "event": {
-        "grantee": "a2",
-        "granter": "a3",
-        "msgTypeUrl": "send",
+        "grantee": "a3",
+        "granter": "a2",
+        "msgTypeUrl": "undelegate",
         "type": "request-revoke"
       },
       "expectedResponse": {
@@ -237,19 +258,21 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 1,
-          "fromAddress": "a3",
-          "toAddress": "a1",
-          "typeUrl": "send"
+        "grant": {
+          "authorization": {
+            "msgTypeUrl": "send",
+            "type": "generic-authorization"
+          },
+          "expiration": "past"
         },
-        "type": "request-execute"
+        "grantee": "a1",
+        "granter": "a2",
+        "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "authorization not found",
+        "error": "expiration time of authorization should be more than current time",
         "ok": false,
-        "type": "response-execute"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [

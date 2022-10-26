@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 08:59:34 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:32:37 CEST 2022"
   },
   "params": [
     "Validators",
@@ -85,12 +85,12 @@
       "event": {
         "grant": {
           "authorization": {
-            "msgTypeUrl": "delegate",
+            "msgTypeUrl": "send",
             "type": "generic-authorization"
           },
           "expiration": "future"
         },
-        "grantee": "a3",
+        "grantee": "a1",
         "granter": "a2",
         "type": "request-grant"
       },
@@ -103,13 +103,13 @@
         "#map": [
           [
             {
-              "grantee": "a3",
+              "grantee": "a1",
               "granter": "a2",
-              "msgTypeUrl": "delegate"
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "msgTypeUrl": "delegate",
+                "msgTypeUrl": "send",
                 "type": "generic-authorization"
               },
               "expiration": "future"
@@ -146,13 +146,13 @@
       },
       "event": {
         "authorization": {
-          "msgTypeUrl": "delegate",
+          "msgTypeUrl": "send",
           "type": "generic-authorization"
         },
         "grantId": {
-          "grantee": "a3",
+          "grantee": "a1",
           "granter": "a2",
-          "msgTypeUrl": "delegate"
+          "msgTypeUrl": "send"
         },
         "type": "expire"
       },
@@ -194,12 +194,12 @@
         ]
       },
       "event": {
-        "grantee": "a3",
+        "grantee": "a1",
         "msg": {
-          "amount": 1,
-          "delegatorAddress": "a2",
-          "typeUrl": "delegate",
-          "validatorAddress": "v1"
+          "amount": 0,
+          "fromAddress": "a2",
+          "toAddress": "a2",
+          "typeUrl": "send"
         },
         "type": "request-execute"
       },

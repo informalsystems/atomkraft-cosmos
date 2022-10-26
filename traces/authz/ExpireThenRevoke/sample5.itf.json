@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 09:01:32 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:34:55 CEST 2022"
   },
   "params": [
     "Validators",
@@ -85,13 +85,13 @@
       "event": {
         "grant": {
           "authorization": {
-            "msgTypeUrl": "delegate",
+            "msgTypeUrl": "send",
             "type": "generic-authorization"
           },
-          "expiration": "future"
+          "expiration": "none"
         },
-        "grantee": "a2",
-        "granter": "a1",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -103,16 +103,16 @@
         "#map": [
           [
             {
-              "grantee": "a2",
-              "granter": "a1",
-              "msgTypeUrl": "delegate"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "msgTypeUrl": "delegate",
+                "msgTypeUrl": "send",
                 "type": "generic-authorization"
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]
@@ -145,25 +145,50 @@
         ]
       },
       "event": {
-        "authorization": {
-          "msgTypeUrl": "delegate",
-          "type": "generic-authorization"
+        "grant": {
+          "authorization": {
+            "allowList": {
+              "#set": [
+                "a2"
+              ]
+            },
+            "msgTypeUrl": "send",
+            "spendLimit": 1,
+            "type": "send-authorization"
+          },
+          "expiration": "future"
         },
-        "grantId": {
-          "grantee": "a2",
-          "granter": "a1",
-          "msgTypeUrl": "delegate"
-        },
-        "type": "expire"
+        "grantee": "a3",
+        "granter": "a2",
+        "type": "request-grant"
       },
       "expectedResponse": {
         "error": "none",
         "ok": true,
-        "type": "no-response"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
-          
+          [
+            {
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "send"
+            },
+            {
+              "authorization": {
+                "allowList": {
+                  "#set": [
+                    "a2"
+                  ]
+                },
+                "msgTypeUrl": "send",
+                "spendLimit": 1,
+                "type": "send-authorization"
+              },
+              "expiration": "future"
+            }
+          ]
         ]
       }
     },
@@ -194,30 +219,27 @@
         ]
       },
       "event": {
-        "grant": {
-          "authorization": {
-            "allow": false,
-            "maxTokens": -99,
-            "msgTypeUrl": "redelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v1",
-                "v2",
-                "v3"
-              ]
-            }
+        "authorization": {
+          "allowList": {
+            "#set": [
+              "a2"
+            ]
           },
-          "expiration": "past"
+          "msgTypeUrl": "send",
+          "spendLimit": 1,
+          "type": "send-authorization"
         },
-        "grantee": "a3",
-        "granter": "a1",
-        "type": "request-grant"
+        "grantId": {
+          "grantee": "a3",
+          "granter": "a2",
+          "msgTypeUrl": "send"
+        },
+        "type": "expire"
       },
       "expectedResponse": {
-        "error": "negative coin amount",
-        "ok": false,
-        "type": "response-grant"
+        "error": "none",
+        "ok": true,
+        "type": "no-response"
       },
       "grantStore": {
         "#map": [
@@ -252,9 +274,9 @@
         ]
       },
       "event": {
-        "grantee": "a2",
-        "granter": "a1",
-        "msgTypeUrl": "delegate",
+        "grantee": "a3",
+        "granter": "a2",
+        "msgTypeUrl": "send",
         "type": "request-revoke"
       },
       "expectedResponse": {

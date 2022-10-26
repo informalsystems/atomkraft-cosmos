@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Tue Oct 25 09:02:50 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:36:35 CEST 2022"
   },
   "params": [
     "Validators",
@@ -85,21 +85,22 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 0,
-            "msgTypeUrl": "redelegate",
+            "allow": true,
+            "maxTokens": -99,
+            "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
                 "v1",
-                "v2"
+                "v2",
+                "v3"
               ]
             }
           },
           "expiration": "past"
         },
-        "grantee": "a3",
-        "granter": "a2",
+        "grantee": "a1",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -142,22 +143,21 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": 0,
-            "msgTypeUrl": "redelegate",
+            "allow": false,
+            "maxTokens": 1,
+            "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
                 "v1",
-                "v2",
                 "v3"
               ]
             }
           },
-          "expiration": "future"
+          "expiration": "none"
         },
-        "grantee": "a3",
-        "granter": "a2",
+        "grantee": "a1",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -169,25 +169,24 @@
         "#map": [
           [
             {
-              "grantee": "a3",
-              "granter": "a2",
-              "msgTypeUrl": "redelegate"
+              "grantee": "a1",
+              "granter": "a3",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allow": true,
-                "maxTokens": 0,
-                "msgTypeUrl": "redelegate",
+                "allow": false,
+                "maxTokens": 1,
+                "msgTypeUrl": "delegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
                     "v1",
-                    "v2",
                     "v3"
                   ]
                 }
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]

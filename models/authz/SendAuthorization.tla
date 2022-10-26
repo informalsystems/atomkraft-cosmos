@@ -42,7 +42,6 @@ SdkMsgValidateBasic(sdkMsg) ==
     \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L30
     IF sdkMsg.amount <= 0 THEN 
         INVALID_COINS
-        \* SPEND_LIMIT_MUST_BE_POSITIVE 
     ELSE 
         "none"
 
@@ -65,6 +64,7 @@ Authorization == [
     msgTypeUrl: MsgTypeUrls \* Not present in the code.
 ]
 
+\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/bank/types/send_authorization.go#L41
 \* @type: (AUTH) => Str;
 AuthValidateBasic(auth) ==
     IF auth.spendLimit <= 0 THEN

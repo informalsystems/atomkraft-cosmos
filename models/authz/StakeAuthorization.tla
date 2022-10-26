@@ -77,14 +77,20 @@ MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRe
 SdkMsgValidateBasic(sdkMsg) == 
     CASE sdkMsg.typeUrl = DELEGATE_TYPE_URL ->
         \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L227
-        IF sdkMsg.amount <= 0 /\ sdkMsg.amount # NoMaxCoins THEN 
+        IF sdkMsg.amount < 0 /\ sdkMsg.amount # NoMaxCoins THEN 
             INVALID_DELEGATION_AMOUNT 
+        ELSE IF sdkMsg.amount = 0 THEN 
+            \* CHECK: It's possible to execute a message to delegate 0 tokens
+            "none"
         ELSE 
             "none"
       [] sdkMsg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} ->
         \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L329
-        IF sdkMsg.amount <= 0 /\ sdkMsg.amount # NoMaxCoins THEN 
+        IF sdkMsg.amount < 0 /\ sdkMsg.amount # NoMaxCoins THEN 
             INVALID_SHARES_AMOUNT
+        ELSE IF sdkMsg.amount = 0 THEN 
+            \* CHECK: It's possible to execute a message to re/undelegate 0 tokens
+            "none"
         ELSE 
             "none"
       [] OTHER ->
@@ -117,12 +123,14 @@ Authorization == [
     msgTypeUrl: MsgTypeUrls
 ]
 
+\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L46
 \* @type: (AUTH) => Str;
 AuthValidateBasic(auth) ==
-    IF auth.maxTokens < 0 THEN
+    IF auth.maxTokens < 0 /\ auth.maxTokens # NoMaxCoins THEN
         NEGATIVE_COIN_AMOUNT
-    ELSE aut.amount = 0 THEN
-        INVALID_COINS
+    ELSE IF auth.maxTokens = 0 THEN
+        \* CHECK: It's possible to request authorization to re/un/delegate 0 tokens
+        "none"
     ELSE
         "none"
 
@@ -173,8 +181,6 @@ Accept(auth, msg) ==
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> CANNOT_DELEGATE_TO_VALIDATOR]
       [] ~ auth.allow /\ validatorAddress \in auth.validators ->
         [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> CANNOT_DELEGATE_TO_VALIDATOR]
-      [] msg.amount <= 0 ->
-        [accept |-> FALSE, delete |-> FALSE, updated |-> auth, error |-> INVALID_DELEGATION_AMOUNT] \* code = 18
       [] auth.maxTokens = NoMaxCoins ->
         [accept |-> TRUE, delete |-> FALSE, updated |-> auth, error |-> "none"]
       [] OTHER -> [ 

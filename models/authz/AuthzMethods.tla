@@ -34,7 +34,8 @@ SendMsgGrant(msg) ==
     LET grantId == grantIdOfMsgGrant(msg) IN
     CASE MsgGrantValidateBasic(msg) # "none" ->
         [type |-> "response-grant", ok |-> FALSE, error |-> MsgGrantValidateBasic(msg)]
-      [] msg.grant.expiration = "past" ->
+      [] MsgGrantValidateBasic(msg) = "none" /\ msg.grant.expiration = "past" ->
+        \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/authorization_grant.go#L17
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
       [] OTHER ->
         [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
@@ -86,8 +87,6 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* CHECK: This is checked in the code but it's probably unreachable: expired grants are deleted before.
         \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L110
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_EXPIRED] 
-      [] SdkMsgValidateBasic(msg) # "none" ->
-        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> SdkMsgValidateBasic(msg)] 
       [] OTHER -> 
         Accept(auth, msg)
 
@@ -103,8 +102,11 @@ SendMsgExecute(msg) ==
         \* will fail because there are no delegations to un/redelegate. If we want
         \* to properly handle these cases, we need to keep track of delegations in
         \* the model.
-        <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], 
+        <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], \* NO_DELEGATION is a more precise error message
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE]>>
+    ELSE IF acceptResponse.accept /\ SdkMsgValidateBasic(msg.msg) # "none" THEN
+        <<[type |-> "response-execute", ok |-> FALSE, error |-> SdkMsgValidateBasic(msg.msg)], 
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> SdkMsgValidateBasic(msg.msg)]>>
     ELSE 
         <<[type |-> "response-execute", ok |-> acceptResponse.accept, error |-> acceptResponse.error], 
         acceptResponse>>

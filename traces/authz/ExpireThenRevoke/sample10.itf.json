@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:01:50 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:35:09 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -85,11 +87,11 @@
           "authorization": {
             "allow": false,
             "maxTokens": 1,
-            "msgTypeUrl": "delegate",
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1"
+                "v3"
               ]
             }
           },
@@ -110,17 +112,17 @@
             {
               "grantee": "a2",
               "granter": "a1",
-              "msgTypeUrl": "delegate"
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
                 "allow": false,
                 "maxTokens": 1,
-                "msgTypeUrl": "delegate",
+                "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1"
+                    "v3"
                   ]
                 }
               },
@@ -143,6 +145,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -158,19 +161,13 @@
       "event": {
         "grant": {
           "authorization": {
-            "allowList": {
-              "#set": [
-                "a2"
-              ]
-            },
-            "msgTypeUrl": "send",
-            "spendLimit": 1,
-            "type": "send-authorization"
+            "msgTypeUrl": "delegate",
+            "type": "generic-authorization"
           },
           "expiration": "none"
         },
-        "grantee": "a1",
-        "granter": "a3",
+        "grantee": "a3",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -184,17 +181,17 @@
             {
               "grantee": "a2",
               "granter": "a1",
-              "msgTypeUrl": "delegate"
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
                 "allow": false,
                 "maxTokens": 1,
-                "msgTypeUrl": "delegate",
+                "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v1"
+                    "v3"
                   ]
                 }
               },
@@ -203,20 +200,14 @@
           ],
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "send"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allowList": {
-                  "#set": [
-                    "a2"
-                  ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
+                "msgTypeUrl": "delegate",
+                "type": "generic-authorization"
               },
               "expiration": "none"
             }
@@ -237,6 +228,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -253,18 +245,18 @@
         "authorization": {
           "allow": false,
           "maxTokens": 1,
-          "msgTypeUrl": "delegate",
+          "msgTypeUrl": "undelegate",
           "type": "stake-authorization",
           "validators": {
             "#set": [
-              "v1"
+              "v3"
             ]
           }
         },
         "grantId": {
           "grantee": "a2",
           "granter": "a1",
-          "msgTypeUrl": "delegate"
+          "msgTypeUrl": "undelegate"
         },
         "type": "expire"
       },
@@ -277,20 +269,14 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "send"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allowList": {
-                  "#set": [
-                    "a2"
-                  ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
+                "msgTypeUrl": "delegate",
+                "type": "generic-authorization"
               },
               "expiration": "none"
             }
@@ -311,6 +297,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -326,7 +313,7 @@
       "event": {
         "grantee": "a2",
         "granter": "a1",
-        "msgTypeUrl": "delegate",
+        "msgTypeUrl": "undelegate",
         "type": "request-revoke"
       },
       "expectedResponse": {
@@ -338,20 +325,14 @@
         "#map": [
           [
             {
-              "grantee": "a1",
-              "granter": "a3",
-              "msgTypeUrl": "send"
+              "grantee": "a3",
+              "granter": "a2",
+              "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allowList": {
-                  "#set": [
-                    "a2"
-                  ]
-                },
-                "msgTypeUrl": "send",
-                "spendLimit": 1,
-                "type": "send-authorization"
+                "msgTypeUrl": "delegate",
+                "type": "generic-authorization"
               },
               "expiration": "none"
             }

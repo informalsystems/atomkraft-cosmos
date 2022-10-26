@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:02:17 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:36:28 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -84,24 +86,23 @@
         "grant": {
           "authorization": {
             "allow": true,
-            "maxTokens": 1,
-            "msgTypeUrl": "redelegate",
+            "maxTokens": -1,
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v2",
-                "v3"
+                "v2"
               ]
             }
           },
-          "expiration": "past"
+          "expiration": "none"
         },
         "grantee": "a3",
-        "granter": "a1",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "expiration time of authorization should be more than current time",
+        "error": "negative coin amount",
         "ok": false,
         "type": "response-grant"
       },
@@ -124,6 +125,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -141,18 +143,18 @@
           "authorization": {
             "allow": false,
             "maxTokens": 1,
-            "msgTypeUrl": "redelegate",
+            "msgTypeUrl": "undelegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v2"
+                "v1"
               ]
             }
           },
-          "expiration": "none"
+          "expiration": "future"
         },
         "grantee": "a3",
-        "granter": "a1",
+        "granter": "a2",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -165,22 +167,22 @@
           [
             {
               "grantee": "a3",
-              "granter": "a1",
-              "msgTypeUrl": "redelegate"
+              "granter": "a2",
+              "msgTypeUrl": "undelegate"
             },
             {
               "authorization": {
                 "allow": false,
                 "maxTokens": 1,
-                "msgTypeUrl": "redelegate",
+                "msgTypeUrl": "undelegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
-                    "v2"
+                    "v1"
                   ]
                 }
               },
-              "expiration": "none"
+              "expiration": "future"
             }
           ]
         ]

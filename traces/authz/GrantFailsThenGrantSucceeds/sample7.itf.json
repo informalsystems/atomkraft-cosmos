@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:02:25 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:36:35 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -83,19 +85,21 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
+            "allow": true,
             "maxTokens": -99,
             "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
-                "v1"
+                "v1",
+                "v2",
+                "v3"
               ]
             }
           },
           "expiration": "past"
         },
-        "grantee": "a2",
+        "grantee": "a1",
         "granter": "a3",
         "type": "request-grant"
       },
@@ -123,53 +127,7 @@
       },
       "Coins": {
         "#set": [
-          0,
-          1
-        ]
-      },
-      "NoMaxCoins": -99,
-      "Validators": {
-        "#set": [
-          "v1",
-          "v2",
-          "v3"
-        ]
-      },
-      "event": {
-        "grantee": "a1",
-        "msg": {
-          "amount": 1,
-          "delegatorAddress": "a1",
-          "typeUrl": "redelegate",
-          "validatorDstAddress": "v3",
-          "validatorSrcAddress": "v2"
-        },
-        "type": "request-execute"
-      },
-      "expectedResponse": {
-        "error": "failed to execute message",
-        "ok": false,
-        "type": "response-execute"
-      },
-      "grantStore": {
-        "#map": [
-          
-        ]
-      }
-    },
-    {
-      "#meta": {
-        "index": 3
-      },
-      "Accounts": {
-        "#set": [
-          "a1",
-          "a2",
-          "a3"
-        ]
-      },
-      "Coins": {
-        "#set": [
+          -1,
           0,
           1
         ]
@@ -185,20 +143,20 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": -99,
+            "allow": false,
+            "maxTokens": 1,
             "msgTypeUrl": "delegate",
             "type": "stake-authorization",
             "validators": {
               "#set": [
                 "v1",
-                "v2"
+                "v3"
               ]
             }
           },
-          "expiration": "future"
+          "expiration": "none"
         },
-        "grantee": "a2",
+        "grantee": "a1",
         "granter": "a3",
         "type": "request-grant"
       },
@@ -211,24 +169,24 @@
         "#map": [
           [
             {
-              "grantee": "a2",
+              "grantee": "a1",
               "granter": "a3",
               "msgTypeUrl": "delegate"
             },
             {
               "authorization": {
-                "allow": true,
-                "maxTokens": -99,
+                "allow": false,
+                "maxTokens": 1,
                 "msgTypeUrl": "delegate",
                 "type": "stake-authorization",
                 "validators": {
                   "#set": [
                     "v1",
-                    "v2"
+                    "v3"
                   ]
                 }
               },
-              "expiration": "future"
+              "expiration": "none"
             }
           ]
         ]

@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:02:16 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:36:26 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -83,25 +85,23 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": false,
-            "maxTokens": 1,
-            "msgTypeUrl": "undelegate",
-            "type": "stake-authorization",
-            "validators": {
+            "allowList": {
               "#set": [
-                "v1",
-                "v3"
+                "a1"
               ]
-            }
+            },
+            "msgTypeUrl": "send",
+            "spendLimit": -1,
+            "type": "send-authorization"
           },
-          "expiration": "past"
+          "expiration": "future"
         },
-        "grantee": "a3",
-        "granter": "a2",
+        "grantee": "a1",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "expiration time of authorization should be more than current time",
+        "error": "spend limit must be positive",
         "ok": false,
         "type": "response-grant"
       },
@@ -124,6 +124,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -139,20 +140,13 @@
       "event": {
         "grant": {
           "authorization": {
-            "allow": true,
-            "maxTokens": 1,
-            "msgTypeUrl": "undelegate",
-            "type": "stake-authorization",
-            "validators": {
-              "#set": [
-                "v2"
-              ]
-            }
+            "msgTypeUrl": "send",
+            "type": "generic-authorization"
           },
           "expiration": "none"
         },
-        "grantee": "a3",
-        "granter": "a2",
+        "grantee": "a1",
+        "granter": "a3",
         "type": "request-grant"
       },
       "expectedResponse": {
@@ -164,21 +158,14 @@
         "#map": [
           [
             {
-              "grantee": "a3",
-              "granter": "a2",
-              "msgTypeUrl": "undelegate"
+              "grantee": "a1",
+              "granter": "a3",
+              "msgTypeUrl": "send"
             },
             {
               "authorization": {
-                "allow": true,
-                "maxTokens": 1,
-                "msgTypeUrl": "undelegate",
-                "type": "stake-authorization",
-                "validators": {
-                  "#set": [
-                    "v2"
-                  ]
-                }
+                "msgTypeUrl": "send",
+                "type": "generic-authorization"
               },
               "expiration": "none"
             }

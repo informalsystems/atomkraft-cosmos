@@ -2,7 +2,7 @@
   "#meta": {
     "format": "ITF",
     "format-description": "https://apalache.informal.systems/docs/adr/015adr-trace.html",
-    "description": "Created by Apalache on Mon Oct 24 12:02:56 CEST 2022"
+    "description": "Created by Apalache on Wed Oct 26 15:38:12 CEST 2022"
   },
   "params": [
     "Validators",
@@ -29,6 +29,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -68,6 +69,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -81,15 +83,21 @@
         ]
       },
       "event": {
-        "grantee": "a1",
-        "granter": "a3",
-        "msgTypeUrl": "redelegate",
-        "type": "request-revoke"
+        "grant": {
+          "authorization": {
+            "msgTypeUrl": "delegate",
+            "type": "generic-authorization"
+          },
+          "expiration": "past"
+        },
+        "grantee": "a3",
+        "granter": "a2",
+        "type": "request-grant"
       },
       "expectedResponse": {
-        "error": "authorization not found",
+        "error": "expiration time of authorization should be more than current time",
         "ok": false,
-        "type": "response-revoke"
+        "type": "response-grant"
       },
       "grantStore": {
         "#map": [
@@ -110,6 +118,7 @@
       },
       "Coins": {
         "#set": [
+          -1,
           0,
           1
         ]
@@ -123,18 +132,18 @@
         ]
       },
       "event": {
-        "grantee": "a2",
+        "grantee": "a3",
         "msg": {
           "amount": 0,
-          "delegatorAddress": "a2",
+          "delegatorAddress": "a1",
           "typeUrl": "delegate",
           "validatorAddress": "v3"
         },
         "type": "request-execute"
       },
       "expectedResponse": {
-        "error": "none",
-        "ok": true,
+        "error": "authorization not found",
+        "ok": false,
         "type": "response-execute"
       },
       "grantStore": {

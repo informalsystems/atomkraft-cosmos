@@ -32,9 +32,10 @@ ExistsGrantFor(grantId) == grantId \in DOMAIN grantStore
 \* @type: (MSG_GRANT) => RESPONSE_GRANT;
 SendMsgGrant(msg) == 
     LET grantId == grantIdOfMsgGrant(msg) IN
-    CASE grantId.granter = grantId.grantee ->
-        [type |-> "response-grant", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
-      [] msg.grant.expiration = "past" ->
+    CASE MsgGrantValidateBasic(msg) # "none" ->
+        [type |-> "response-grant", ok |-> FALSE, error |-> MsgGrantValidateBasic(msg)]
+      [] MsgGrantValidateBasic(msg) = "none" /\ msg.grant.expiration = "past" ->
+        \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/authorization_grant.go#L17
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
       [] OTHER ->
         [type |-> "response-grant", ok |-> TRUE, error |-> "none"]
@@ -48,8 +49,8 @@ SendMsgGrant(msg) ==
 \* @type: (MSG_REVOKE) => RESPONSE_REVOKE;
 SendMsgRevoke(msg) == 
     LET grantId == grantIdOfMsgRevoke(msg) IN
-    CASE grantId.granter = grantId.grantee ->
-        [type |-> "response-revoke", ok |-> FALSE, error |-> GRANTER_EQUALS_GRANTEE]
+    CASE MsgRevokeValidateBasic(msg) # "none" ->
+        [type |-> "response-revoke", ok |-> FALSE, error |-> MsgRevokeValidateBasic(msg)]
       [] ~ ExistsGrantFor(grantId) ->
         [type |-> "response-revoke", ok |-> FALSE, error |-> AUTH_NOT_FOUND]
       [] OTHER ->
@@ -79,7 +80,7 @@ DispatchActionsOneMsg(grantee, msg) ==
         \* A comment in the code says that if granter = grantee "we implicitly
         \* accept" the message. Note that this may execute the message even when 
         \* no authorization has been granted.
-        Accept(auth, msg)
+        [accept |-> TRUE, delete |-> FALSE, updated |-> NoUpdate, error |-> "none"] 
       [] ~ ExistsGrantFor(grantId) ->
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> AUTH_NOT_FOUND] 
       [] ExistsGrantFor(grantId) /\ grantStore[grantId].expiration = "past" ->
@@ -101,8 +102,11 @@ SendMsgExecute(msg) ==
         \* will fail because there are no delegations to un/redelegate. If we want
         \* to properly handle these cases, we need to keep track of delegations in
         \* the model.
-        <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], 
+        <<[type |-> "response-execute", ok |-> FALSE, error |-> FAILED_TO_EXECUTE], \* NO_DELEGATION is a more precise error message
         [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> FAILED_TO_EXECUTE]>>
+    ELSE IF acceptResponse.accept /\ SdkMsgValidateBasic(msg.msg) # "none" THEN
+        <<[type |-> "response-execute", ok |-> FALSE, error |-> SdkMsgValidateBasic(msg.msg)], 
+        [accept |-> FALSE, delete |-> FALSE, updated |-> NoUpdate, error |-> SdkMsgValidateBasic(msg.msg)]>>
     ELSE 
         <<[type |-> "response-execute", ok |-> acceptResponse.accept, error |-> acceptResponse.error], 
         acceptResponse>>

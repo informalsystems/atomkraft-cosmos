@@ -9,7 +9,7 @@ for TEST in "${tests[@]}"; do
     OUT_DIR=./_apalache-out/$TEST
     NEGATED_TEST=Not$TEST
     time apalache-mc check \
-        --cinit=ConstInit --length=5 --max-error=20 --view=View \
+        --cinit=ConstInit --length=5 --max-error=25 --view=View \
         --inv=$NEGATED_TEST \
         --out-dir=$OUT_DIR \
         $MAIN_TLA_FILE

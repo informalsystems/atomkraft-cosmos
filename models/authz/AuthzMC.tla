@@ -8,7 +8,7 @@ instance_Accounts == {"a1", "a2", "a3"}
 
 instance_Validators == {"v1", "v2", "v3"}
 
-instance_Coins == {0, 1}
+instance_Coins == {-1, 0, 1}
 
 instance_NoMaxCoins == -99
 

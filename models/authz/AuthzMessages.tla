@@ -19,6 +19,14 @@ MsgGrant == [
     grant: Grants
 ]
 
+\* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/msgs.go#L53
+\* @type: (MSG_GRANT) => Str;
+MsgGrantValidateBasic(msg) ==
+    IF msg.granter = msg.grantee THEN 
+        GRANTER_EQUALS_GRANTEE
+    ELSE
+        GrantValidateBasic(msg.grant)
+
 (******************************************************************************)
 (* A grant can be removed with the MsgRevoke message. MsgRevoke revokes any
 authorization with the provided sdk.Msg type on the granter's account with 
@@ -33,6 +41,14 @@ MsgRevoke == [
     grantee: Accounts,
     msgTypeUrl: MsgTypeUrls
 ]
+
+\* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/msgs.go#L139
+\* @type: (MSG_REVOKE) => Str;
+MsgRevokeValidateBasic(msg) ==
+    IF msg.granter = msg.grantee THEN 
+        GRANTER_EQUALS_GRANTEE
+    ELSE
+        "none"
 
 (******************************************************************************)
 (* MsgExec attempts to execute the provided messages using authorizations
@@ -60,11 +76,11 @@ RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 --------------------------------------------------------------------------------
 \* @type: (SDK_MSG) => MSG_TYPE_URL;
 GetSigner(sdkMsg) ==
-    \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L56
     CASE sdkMsg.typeUrl = SEND_TYPE_URL -> 
+        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L56
         sdkMsg.fromAddress
-    \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L215
       [] sdkMsg.typeUrl \in {DELEGATE_TYPE_URL, UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} -> 
+        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L215
         sdkMsg.delegatorAddress
 
 --------------------------------------------------------------------------------
@@ -103,6 +119,8 @@ grantIdOfMsg(msg) ==
 MsgGrantResponseErrors == {
     GRANTER_EQUALS_GRANTEE, 
     INVALID_EXPIRATION,
+    NEGATIVE_COIN_AMOUNT,
+    SPEND_LIMIT_MUST_BE_POSITIVE,
     "none"
 }
 
@@ -127,11 +145,14 @@ MsgExecResponseErrors == {
     INSUFFICIENT_AMOUNT, 
     SPEND_LIMIT_IS_NIL,
     SPEND_LIMIT_IS_NEGATIVE,
+    INVALID_COINS,
 
     \* For StakeAuthorization
     CANNOT_DELEGATE_TO_VALIDATOR,
     NEGATIVE_COIN_AMOUNT,
+    INVALID_COINS,
     INVALID_DELEGATION_AMOUNT,
+    INVALID_SHARES_AMOUNT,
     FAILED_TO_EXECUTE,
 
     "none"
@@ -148,9 +169,9 @@ MsgExecResponses == [
 --------------------------------------------------------------------------------
 \* @type: Set(Str);
 MsgRevokeResponseErrors == {
-    "none", 
     AUTH_NOT_FOUND,
-    GRANTER_EQUALS_GRANTEE
+    GRANTER_EQUALS_GRANTEE,
+    "none"
 }
 
 \* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];

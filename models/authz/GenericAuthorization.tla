@@ -38,6 +38,9 @@ Authorization == [
     msgTypeUrl: MsgTypeUrls
 ]
 
+\* @type: (AUTH) => Str;
+AuthValidateBasic(auth) == "none"
+
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L17

@@ -126,7 +126,6 @@ RequestExecute(grantee, msg) ==
 (******************************************************************************)
 Expire(grantId) ==
     LET grant == grantStore[grantId] IN
-    /\ grantId.granter # grantId.grantee
     /\ ExistsGrantFor(grantId)
     /\ grant.expiration = "future"
     /\ event' = [type |-> "expire", grantId |-> grantId, authorization |-> grant.authorization]
@@ -161,37 +160,70 @@ NoExpiredGrantInStore ==
     \A grantId \in DOMAIN grantStore: 
         grantStore[grantId].expiration # "past"
 
+RequestGrantInv1 ==
+    /\ event.type = "request-grant"
+    /\ MsgGrantValidateBasic(event) # "none"
+    /\ event.granter # event.grantee
+    /\ event.grant.authorization.type = "stake-authorization"
+    /\ event.grant.authorization.maxTokens = -1
+    => expectedResponse.error = NEGATIVE_COIN_AMOUNT
+
 UnRedelegateFailToExecute ==
+    LET grantId == grantIdOfMsgExecute(event) IN
     /\ event.type = "request-execute"
+    /\ SdkMsgValidateBasic(event.msg) = "none"
+    /\ grantId.granter # grantId.grantee
+    /\ ExistsGrantFor(grantId) 
     /\ event.msg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
     => expectedResponse.error = FAILED_TO_EXECUTE
 
-ExecuteSimpleCasesInv ==
+ExecuteInvalidMessageInv ==
+    LET grantId == grantIdOfMsgExecute(event) IN
+    /\ event.type = "request-execute"
+    /\ SdkMsgValidateBasic(event.msg) # "none"
+    => expectedResponse.error = SdkMsgValidateBasic(event.msg)
+
+ExecuteInv1 ==
     LET grantId == grantIdOfMsgExecute(event) IN
     /\ event.type = "request-execute"
     /\ event.msg.typeUrl \notin {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
-    =>  /\  /\ grantId.granger = grantId.grantee
-            => expectedResponse.error = "none"
-        /\  /\ grantId.granger # grantId.grantee
-            /\ ~ ExistsGrantFor(grantId) 
-            => expectedResponse.error = FAILED_TO_EXECUTE
-        /\  /\ grantId.granger # grantId.grantee
-            /\ ExistsGrantFor(grantId) 
-            /\ grantStore[grantId].expiration = "past"
-            => expectedResponse.error = AUTH_EXPIRED
+    /\ SdkMsgValidateBasic(event.msg) # "none"
+    => expectedResponse.error = SdkMsgValidateBasic(event.msg)
+
+ExecuteInv2 ==
+    LET grantId == grantIdOfMsgExecute(event) IN
+    /\ event.type = "request-execute"
+    /\ event.msg.typeUrl \notin {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
+    /\ SdkMsgValidateBasic(event.msg) = "none"
+    /\ grantId.granter # grantId.grantee
+    /\ ~ ExistsGrantFor(grantId) 
+    => expectedResponse.error = AUTH_NOT_FOUND
+
+ExecuteInv3 ==
+    LET grantId == grantIdOfMsgExecute(event) IN
+    /\ event.type = "request-execute"
+    /\ event.msg.typeUrl \notin {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL}
+    /\ grantId.granter # grantId.grantee
+    /\ ExistsGrantFor(grantId) 
+    /\ grantStore[grantId].expiration = "past"
+    => expectedResponse.error = AUTH_EXPIRED
 
 ValidRevokeCannotAuthNotFound ==
     LET grantId == grantIdOfMsgRevoke(event) IN
     /\ event.type = "request-revoke"
-    /\ grantId.granger # grantId.grantee
+    /\ grantId.granter # grantId.grantee
     /\ ExistsGrantFor(grantId) 
     => expectedResponse.error # AUTH_NOT_FOUND
 
 Inv == 
     /\ TypeOK
     /\ NoExpiredGrantInStore
+    /\ RequestGrantInv1
     /\ UnRedelegateFailToExecute
-    /\ ExecuteSimpleCasesInv
+    /\ ExecuteInvalidMessageInv
+    /\ ExecuteInv1
+    /\ ExecuteInv2
+    /\ ExecuteInv3
     /\ ValidRevokeCannotAuthNotFound
 
 ================================================================================

@@ -37,7 +37,7 @@ ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
-\* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L205
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L205
 \* @type: Set(SDK_MSG);
 MsgDelegate == [
     typeUrl: { DELEGATE_TYPE_URL },
@@ -48,7 +48,7 @@ MsgDelegate == [
 
 \* MsgUndelegate defines a SDK message for performing an undelegation from a
 \* delegate and a validator.
-\* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L370
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L419
 \* @type: Set(SDK_MSG);
 MsgUndelegate == [
     typeUrl: { UNDELEGATE_TYPE_URL},
@@ -59,7 +59,7 @@ MsgUndelegate == [
 
 \* MsgBeginRedelegate defines a SDK message for performing a redelegation of
 \* coins from a delegator and source validator to a destination validator.
-\* https://github.com/cosmos/cosmos-sdk/blob/f848e4300a8a6036a4dbfb628c7a9e7874a8e6db/x/staking/types/tx.pb.go#L283
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L304
 \* @type: Set(SDK_MSG);
 MsgBeginRedelegate == [
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
@@ -76,7 +76,7 @@ MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRe
 \* @type: (SDK_MSG) => Str;
 SdkMsgValidateBasic(sdkMsg) == 
     CASE sdkMsg.typeUrl = DELEGATE_TYPE_URL ->
-        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L227
+        \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/msg.go#L227
         IF sdkMsg.amount < 0 /\ sdkMsg.amount # NoMaxCoins THEN 
             INVALID_DELEGATION_AMOUNT 
         ELSE IF sdkMsg.amount = 0 THEN 
@@ -85,7 +85,7 @@ SdkMsgValidateBasic(sdkMsg) ==
         ELSE 
             "none"
       [] sdkMsg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} ->
-        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L329
+        \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/msg.go#L329
         IF sdkMsg.amount < 0 /\ sdkMsg.amount # NoMaxCoins THEN 
             INVALID_SHARES_AMOUNT
         ELSE IF sdkMsg.amount = 0 THEN 
@@ -99,7 +99,7 @@ SdkMsgValidateBasic(sdkMsg) ==
 --------------------------------------------------------------------------------
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L16
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L16
 \* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL, type: Str];
 \* @type: Set(AUTH);
 Authorization == [  
@@ -123,7 +123,7 @@ Authorization == [
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L46
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L46
 \* @type: (AUTH) => Str;
 AuthValidateBasic(auth) ==
     IF auth.maxTokens < 0 /\ auth.maxTokens # NoMaxCoins THEN
@@ -154,7 +154,7 @@ UpdateMaxTokens(auth, maxTokens) == [
 ]
 
 --------------------------------------------------------------------------------
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L38
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L38
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) ==
     auth.msgTypeUrl
@@ -165,7 +165,7 @@ ValidatorAddressOf(msg) ==
       [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = BEGIN_REDELEGATE_TYPE_URL -> msg.validatorDstAddress 
 
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/staking/types/authz.go#L58
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L58
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 

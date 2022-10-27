@@ -100,7 +100,7 @@ GrantIds == [
 ]
 
 \* Grant gives permissions to execute the provide method with expiration time.
-\* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L74
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authz.pb.go#L74
 \* @typeAlias: GRANT = [authorization: AUTH, expiration: Str];
 \* @type: Set(GRANT);
 Grants == [
@@ -113,7 +113,7 @@ Grants == [
     expiration: {"past", "future", "none"}
 ]
 
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/authorization_grant.go#L54
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authorization_grant.go#L54
 \* @type: (GRANT) => Str;
 GrantValidateBasic(grant) ==
     AuthValidateBasic(grant.authorization)

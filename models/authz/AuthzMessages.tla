@@ -9,7 +9,7 @@ EXTENDS MsgTypes, MsgErrors, Grants
 (* MsgGrant is a request message to the Grant method. It declares authorization
 to the grantee on behalf of the granter with the provided expiration time. *)
 (******************************************************************************)
-\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L36
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L36
 \* @typeAlias: MSG_GRANT = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, type: Str];
 \* @type: Set(MSG_GRANT);
 MsgGrant == [
@@ -19,7 +19,7 @@ MsgGrant == [
     grant: Grants
 ]
 
-\* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/msgs.go#L53
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/msgs.go#L53
 \* @type: (MSG_GRANT) => Str;
 MsgGrantValidateBasic(msg) ==
     IF msg.granter = msg.grantee THEN 
@@ -32,7 +32,7 @@ MsgGrantValidateBasic(msg) ==
 authorization with the provided sdk.Msg type on the granter's account with 
 that has been granted to the grantee. *)
 (******************************************************************************)
-\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L196
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L196
 \* @typeAlias: MSG_REVOKE = [grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, type: Str];
 \* @type: Set(MSG_REVOKE);
 MsgRevoke == [
@@ -42,7 +42,7 @@ MsgRevoke == [
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/msgs.go#L139
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/msgs.go#L139
 \* @type: (MSG_REVOKE) => Str;
 MsgRevokeValidateBasic(msg) ==
     IF msg.granter = msg.grantee THEN 
@@ -55,7 +55,7 @@ MsgRevokeValidateBasic(msg) ==
 granted to the grantee. Each message should have only one signer corresponding
 to the granter of the authorization. *)
 (******************************************************************************)
-\* https://github.com/cosmos/cosmos-sdk/blob/3a1027c74b15ad78270dbe68b777280bde393576/x/authz/tx.pb.go#L116
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L116
 \* @typeAlias: MSG_EXEC = [grantee: ACCOUNT, msg: SDK_MSG, type: Str];
 \* @type: Set(MSG_EXEC);
 MsgExec == [
@@ -77,10 +77,10 @@ RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 \* @type: (SDK_MSG) => MSG_TYPE_URL;
 GetSigner(sdkMsg) ==
     CASE sdkMsg.typeUrl = SEND_TYPE_URL -> 
-        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L56
+        \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/msgs.go#L56
         sdkMsg.fromAddress
       [] sdkMsg.typeUrl \in {DELEGATE_TYPE_URL, UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} -> 
-        \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/staking/types/msg.go#L215
+        \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/msg.go#L215
         sdkMsg.delegatorAddress
 
 --------------------------------------------------------------------------------

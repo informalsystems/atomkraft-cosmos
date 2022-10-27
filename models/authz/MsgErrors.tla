@@ -4,7 +4,7 @@
 (******************************************************************************)
 
 \* x/authz module sentinel errors
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/errors.go#L8
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/errors.go#L8
 AUTH_NOT_FOUND == "authorization not found" \* code 2
 INVALID_EXPIRATION == "expiration time of authorization should be more than current time" \* code 3
 UNKNOWN_AUTH == "unknown authorization type" \* code 4

@@ -28,7 +28,7 @@ ASSUME \E min, max \in Int:
 MsgTypeUrls == { SEND_TYPE_URL }
 
 \* The message to send coins from one account to another.
-\* https://github.com/cosmos/cosmos-sdk/blob/5019459b1b2028119c6ca1d80714caa7858c2076/x/bank/types/tx.pb.go#L36
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/tx.pb.go#L36
 \* @type: Set(SDK_MSG);
 MsgSend == [
     typeUrl: MsgTypeUrls,
@@ -39,7 +39,7 @@ MsgSend == [
 
 \* @type: (SDK_MSG) => Str;
 SdkMsgValidateBasic(sdkMsg) == 
-    \* https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/bank/types/msgs.go#L30
+    \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/msgs.go#L30
     IF sdkMsg.amount <= 0 THEN 
         INVALID_COINS
     ELSE 
@@ -48,7 +48,7 @@ SdkMsgValidateBasic(sdkMsg) ==
 --------------------------------------------------------------------------------
 \* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
-\* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/authz.pb.go#L33
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/authz.pb.go#L33
 \* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL, spendLimit: COINS, allowList: Set(ACCOUNT), type: Str];
 \* @type: Set(AUTH);
 Authorization == [
@@ -83,12 +83,12 @@ UpdateSpendLimit(auth, spendLimit) == [
 ]
 
 --------------------------------------------------------------------------------
-\* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L27
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/send_authorization.go#L19
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == 
     auth.msgTypeUrl
 
-\* https://github.com/cosmos/cosmos-sdk/blob/9f5ee97889bb2b4c8e54b9a81b13cd42f6115993/x/bank/types/send_authorization.go#L32
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/send_authorization.go#L24
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == 

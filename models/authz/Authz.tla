@@ -72,7 +72,7 @@ RequestGrant(granter, grantee, grant) ==
         THEN MapPut(grantStore, grantId, grant) 
         ELSE grantStore
 
-\* https://github.com/cosmos/cosmos-sdk/blob/e09516f4795c637ab12b30bf732ce5d86da78424/x/authz/keeper/keeper.go#L204
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/keeper/keeper.go#L205
 \* @type: (GRANT_ID, Bool) => Bool;
 DeleteGrant(grantId, condition) ==
     IF condition THEN

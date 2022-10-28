@@ -34,7 +34,7 @@ SendMsgGrant(msg) ==
     LET grantId == grantIdOfMsgGrant(msg) IN
     CASE MsgGrantValidateBasic(msg) # "none" ->
         [type |-> "response-grant", ok |-> FALSE, error |-> MsgGrantValidateBasic(msg)]
-      [] MsgGrantValidateBasic(msg) = "none" /\ msg.grant.expiration = "past" ->
+      [] msg.grant.expiration = "past" ->
         \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authorization_grant.go#L17
         [type |-> "response-grant", ok |-> FALSE, error |-> INVALID_EXPIRATION]
       [] OTHER ->

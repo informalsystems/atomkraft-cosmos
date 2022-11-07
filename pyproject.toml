@@ -11,7 +11,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-atomkraft = "^0.1.0"
+atomkraft = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 

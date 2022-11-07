@@ -18,16 +18,16 @@ from reactors.data.authz_queries import query_all_balances, query_grants
 
 def show_result(result: TxResponse, expected: model.Response):
     if result.code == 0:
-        logger.info(f"Status:\tOK")
+        logger.info(f"Status:   OK")
     else:
-        logger.info(f"Status:\tERROR (code: {result.code}, log: {result.raw_log})")
+        logger.info(f"Status:   ERROR (code: {result.code}, log: {result.raw_log})")
 
     if expected.error == "none":
         assert expected.ok
-        logger.info(f"Expected:\tOK\n")
+        logger.info(f"Expected: OK\n")
     else:
         assert not expected.ok
-        logger.info(f"Expected:\tERROR ({expected.error})\n")
+        logger.info(f"Expected: ERROR ({expected.error})\n")
 
 
 def check_result(result: TxResponse, expected: model.Response):
@@ -183,14 +183,18 @@ def expire(
     logger.debug(f"Elapsed time: {(timer() - start_time):.2f} seconds")
 
 
-# This is a quick hack to return an error message without halting the execution of the trace.
-# There are two places where this happens:
+
+# This is a quick hack to return an error message without halting the execution
+# of the trace. When the chain binary returns an error message with a wrong
+# UTF-8 byte sequence. the protobuf library `betterproto`, used by terra.py,
+# throws an exception `UnicodeDecodeError` when it is not able to decode it to
+# string. There are two places where this happens in cosmos-sdk:
 # - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L105
 # - https://github.com/cosmos/cosmos-sdk/blob/25e7f9bee2b35f0211b0e323dd062b55bef987b7/x/authz/keeper/keeper.go#L210
-# The protobuf library `betterproto`, used by terra.py, throws an exception `UnicodeDecodeError` when it is not able to
-# decode to string a binary message that includes a wrong UTF-8 byte sequence.
-# The error messages from the Authz module look like this:
-#   b'failed to execute message; message index: 0: failed to update grant with key \x01\x14\x83\xc1\xde\xde\x080\xdctC\x8b...\nu4tD\x88\xb3\x14huI\x186\x15\x83\x86\xe8GA\xbeS\xa4j\xb4o\xf3M5/cosmos.bank.v1beta1.MsgSend: authorization not found'
+# The error messages from the Authz module look like this: b'failed to execute
+#   message; message index: 0: failed to update grant with key
+#   \x01\x14\x83\xc1\xde\xde\x080\xdctC\x8b...\nu4tD\x88\xb3\x14huI\x186\x15\x83\x86\xe8GA\xbeS\xa4j\xb4o\xf3M5/cosmos.bank.v1beta1.MsgSend:
+#   authorization not found'
 def catch_unicode_decode_error(fn):
     try:
         return fn()

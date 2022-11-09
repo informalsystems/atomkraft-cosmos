@@ -120,7 +120,7 @@ class MsgTypeUrls(Enum):
 
 ################################################################################
 
-EXPIRES_SOON_TIME = 1  # seconds to expire after 'now'
+EXPIRES_SOON_TIME = 10  # seconds to expire after 'now'
 
 
 class ExpirationTime(Enum):

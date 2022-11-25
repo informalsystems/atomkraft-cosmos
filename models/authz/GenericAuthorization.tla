@@ -6,18 +6,16 @@ Msg on behalf of granter's account. *)
 EXTENDS MsgTypes
 
 CONSTANT
-    \* @typeAlias: ACCOUNT = Str;
-    \* @type: Set(ACCOUNT);
+    \* @type: Set($account);
     Accounts, 
-    \* @typeAlias: VALIDATOR = Str;
-    \* @type: Set(VALIDATOR);
+    \* @type: Set($validator);
     Validators
 
 \* Types of messages allowed to be granted permission
-\* @type: Set(MSG_TYPE_URL);
+\* @type: Set($msgTypeUrl);
 MsgTypeUrls == MsgTypes
 
-\* @type: Set(SDK_MSG);
+\* @type: Set($sdkMsg);
 SdkMsg == [
     typeUrl: MsgTypeUrls 
 ]
@@ -27,8 +25,7 @@ SdkMsg == [
 \* GenericAuthorization gives the grantee unrestricted permissions to execute
 \* the provided method on behalf of the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authz.pb.go#L34
-\* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL];
-\* @type: Set(AUTH);
+\* @type: Set($auth);
 Authorization == [
     type: {"generic-authorization"},
 
@@ -38,19 +35,19 @@ Authorization == [
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* @type: (AUTH) => Str;
+\* @type: ($auth) => Str;
 AuthValidateBasic(auth) == "none"
 
 --------------------------------------------------------------------------------
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/generic_authorization.go#L17
-\* @type: (AUTH) => MSG_TYPE_URL;
+\* @type: ($auth) => $msgTypeUrl;
 MsgTypeURL(auth) == 
     auth.msgTypeUrl
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/generic_authorization.go#L22
-\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
+\* @typeAlias: acceptResponse = {accept: Bool, delete: Bool, updated: $auth, error: Str};
+\* @type: ($auth, $sdkMsg) => $acceptResponse;
 Accept(auth, msg) == [
     accept |-> TRUE, 
     delete |-> FALSE, 

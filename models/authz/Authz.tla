@@ -6,11 +6,11 @@
 EXTENDS AuthzMessages, AuthzMethods, Maps, Integers
 
 VARIABLES    
-    \* @typeAlias: EVENT = [authorization: AUTH, grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, grantId: GRANT_ID, type: Str];
-    \* @type: EVENT;
+    \* @typeAlias: event = {authorization: $auth, grant: $grant, grantee: $account, granter: $account, msgTypeUrl: $msgTypeUrl, msg: $sdkMsg, grantId: $grantId, type: Str};
+    \* @type: $event;
     event,
 
-    \* @type: RESPONSE_MSG;
+    \* @type: $responseMsg;
     expectedResponse
 
 --------------------------------------------------------------------------------
@@ -22,11 +22,11 @@ VARIABLES
 NoEvent == [type |-> "no-event"]
 
 \* EmptyMap is not accepted by Apalache's typechecker.
-\* @type: GRANT_ID -> GRANT;
+\* @type: $grantId -> $grant;
 EmptyStore == [x \in {} |-> NoGrant]
 
-\* @typeAlias: EXPIRE_EVENT = [authorization: AUTH, grantId: GRANT_ID, type: Str];
-\* @type: Set(EXPIRE_EVENT);
+\* @typeAlias: expireEvent = {authorization: $auth, grantId: $grantId, type: Str};
+\* @type: Set($expireEvent);
 ExpireEvents == [
     type: {"expire"}, 
     grantId: { grantId \in GrantIds: grantId.granter # grantId.grantee },
@@ -59,7 +59,7 @@ Init ==
 (* - Authorization.MsgTypeURL() is not defined in the router (there is no     *)
 (* defined handler in the app router to handle that Msg types).               *)
 (******************************************************************************)
-\* @type: (ACCOUNT, ACCOUNT, GRANT) => Bool;
+\* @type: ($account, $account, $grant) => Bool;
 RequestGrant(granter, grantee, grant) ==
     LET 
         msg == [type |-> "request-grant", granter |-> granter, grantee |-> grantee, grant |-> grant]
@@ -73,7 +73,7 @@ RequestGrant(granter, grantee, grant) ==
         ELSE grantStore
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/keeper/keeper.go#L205
-\* @type: (GRANT_ID, Bool) => Bool;
+\* @type: ($grantId, Bool) => Bool;
 DeleteGrant(grantId, condition) ==
     IF condition THEN
         grantStore' = MapRemove(grantStore, grantId)
@@ -83,13 +83,13 @@ DeleteGrant(grantId, condition) ==
 (******************************************************************************)
 (* Request to revoke a grant.                                                 *)
 (******************************************************************************)
-\* @type: (ACCOUNT, ACCOUNT, MSG_TYPE_URL) => Bool;
+\* @type: ($account, $account, $msgTypeUrl) => Bool;
 RequestRevoke(granter, grantee, msgTypeUrl) == 
     LET 
         \* @type: REQUEST_MSG;
         msg == [type |-> "request-revoke", granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl] 
         response == SendMsgRevoke(msg) 
-        \* @type: GRANT_ID;
+        \* @type: $grantId;
         grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msgTypeUrl]
     IN
     /\ event' = msg
@@ -99,15 +99,15 @@ RequestRevoke(granter, grantee, msgTypeUrl) ==
 (******************************************************************************)
 (* Request to execute a message on behalf of a grantee.                       *)
 (******************************************************************************)
-\* @type: (ACCOUNT, SDK_MSG) => Bool;
+\* @type: ($account, $sdkMsg) => Bool;
 RequestExecute(grantee, msg) ==
     LET 
         request == [type |-> "request-execute", grantee |-> grantee, msg |-> msg]
-        \* @type: <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
+        \* @type: <<RESPONSE_EXEC, $acceptResponse>>;
         response == SendMsgExecute(request)
-        \* @type: ACCEPT_RESPONSE;
+        \* @type: $acceptResponse;
         acceptResponse == response[2]
-        \* @type: GRANT_ID;
+        \* @type: $grantId;
         grantId == [granter |-> GetSigner(msg), grantee |-> grantee, msgTypeUrl |-> msg.typeUrl] 
     IN
     /\ event' = request

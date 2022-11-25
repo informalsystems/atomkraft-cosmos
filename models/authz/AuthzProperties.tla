@@ -71,8 +71,8 @@ NotExecuteWithoutGrants == ~ ExecuteWithoutGrants
 
 \* Traces with a state with an expire event and a subsequent state with an
 \* execute message on the same grant id.
-\* @typeAlias: TRACE = [grantStore: GRANT_ID -> GRANT, event: EVENT, expectedResponse: RESPONSE_MSG];
-\* @type: Seq(TRACE) => Bool;
+\* @typeAlias: trace = {grantStore: $grantId -> $grant, event: $event, expectedResponse: $responseMsg};
+\* @type: Seq($trace) => Bool;
 ExpireThenExecute(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
@@ -86,7 +86,7 @@ NotExpireThenExecute(trace) == ~ ExpireThenExecute(trace)
 
 --------------------------------------------------------------------------------
 
-\* @type: Seq(TRACE) => Bool;
+\* @type: Seq($trace) => Bool;
 ExpireThenRevoke(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
@@ -98,7 +98,7 @@ ExpireThenRevoke(trace) ==
 NotExpireThenRevoke(trace) == ~ ExpireThenRevoke(trace)
 
 --------------------------------------------------------------------------------
-\* @type: Seq(TRACE) => Bool;
+\* @type: Seq($trace) => Bool;
 RequestGrantExpireAndExec(trace) ==
     \E i, j, k \in DOMAIN trace: 
         /\ i < j 
@@ -112,7 +112,7 @@ RequestGrantExpireAndExec(trace) ==
             /\ grantIdOfMsgGrant(state1.event) = state2.event.grantId
             /\ state2.event.grantId = grantIdOfMsgExecute(state3.event)
 
-\* @type: Seq(TRACE) => Bool;
+\* @type: Seq($trace) => Bool;
 RequestGrantExpireAndExec2(trace) ==
     LET 
         state1 == trace[1] 
@@ -132,14 +132,14 @@ RequestGrantExpireAndExec2(trace) ==
             /\ state3.event.type = "request-execute" 
             /\ grantIdOfMsgExecute(state3.event) = g1
             /\ LET 
-                \* @type: SDK_MSG;
+                \* @type: $sdkMsg;
                 msg == CHOOSE m \in state3.event.msgs: TRUE IN
                 g1.msgTypeUrl = msg.typeUrl
 
 NotRequestGrantExpireAndExec(trace) == ~ RequestGrantExpireAndExec(trace)
 
 \* First a request-grant fails, then a request-grant on the same grant id succeeds.
-\* @type: Seq(TRACE) => Bool;
+\* @type: Seq($trace) => Bool;
 GrantFailsThenGrantSucceeds(trace) ==    
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 
@@ -152,7 +152,7 @@ GrantFailsThenGrantSucceeds(trace) ==
 
 NotGrantFailsThenGrantSucceeds(trace) == ~ GrantFailsThenGrantSucceeds(trace)
 
-\* @type: Seq(TRACE) => Bool;
+\* @type: Seq($trace) => Bool;
 DelegateThenUndelegate(trace) ==
     \E i, j \in DOMAIN trace: i < j /\
         LET state1 == trace[i] IN 

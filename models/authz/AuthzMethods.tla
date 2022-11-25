@@ -9,10 +9,10 @@ EXTENDS Integers, Maps, Grants, AuthzMessages
 \* The variable grantStore represents the KV store implemented by the authz
 \* module, used to store mappings from grant triples to authorizations.
 VARIABLE
-    \* @type: GRANT_ID -> GRANT;  
+    \* @type: $grantId -> GRANT;  
     grantStore  
 
-\* @type: (GRANT_ID) => Bool;
+\* @type: ($grantId) => Bool;
 ExistsGrantFor(grantId) == grantId \in DOMAIN grantStore
 
 --------------------------------------------------------------------------------
@@ -65,15 +65,15 @@ NoUpdate == [type |-> "no-update"]
 
 \* An SDK message may contain multiple signers, but authz accepts messages with just one.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/keeper/keeper.go#L90
-\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (ACCOUNT, SDK_MSG) => ACCEPT_RESPONSE;
+\* @typeAlias: acceptResponse = {accept: Bool, delete: Bool, updated: $auth, error: Str};
+\* @type: ($account, $sdkMsg) => $acceptResponse;
 DispatchActionsOneMsg(grantee, msg) == 
     LET 
-        \* @type: ACCOUNT;
+        \* @type: $account;
         granter == GetSigner(msg)
-        \* @type: GRANT_ID;
+        \* @type: $grantId;
         grantId == [granter |-> granter, grantee |-> grantee, msgTypeUrl |-> msg.typeUrl]
-        \* @type: AUTH;
+        \* @type: $auth;
         auth == grantStore[grantId].authorization
     IN
     CASE granter = grantee ->
@@ -91,10 +91,10 @@ DispatchActionsOneMsg(grantee, msg) ==
         Accept(auth, msg)
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/keeper/msg_server.go#L72
-\* @type: (MSG_EXEC) => <<RESPONSE_EXEC, ACCEPT_RESPONSE>>;
+\* @type: (MSG_EXEC) => <<RESPONSE_EXEC, $acceptResponse>>;
 SendMsgExecute(msg) == 
     LET 
-        \* @type: ACCEPT_RESPONSE;
+        \* @type: $acceptResponse;
         acceptResponse == DispatchActionsOneMsg(msg.grantee, msg.msg)
     IN
     IF acceptResponse.accept /\ msg.msg.typeUrl \in {UNDELEGATE_TYPE_URL, BEGIN_REDELEGATE_TYPE_URL} THEN

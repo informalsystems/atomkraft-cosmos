@@ -14,16 +14,13 @@ LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE MsgErrors
 
 CONSTANT
-    \* @typeAlias: ACCOUNT = Str;
-    \* @type: Set(ACCOUNT);
+    \* @type: Set($account);
     Accounts,
-    \* @typeAlias: VALIDATOR = Str;
-    \* @type: Set(VALIDATOR);
+    \* @type: Set($validator);
     Validators,
-    \* @typeAlias: COINS = Int;
-    \* @type: Set(COINS);
+    \* @type: Set($coins);
     Coins,
-    \* @type: COINS;
+    \* @type: $coins;
     NoMaxCoins
 
 \* We want our model of Coins to include some negative number.
@@ -32,13 +29,13 @@ ASSUME \E min, max \in Int:
     /\ max > 0 
     /\ Coins = min .. max
 
-\* @type: COINS;
+\* @type: $coins;
 ASSUME NoMaxCoins \in Int /\ NoMaxCoins \notin Coins
 
 \* MsgDelegate defines a SDK message for performing a delegation of coins from a
 \* delegator to a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L205
-\* @type: Set(SDK_MSG);
+\* @type: Set($sdkMsg);
 MsgDelegate == [
     typeUrl: { DELEGATE_TYPE_URL },
     delegatorAddress: Accounts,
@@ -49,7 +46,7 @@ MsgDelegate == [
 \* MsgUndelegate defines a SDK message for performing an undelegation from a
 \* delegate and a validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L419
-\* @type: Set(SDK_MSG);
+\* @type: Set($sdkMsg);
 MsgUndelegate == [
     typeUrl: { UNDELEGATE_TYPE_URL},
     delegatorAddress: Accounts,
@@ -60,7 +57,7 @@ MsgUndelegate == [
 \* MsgBeginRedelegate defines a SDK message for performing a redelegation of
 \* coins from a delegator and source validator to a destination validator.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/tx.pb.go#L304
-\* @type: Set(SDK_MSG);
+\* @type: Set($sdkMsg);
 MsgBeginRedelegate == [
     typeUrl: { BEGIN_REDELEGATE_TYPE_URL },
     delegatorAddress: Accounts,
@@ -70,10 +67,10 @@ MsgBeginRedelegate == [
 ]
 
 \* Types of messages allowed to be granted permission
-\* @type: Set(MSG_TYPE_URL);
+\* @type: Set($msgTypeUrl);
 MsgTypeUrls == { m.typeUrl: m \in MsgDelegate \cup MsgUndelegate \cup MsgBeginRedelegate }
 
-\* @type: (SDK_MSG) => Str;
+\* @type: ($sdkMsg) => Str;
 SdkMsgValidateBasic(sdkMsg) == 
     CASE sdkMsg.typeUrl = DELEGATE_TYPE_URL ->
         \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/msg.go#L227
@@ -100,8 +97,7 @@ SdkMsgValidateBasic(sdkMsg) ==
 \* The authorization for delegate/undelegate/redelegate.
 \* Issue for bug when deny list is not empty: https://github.com/cosmos/cosmos-sdk/issues/11391
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L16
-\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL, type: Str];
-\* @type: Set(AUTH);
+\* @type: Set($auth);
 Authorization == [  
     type: {"stake-authorization"},
 
@@ -124,7 +120,7 @@ Authorization == [
 ]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L46
-\* @type: (AUTH) => Str;
+\* @type: ($auth) => Str;
 AuthValidateBasic(auth) ==
     IF auth.maxTokens < 0 /\ auth.maxTokens # NoMaxCoins THEN
         NEGATIVE_COIN_AMOUNT
@@ -144,7 +140,7 @@ AuthValidateBasic(auth) ==
 \*     updated record has more fields than are specified in its type annotation.
 \*     For details see
 \*     https://apalache.informal.systems/docs/apalache/known-issues.html#updating-records-with-excess-fields
-\* @type: (AUTH, COINS) => AUTH;
+\* @type: ($auth, $coins) => $auth;
 UpdateMaxTokens(auth, maxTokens) == [
     type |-> "stake-authorization",
     maxTokens |-> maxTokens, 
@@ -155,22 +151,22 @@ UpdateMaxTokens(auth, maxTokens) == [
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L38
-\* @type: (AUTH) => MSG_TYPE_URL;
+\* @type: ($auth) => $msgTypeUrl;
 MsgTypeURL(auth) ==
     auth.msgTypeUrl
 
-\* @type: (SDK_MSG) => VALIDATOR;
+\* @type: ($sdkMsg) => $validator;
 ValidatorAddressOf(msg) ==
     CASE msg.typeUrl = DELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = UNDELEGATE_TYPE_URL -> msg.validatorAddress 
       [] msg.typeUrl = BEGIN_REDELEGATE_TYPE_URL -> msg.validatorDstAddress 
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/staking/types/authz.go#L58
-\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
+\* @typeAlias: acceptResponse = {accept: Bool, delete: Bool, updated: $auth, error: Str};
+\* @type: ($auth, $sdkMsg) => $acceptResponse;
 Accept(auth, msg) == 
     LET 
-        \* @type: VALIDATOR;
+        \* @type: $validator;
         validatorAddress == ValidatorAddressOf(msg)
     IN
 

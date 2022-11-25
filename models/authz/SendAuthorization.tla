@@ -10,11 +10,9 @@ LOCAL INSTANCE MsgTypes
 LOCAL INSTANCE MsgErrors
 
 CONSTANT
-    \* @typeAlias: ACCOUNT = Str;
-    \* @type: Set(ACCOUNT);
+    \* @type: Set($account);
     Accounts, 
-    \* @typeAlias: COINS = Int;
-    \* @type: Set(COINS);
+    \* @type: Set($coins);
     Coins
 
 \* We want our model of Coins to include some negative number.
@@ -24,12 +22,12 @@ ASSUME \E min, max \in Int:
     /\ Coins = min .. max
 
 \* Types of messages allowed to be granted permission
-\* @type: Set(MSG_TYPE_URL);
+\* @type: Set($msgTypeUrl);
 MsgTypeUrls == { SEND_TYPE_URL }
 
 \* The message to send coins from one account to another.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/tx.pb.go#L36
-\* @type: Set(SDK_MSG);
+\* @type: Set($sdkMsg);
 MsgSend == [
     typeUrl: MsgTypeUrls,
     fromAddress: Accounts,
@@ -37,7 +35,7 @@ MsgSend == [
     amount: Coins
 ]
 
-\* @type: (SDK_MSG) => Str;
+\* @type: ($sdkMsg) => Str;
 SdkMsgValidateBasic(sdkMsg) == 
     \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/msgs.go#L30
     IF sdkMsg.amount <= 0 THEN 
@@ -49,8 +47,7 @@ SdkMsgValidateBasic(sdkMsg) ==
 \* Authorization that allows the grantee to spend up to spendLimit coins from
 \* the granter's account.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/authz.pb.go#L33
-\* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL, spendLimit: COINS, allowList: Set(ACCOUNT), type: Str];
-\* @type: Set(AUTH);
+\* @type: Set($auth);
 Authorization == [
     type: {"send-authorization"},
     
@@ -65,7 +62,7 @@ Authorization == [
 ]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/bank/types/send_authorization.go#L41
-\* @type: (AUTH) => Str;
+\* @type: ($auth) => Str;
 AuthValidateBasic(auth) ==
     IF auth.spendLimit <= 0 THEN
         SPEND_LIMIT_MUST_BE_POSITIVE
@@ -74,7 +71,7 @@ AuthValidateBasic(auth) ==
 
 \* Apalache does not like the expression:
 \*      [auth EXCEPT !.spendLimit = auth.spendLimit - amount]
-\* @type: (AUTH, COINS) => AUTH;
+\* @type: ($auth, $coins) => $auth;
 UpdateSpendLimit(auth, spendLimit) == [
     type |-> "send-authorization",
     spendLimit |-> spendLimit, 
@@ -84,16 +81,16 @@ UpdateSpendLimit(auth, spendLimit) == [
 
 --------------------------------------------------------------------------------
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/send_authorization.go#L19
-\* @type: (AUTH) => MSG_TYPE_URL;
+\* @type: ($auth) => $msgTypeUrl;
 MsgTypeURL(auth) == 
     auth.msgTypeUrl
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/send_authorization.go#L24
-\* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
-\* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
+\* @typeAlias: acceptResponse = {accept: Bool, delete: Bool, updated: $auth, error: Str};
+\* @type: ($auth, $sdkMsg) => $acceptResponse;
 Accept(auth, msg) == 
     LET 
-        \* @type: COINS;
+        \* @type: $coins;
         amount == msg.amount
         \* @type: Bool;
         isAllowed == msg.toAddress \in auth.allowList
@@ -111,12 +108,13 @@ Accept(auth, msg) ==
       [] OTHER -> [
             accept |-> TRUE,
             delete |-> msg.amount = auth.spendLimit,
-            updated |-> [ 
-                type |-> "send-authorization",
-                spendLimit |-> auth.spendLimit - msg.amount, 
-                allowList |-> auth.allowList, 
-                msgTypeUrl |-> auth.msgTypeUrl
-            ], \* UpdateSpendLimit(auth, auth.spendLimit - msg.amount)
+            \* updated |-> [ 
+            \*     type |-> "send-authorization",
+            \*     spendLimit |-> auth.spendLimit - msg.amount, 
+            \*     allowList |-> auth.allowList, 
+            \*     msgTypeUrl |-> auth.msgTypeUrl
+            \* ], 
+            updated |-> UpdateSpendLimit(auth, auth.spendLimit - msg.amount),
             error |-> "none"
         ]
 

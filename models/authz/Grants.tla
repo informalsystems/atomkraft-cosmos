@@ -3,19 +3,19 @@
 
 (******************************************************************************)
 CONSTANTS
-    \* @typeAlias: ACCOUNT = Str;
-    \* @type: Set(ACCOUNT);
+    \* @typeAlias: account = Str;
+    \* @type: Set($account);
     Accounts,
 
-    \* @typeAlias: VALIDATOR = Str;
-    \* @type: Set(VALIDATOR);
+    \* @typeAlias: validator = Str;
+    \* @type: Set($validator);
     Validators
 --------------------------------------------------------------------------------
 CONSTANTS 
-    \* @typeAlias: COINS = Int;
-    \* @type: Set(COINS);
+    \* @typeAlias: coins = Int;
+    \* @type: Set($coins);
     Coins,
-    \* @type: COINS;
+    \* @type: $coins;
     NoMaxCoins
 
 --------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ Accept(auth, msg) ==
         Stake!Accept(auth, msg)
 
 --------------------------------------------------------------------------------
-\* @typeAlias: AUTH = [maxTokens: COINS, validators: Set(VALIDATOR), allow: Bool, msgTypeUrl: MSG_TYPE_URL, spendLimit: COINS, allowList: Set(ACCOUNT), type: Str];
-\* @type: Set(AUTH);
+\* @typeAlias: auth = {maxTokens: $coins, validators: Set($validator), allow: Bool, msgTypeUrl: $msgTypeUrl, spendLimit: $coins, allowList: Set($account), type: Str};
+\* @type: Set($auth);
 Authorization == 
     Generic!Authorization \cup 
     Send!Authorization \cup 
@@ -69,8 +69,8 @@ may contain multiple signers, but authz accepts messages with just one.  A
 message implements an Authorization interface (methods MsgTypeURL and 
 Accept). *)
 (******************************************************************************)
-\* @typeAlias: SDK_MSG = [amount: COINS, delegatorAddress: ACCOUNT, fromAddress: ACCOUNT, toAddress: ACCOUNT, typeUrl: MSG_TYPE_URL, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR];
-\* @type: Set(SDK_MSG);
+\* @typeAlias: sdkMsg = {amount: $coins, delegatorAddress: $account, fromAddress: $account, toAddress: $account, typeUrl: $msgTypeUrl, validatorAddress: $validator, validatorSrcAddress: $validator, validatorDstAddress: $validator};
+\* @type: Set($sdkMsg);
 SdkMsg ==
     Send!MsgSend \cup 
     Stake!MsgDelegate \cup 
@@ -91,8 +91,8 @@ bytes of the granter), grantee address (the address bytes of the grantee)
 and Authorization type (its type URL). Hence we only allow one grant for 
 the (granter, grantee, Authorization) triple. *)
 (******************************************************************************)
-\* @typeAlias: GRANT_ID = [grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL];
-\* @type: Set(GRANT_ID);
+\* @typeAlias: grantId = {grantee: $account, granter: $account, msgTypeUrl: $msgTypeUrl};
+\* @type: Set($grantId);
 GrantIds == [
     granter: Accounts,
     grantee: Accounts,
@@ -101,8 +101,8 @@ GrantIds == [
 
 \* Grant gives permissions to execute the provide method with expiration time.
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authz.pb.go#L74
-\* @typeAlias: GRANT = [authorization: AUTH, expiration: Str];
-\* @type: Set(GRANT);
+\* @typeAlias: grant = {authorization: $auth, expiration: Str};
+\* @type: Set($grant);
 Grants == [
     authorization: Authorization,
 
@@ -114,14 +114,14 @@ Grants == [
 ]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authorization_grant.go#L54
-\* @type: (GRANT) => Str;
+\* @type: ($grant) => Str;
 GrantValidateBasic(grant) ==
     AuthValidateBasic(grant.authorization)
 
-\* @type: AUTH;
+\* @type: $auth;
 NoAuthorization == [ type |-> "NoAuthorization" ]
 
-\* @type: GRANT;
+\* @type: $grant;
 NoGrant == [ authorization |-> NoAuthorization, expiration |-> "none" ]
 
 ================================================================================

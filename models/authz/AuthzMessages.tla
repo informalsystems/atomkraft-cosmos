@@ -10,8 +10,8 @@ EXTENDS MsgTypes, MsgErrors, Grants
 to the grantee on behalf of the granter with the provided expiration time. *)
 (******************************************************************************)
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L36
-\* @typeAlias: MSG_GRANT = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, type: Str];
-\* @type: Set(MSG_GRANT);
+\* @typeAlias: msgGrant = {grant: $grant, grantee: $account, granter: $account, type: Str};
+\* @type: Set($msgGrant);
 MsgGrant == [
     type: {"request-grant"},
     granter: Accounts,
@@ -20,7 +20,7 @@ MsgGrant == [
 ]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/msgs.go#L53
-\* @type: (MSG_GRANT) => Str;
+\* @type: ($msgGrant) => Str;
 MsgGrantValidateBasic(msg) ==
     IF msg.granter = msg.grantee THEN 
         GRANTER_EQUALS_GRANTEE
@@ -33,8 +33,8 @@ authorization with the provided sdk.Msg type on the granter's account with
 that has been granted to the grantee. *)
 (******************************************************************************)
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L196
-\* @typeAlias: MSG_REVOKE = [grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, type: Str];
-\* @type: Set(MSG_REVOKE);
+\* @typeAlias: msgRevoke = {grantee: $account, granter: $account, msgTypeUrl: $msgTypeUrl, type: Str};
+\* @type: Set($msgRevoke);
 MsgRevoke == [
     type: {"request-revoke"},
     granter: Accounts,
@@ -43,7 +43,7 @@ MsgRevoke == [
 ]
 
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/msgs.go#L139
-\* @type: (MSG_REVOKE) => Str;
+\* @type: ($msgRevoke) => Str;
 MsgRevokeValidateBasic(msg) ==
     IF msg.granter = msg.grantee THEN 
         GRANTER_EQUALS_GRANTEE
@@ -56,8 +56,8 @@ granted to the grantee. Each message should have only one signer corresponding
 to the granter of the authorization. *)
 (******************************************************************************)
 \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/tx.pb.go#L116
-\* @typeAlias: MSG_EXEC = [grantee: ACCOUNT, msg: SDK_MSG, type: Str];
-\* @type: Set(MSG_EXEC);
+\* @typeAlias: msgExec = {grantee: $account, msg: $sdkMsg, type: Str};
+\* @type: Set($msgExec);
 MsgExec == [
     type: {"request-execute"},
 
@@ -69,12 +69,12 @@ MsgExec == [
     msg: SdkMsg
 ]
 
-\* @typeAlias: REQUEST_MSG = [grant: GRANT, grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL, msg: SDK_MSG, type: Str];
-\* @type: Set(REQUEST_MSG);
+\* @typeAlias: requestMsg = {grant: $grant, grantee: $account, granter: $account, msgTypeUrl: $msgTypeUrl, msg: $sdkMsg, type: Str};
+\* @type: Set($requestMsg);
 RequestMessages == MsgGrant \cup MsgRevoke \cup MsgExec
 
 --------------------------------------------------------------------------------
-\* @type: (SDK_MSG) => MSG_TYPE_URL;
+\* @type: ($sdkMsg) => $msgTypeUrl;
 GetSigner(sdkMsg) ==
     CASE sdkMsg.typeUrl = SEND_TYPE_URL -> 
         \* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/bank/types/msgs.go#L56
@@ -84,21 +84,21 @@ GetSigner(sdkMsg) ==
         sdkMsg.delegatorAddress
 
 --------------------------------------------------------------------------------
-\* @type: (MSG_GRANT) => GRANT_ID;
+\* @type: ($msgGrant) => $grantId;
 grantIdOfMsgGrant(msg) == [
     grantee |-> msg.grantee,
     granter |-> msg.granter,
     msgTypeUrl |-> MsgTypeURL(msg.grant.authorization)
 ]
 
-\* @type: (MSG_REVOKE) => GRANT_ID;
+\* @type: ($msgRevoke) => $grantId;
 grantIdOfMsgRevoke(msg) == [
     grantee |-> msg.grantee,
     granter |-> msg.granter,
     msgTypeUrl |-> msg.msgTypeUrl
 ]
 
-\* @type: (MSG_EXEC) => GRANT_ID;
+\* @type: ($msgExec) => $grantId;
 grantIdOfMsgExecute(msg) == [
     grantee |-> msg.grantee,
     granter |-> GetSigner(msg.msg),
@@ -124,8 +124,8 @@ MsgGrantResponseErrors == {
     "none"
 }
 
-\* @typeAlias: RESPONSE_GRANT = [error: Str, ok: Bool, type: Str];
-\* @type: Set(RESPONSE_GRANT);
+\* @typeAlias: responseGrant = {error: Str, ok: Bool, type: Str};
+\* @type: Set($responseGrant);
 MsgGrantResponses == [
     type: {"response-grant"}, 
     ok: BOOLEAN, 
@@ -158,8 +158,8 @@ MsgExecResponseErrors == {
     "none"
 }
 
-\* @typeAlias: RESPONSE_EXEC = [error: Str, ok: Bool, type: Str];
-\* @type: Set(RESPONSE_EXEC);
+\* @typeAlias: responseExec = {error: Str, ok: Bool, type: Str};
+\* @type: Set($responseExec);
 MsgExecResponses == [
     type: {"response-execute"}, 
     ok: BOOLEAN, 
@@ -174,8 +174,8 @@ MsgRevokeResponseErrors == {
     "none"
 }
 
-\* @typeAlias: RESPONSE_REVOKE = [ok: Bool, type: Str];
-\* @type: Set(RESPONSE_REVOKE);
+\* @typeAlias: responseRevoke = {ok: Bool, type: Str};
+\* @type: Set($responseRevoke);
 MsgRevokeResponses == [
     type: {"response-revoke"}, 
     ok: BOOLEAN,
@@ -190,8 +190,8 @@ NoResponse == [
     error |-> "none"
 ]
 
-\* @typeAlias: RESPONSE_MSG = [error: Str, ok: Bool, type: Str];
-\* @type: Set(RESPONSE_MSG);
+\* @typeAlias: responseMsg = {error: Str, ok: Bool, type: Str};
+\* @type: Set($responseMsg);
 Responses == MsgGrantResponses \cup MsgExecResponses \cup MsgRevokeResponses
 
 ================================================================================

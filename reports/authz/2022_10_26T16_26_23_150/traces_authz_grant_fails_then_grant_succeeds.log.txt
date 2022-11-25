@@ -1,0 +1,574 @@
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.redelegate), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:26:33Z), got 2022-10-26T14:25:34Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a1, validatorSrcAddress: v1, validatorDstAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v2', 'v1', 'v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample10_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample10.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a1, validatorSrcAddress: v1, validatorDstAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample11_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample11.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -1, validators: ['v2'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: 1, validators: ['v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample3_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample3.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: -1, allowList: ['a1']), expiration: ExpirationTime.future))
+INFO     authz:authz.py:23 Status:   ERROR (code: 10, log: spend limit must be positive: invalid coins)
+INFO     authz:authz.py:30 Expected: ERROR (spend limit must be positive)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.send), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample2_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample2.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v3, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 111222, log: recovered: negative coin amount: -1
+stack:
+goroutine 159 [running]:
+runtime/debug.Stack()
+	runtime/debug/stack.go:24 +0x68
+github.com/cosmos/cosmos-sdk/baseapp.newDefaultRecoveryMiddleware.func1({0x1042f5620, 0x140012a08a0})
+	github.com/cosmos/cosmos-sdk/baseapp/recovery.go:71 +0x28
+github.com/cosmos/cosmos-sdk/baseapp.newRecoveryMiddleware.func1({0x1042f5620?, 0x140012a08a0?})
+	github.com/cosmos/cosmos-sdk/baseapp/recovery.go:39 +0x38
+github.com/cosmos/cosmos-sdk/baseapp.processRecovery({0x1042f5620, 0x140012a08a0}, 0x14000554108?)
+	github.com/cosmos/cosmos-sdk/baseapp/recovery.go:28 +0x3c
+github.com/cosmos/cosmos-sdk/baseapp.processRecovery({0x1042f5620, 0x140012a08a0}, 0x1045ec188?)
+	github.com/cosmos/cosmos-sdk/baseapp/recovery.go:33 +0x64
+github.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).runTx.func1()
+	github.com/cosmos/cosmos-sdk/baseapp/baseapp.go:602 +0xac
+panic({0x1042f5620, 0x140012a08a0})
+	runtime/panic.go:838 +0x204
+github.com/cosmos/cosmos-sdk/types.NewCoin({0x14001582340, 0x5}, {0x1045ec188?})
+	github.com/cosmos/cosmos-sdk/types/coin.go:23 +0x54
+github.com/cosmos/cosmos-sdk/x/staking/keeper.Keeper.Delegate({{0x1045ccdc0, 0x140015ec4a0}, {0x12ce29840, 0x14000d9deb0}, {0x1045e2cf0, 0x14001026820}, {0x12ce298b0, 0x14000e2dce0}, {0x1045eaaf0, 0x14000554198}, ...}, ...)
+	github.com/cosmos/cosmos-sdk/x/staking/keeper/delegation.go:663 +0x998
+github.com/cosmos/cosmos-sdk/x/staking/keeper.msgServer.Delegate({{{0x1045ccdc0, 0x140015ec4a0}, {0x12ce29840, 0x14000d9deb0}, {0x1045e2cf0, 0x14001026820}, {0x12ce298b0, 0x14000e2dce0}, {0x1045eaaf0, 0x14000554198}, ...}}, ...)
+	github.com/cosmos/cosmos-sdk/x/staking/keeper/msg_server.go:234 +0x578
+github.com/cosmos/cosmos-sdk/x/staking/types._Msg_Delegate_Handler.func1({0x1045df9f8, 0x140053de330}, {0x10453e520?, 0x14006f64e00})
+	github.com/cosmos/cosmos-sdk/x/staking/types/tx.pb.go:810 +0x78
+github.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2.1({0x1045e0a28, 0x140053e2240}, {0x14006f97dc8?, 0x102f21094?}, 0x1045aa580?, 0x140053e0060)
+	github.com/cosmos/cosmos-sdk/baseapp/msg_service_router.go:113 +0xbc
+github.com/cosmos/cosmos-sdk/x/staking/types._Msg_Delegate_Handler({0x1045b3ca0?, 0x14000dbb3f0}, {0x1045e0a28, 0x140053e2240}, 0x1045b9c78, 0x14006f7b9e0)
+	github.com/cosmos/cosmos-sdk/x/staking/types/tx.pb.go:812 +0x13c
+github.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2({{0x1045df988, 0x14000126008}, {0x1045ec188, 0x14006f65900}, {{0xb, 0x0}, {0x1400005b0c0, 0xb}, 0x2, {0x1a7b76f8, ...}, ...}, ...}, ...)
+	github.com/cosmos/cosmos-sdk/baseapp/msg_service_router.go:117 +0x254
+github.com/cosmos/cosmos-sdk/x/authz/keeper.Keeper.DispatchActions({{0x1045ccdc0, 0x140015ec540}, {0x12ce29840, 0x14000d9deb0}, 0x140005540f0, {{0x1045ccdc0, 0x140015ec480}, {0x12ce29840, 0x14000d9deb0}, {{0x12ce29840, ...}, ...}, ...}}, ...)
+	github.com/cosmos/cosmos-sdk/x/authz/keeper/keeper.go:141 +0x3f0
+github.com/cosmos/cosmos-sdk/x/authz/keeper.Keeper.Exec({{0x1045ccdc0, 0x140015ec540}, {0x12ce29840, 0x14000d9deb0}, 0x140005540f0, {{0x1045ccdc0, 0x140015ec480}, {0x12ce29840, 0x14000d9deb0}, {{0x12ce29840, ...}, ...}, ...}}, ...)
+	github.com/cosmos/cosmos-sdk/x/authz/keeper/msg_server.go:84 +0x24c
+github.com/cosmos/cosmos-sdk/x/authz._Msg_Exec_Handler.func1({0x1045df9f8, 0x140053de300}, {0x10454e3c0?, 0x14006f769f0})
+	github.com/cosmos/cosmos-sdk/x/authz/tx.pb.go:446 +0x78
+github.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2.1({0x1045e0a28, 0x1400617db00}, {0x14006f9a648?, 0x102f21094?}, 0x1045aa580?, 0x14006f4dfe0)
+	github.com/cosmos/cosmos-sdk/baseapp/msg_service_router.go:113 +0xbc
+github.com/cosmos/cosmos-sdk/x/authz._Msg_Exec_Handler({0x1045793e0?, 0x140001fcd80}, {0x1045e0a28, 0x1400617db00}, 0x1045b9c78, 0x14006f7b9a0)
+	github.com/cosmos/cosmos-sdk/x/authz/tx.pb.go:448 +0x13c
+github.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2({{0x1045df988, 0x14000126008}, {0x1045ec188, 0x14006f65900}, {{0xb, 0x0}, {0x1400005b0c0, 0xb}, 0x2, {0x1a7b76f8, ...}, ...}, ...}, ...)
+	github.com/cosmos/cosmos-sdk/baseapp/msg_service_router.go:117 +0x254
+github.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).runMsgs(_, {{0x1045df988, 0x14000126008}, {0x1045ec188, 0x14006f65900}, {{0xb, 0x0}, {0x1400005b0c0, 0xb}, 0x2, ...}, ...}, ...)
+	github.com/cosmos/cosmos-sdk/baseapp/baseapp.go:743 +0x49c
+github.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).runTx(0x14000f4c000, 0x3, {0x140001e8680, 0x199, 0x199})
+	github.com/cosmos/cosmos-sdk/baseapp/baseapp.go:688 +0x8c4
+github.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).DeliverTx(0x14000f4c000, {{0x140001e8680?, 0x20?, 0xb?}})
+	github.com/cosmos/cosmos-sdk/baseapp/abci.go:300 +0xf0
+github.com/tendermint/tendermint/abci/client.(*localClient).DeliverTxAsync(0x14000e43380, {{0x140001e8680?, 0x14000e43380?, 0x140053e8308?}})
+	github.com/tendermint/tendermint@v0.34.21/abci/client/local_client.go:93 +0xf8
+github.com/tendermint/tendermint/proxy.(*appConnConsensus).DeliverTxAsync(0x14006f58660?, {{0x140001e8680?, 0x20?, 0xb?}})
+	github.com/tendermint/tendermint@v0.34.21/proxy/app_conn.go:85 +0x30
+github.com/tendermint/tendermint/state.execBlockOnProxyApp({0x1045e09f0?, 0x14001078120}, {0x1045e5e08, 0x14000530c80}, 0x14000d963c0, {0x1045ebb10, 0x1400058c108}, 0x1?)
+	github.com/tendermint/tendermint@v0.34.21/state/execution.go:320 +0x708
+github.com/tendermint/tendermint/state.(*BlockExecutor).ApplyBlock(_, {{{0xb, 0x0}, {0x1400126a4c0, 0x8}}, {0x1400126a4d0, 0xb}, 0x1, 0x1, {{0x1400154ed80, ...}, ...}, ...}, ...)
+	github.com/tendermint/tendermint@v0.34.21/state/execution.go:140 +0xe8
+github.com/tendermint/tendermint/consensus.(*State).finalizeCommit(0x14000d91c00, 0x2)
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:1659 +0x954
+github.com/tendermint/tendermint/consensus.(*State).tryFinalizeCommit(0x14000d91c00, 0x2)
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:1568 +0x290
+github.com/tendermint/tendermint/consensus.(*State).enterCommit.func1()
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:1503 +0x94
+github.com/tendermint/tendermint/consensus.(*State).enterCommit(0x14000d91c00, 0x2, 0x0)
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:1541 +0xbc0
+github.com/tendermint/tendermint/consensus.(*State).addVote(0x14000d91c00, 0x14006855220, {0x1400059e6f0, 0x28})
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:2155 +0xaf8
+github.com/tendermint/tendermint/consensus.(*State).tryAddVote(0x14000d91c00, 0x14006855220, {0x1400059e6f0?, 0x14000da87b0?})
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:1953 +0x2c
+github.com/tendermint/tendermint/consensus.(*State).handleMsg(0x14000d91c00, {{0x1045c5df8?, 0x140005389a0?}, {0x1400059e6f0?, 0x0?}})
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:856 +0x3c0
+github.com/tendermint/tendermint/consensus.(*State).receiveRoutine(0x14000d91c00, 0x0)
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:763 +0x2d4
+created by github.com/tendermint/tendermint/consensus.(*State).OnStart
+	github.com/tendermint/tendermint@v0.34.21/consensus/state.go:379 +0xf4
+: panic)
+INFO     authz:authz.py:30 Expected: ERROR (invalid delegation amount)
+
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:28:11Z), got 2022-10-26T14:27:12Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.redelegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample8_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample8.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a1']), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:28:33Z), got 2022-10-26T14:27:34Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a2, msgTypeUrl: MsgTypeUrls.redelegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a3', 'a1', 'a2']), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample24_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample24.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a1']), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:28:55Z), got 2022-10-26T14:27:56Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a2, msgTypeUrl: MsgTypeUrls.delegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a3', 'a1', 'a2']), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample25_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample25.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -1, validators: ['v3'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.delegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a3, grantee: a2, msgTypeUrl: MsgTypeUrls.delegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample17_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample17.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -1, validators: ['v2', 'v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.undelegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample16_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample16.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample4_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample4.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -1, validators: ['v1'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 1, validators: ['v2', 'v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample5_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample5.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a1']), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:30:34Z), got 2022-10-26T14:29:35Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a2, msgTypeUrl: MsgTypeUrls.undelegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a3', 'a1', 'a2']), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample23_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample23.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v2', 'v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:30:56Z), got 2022-10-26T14:29:57Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a3, msgTypeUrl: MsgTypeUrls.delegate)
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample22_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample22.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 0, allowList: ['a1', 'a2']), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 10, log: spend limit must be positive: invalid coins)
+INFO     authz:authz.py:30 Expected: ERROR (spend limit must be positive)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -1, validators: ['v2'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample19_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample19.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v2', 'v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:31:40Z), got 2022-10-26T14:30:41Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.delegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a3, grantee: a1, msgTypeUrl: MsgTypeUrls.send)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample18_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample18.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:32:08Z), got 2022-10-26T14:31:08Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v1', 'v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample13_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample13.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgUndelegate(typeUrl: undelegate, delegatorAddress: a1, validatorAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 19, log: failed to execute message; message index: 0: failed to execute message; message delegator_address:"cosmos1dp65jxpkzkpcd6z8gxl98fr2k3hlxnf4ngn9mc" validator_address:"cosmosvaloper126lcycn4tr3mlxfhtgd9lky5p3xpnjv90njne2" amount:<denom:"stake" amount:"0" > : no delegation for (address, validator) tuple)
+INFO     authz:authz.py:30 Expected: ERROR (failed to execute message)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample12_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample12.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a1']), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:32:57Z), got 2022-10-26T14:31:57Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.send), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample1_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample1.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: 0, validators: ['v2'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:33:19Z), got 2022-10-26T14:32:19Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample20_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample20.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a2, msgTypeUrl: MsgTypeUrls.send)
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v1'], allow: False), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample21_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample21.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:33:57Z), got 2022-10-26T14:32:57Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample14_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample14.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v1'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -1, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:23 Status:   ERROR (code: 12, log: negative coin amount: -1stake: max tokens should be positive)
+INFO     authz:authz.py:30 Expected: ERROR (negative coin amount)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample15_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample15.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v2', 'v1', 'v3'], allow: True), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:34:41Z), got 2022-10-26T14:33:41Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 1, validators: ['v1', 'v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample7_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample7.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: 1, validators: ['v1'], allow: False), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T14:35:03Z), got 2022-10-26T14:34:03Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: 1, validators: ['v2'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_GrantFailsThenGrantSucceeds_sample6_itf_json.py:10 Successfully executed trace traces/authz/GrantFailsThenGrantSucceeds/sample6.itf.json

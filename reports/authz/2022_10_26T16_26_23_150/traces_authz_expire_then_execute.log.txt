@@ -1,0 +1,680 @@
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v2'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v2, validatorDstAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 4, log: failed to execute message; message index: 0: cannot delegate/undelegate to cosmosvaloper126lcycn4tr3mlxfhtgd9lky5p3xpnjv90njne2 validator: unauthorized)
+INFO     authz:authz.py:30 Expected: ERROR (cannot delegate/undelegate to .* validator)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample10_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample10.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a3, grantee: a1, msgTypeUrl: MsgTypeUrls.delegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample11_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample11.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.send), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgSend(typeUrl: send, from_address: a2, toAddress: a2, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample3_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample3.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v1, validatorDstAddress: v3, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample2_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample2.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.redelegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v2'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v3, validatorDstAddress: v2, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 19, log: failed to execute message; message index: 0: failed to execute message; message delegator_address:"cosmos1s0qaahsgxrw8gsutgyuwzzn4x36yfz9nepdzzv" validator_src_address:"cosmosvaloper1st5sn8wf5wcqrdehy73n2ejq6ykhled9svamzt" validator_dst_address:"cosmosvaloper16afhu77sjs75kc78vylpnmg033seetk0lljcqg" amount:<denom:"stake" amount:"0" > : no delegation for (address, validator) tuple)
+INFO     authz:authz.py:30 Expected: ERROR (failed to execute message)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample9_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample9.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.redelegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: ['a2']), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v1, validatorDstAddress: v2, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample8_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample8.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a3, grantee: a3, msgTypeUrl: MsgTypeUrls.send)
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 1, validators: ['v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample24_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample24.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v3, validatorDstAddress: v2, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 19, log: failed to execute message; message index: 0: failed to execute message; message delegator_address:"cosmos1kul5jtc8q8ahrjnpf2m05nwy20vafs0u27gesx" validator_src_address:"cosmosvaloper1st5sn8wf5wcqrdehy73n2ejq6ykhled9svamzt" validator_dst_address:"cosmosvaloper16afhu77sjs75kc78vylpnmg033seetk0lljcqg" amount:<denom:"stake" amount:"0" > : no delegation for (address, validator) tuple)
+INFO     authz:authz.py:30 Expected: ERROR (failed to execute message)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample25_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample25.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: 0, validators: ['v2', 'v3'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.redelegate), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v2, validatorDstAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample17_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample17.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v1, validatorDstAddress: v2, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: []), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 3, log: failed to execute message; message index: 0: expiration must be after the current block time (2022-10-26T13:39:13Z), got 2022-10-26T13:38:13Z: expiration time of authorization should be more than current time)
+INFO     authz:authz.py:30 Expected: ERROR (expiration time of authorization should be more than current time)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample16_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample16.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 1, validators: ['v2'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample4_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample4.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a3, msgTypeUrl: MsgTypeUrls.undelegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 0, validators: ['v2', 'v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample5_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample5.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a1, grantee: a3, msgTypeUrl: MsgTypeUrls.redelegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 1, validators: ['v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample23_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample23.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 0, validators: ['v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v3, validatorDstAddress: v3, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample22_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample22.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgSend(typeUrl: send, from_address: a3, toAddress: a3, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v3, validatorDstAddress: v3, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample19_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample19.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v1', 'v2', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: GenericAuthorization(msgTypeUrl: MsgTypeUrls.undelegate), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample18_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample18.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v2'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -99, validators: ['v2'], allow: True), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample13_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample13.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v2'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v1'], allow: False), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample12_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample12.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.undelegate, maxTokens: -99, validators: ['v2', 'v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgUndelegate(typeUrl: undelegate, delegatorAddress: a3, validatorAddress: v3, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample1_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample1.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: -99, validators: ['v2', 'v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a1, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample20_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample20.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a3, grantee: a2, msgTypeUrl: MsgTypeUrls.delegate)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: -99, validators: ['v1', 'v3'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a1, validatorAddress: v1, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample21_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample21.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a3, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 1, validators: ['v2'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a3, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v1, validatorDstAddress: v3, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a1, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: []), expiration: ExpirationTime.none))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample14_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample14.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a1, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v1', 'v3'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a1, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a2, validatorSrcAddress: v2, validatorDstAddress: v2, amount: 1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a2, grantee: a2, msg: Grant(authorization: SendAuthorization(msgTypeUrl: MsgTypeUrls.send, spendLimit: 1, allowList: []), expiration: ExpirationTime.past))
+INFO     authz:authz.py:23 Status:   ERROR (code: 7, log: grantee and granter should be different)
+INFO     authz:authz.py:30 Expected: ERROR (grantee and granter should be different)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample15_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample15.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.redelegate, maxTokens: 0, validators: ['v2', 'v1'], allow: False), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgBeginRedelegate(typeUrl: redelegate, delegatorAddress: a3, validatorSrcAddress: v3, validatorDstAddress: v2, amount: 0))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample7_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample7.itf.json
+INFO     authz:authz.py:48 🔶 Step: init
+INFO     authz:authz.py:60 Preparing testnet...
+INFO     authz:authz.py:65 Spining up testnet...
+INFO     authz:authz.py:70 Wait for testnet to be ready...
+INFO     authz:authz.py:74 Testnet launched! 🚀
+
+INFO     authz:authz.py:105 🔶 Step: revoke grant
+INFO     authz:authz.py:109 request: MsgRevoke(granter: a2, grantee: a3, msgTypeUrl: MsgTypeUrls.send)
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     authz:authz.py:83 🔶 Step: request grant
+INFO     authz:authz.py:87 request: MsgGrant(granter: a3, grantee: a2, msg: Grant(authorization: StakeAuthorization(msgTypeUrl: MsgTypeUrls.delegate, maxTokens: 0, validators: ['v2', 'v1'], allow: True), expiration: ExpirationTime.future))
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:153 🔶 Step: expire grant
+INFO     authz:authz.py:21 Status:   OK
+INFO     authz:authz.py:27 Expected: OK
+
+INFO     authz:authz.py:178 Waiting 2 seconds for the grant to expire...
+
+INFO     authz:authz.py:129 🔶 Step: execute grant
+INFO     authz:authz.py:133 request: MsgExec(grantee: a2, msg: MsgDelegate(typeUrl: delegate, delegatorAddress: a3, validatorAddress: v1, amount: -1))
+INFO     authz:authz.py:23 Status:   ERROR (code: 2, log: failed to execute message; authorization not found (UnicodeDecodeError))
+INFO     authz:authz.py:30 Expected: ERROR (authorization not found)
+
+INFO     root:test_traces_authz_ExpireThenExecute_sample6_itf_json.py:10 Successfully executed trace traces/authz/ExpireThenExecute/sample6.itf.json

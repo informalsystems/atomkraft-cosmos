@@ -3,19 +3,19 @@
 
 (******************************************************************************)
 CONSTANTS
-    \* @typeAlias: ACCOUNT = Str;
-    \* @type: Set(ACCOUNT);
+    \* @typeAlias: account = Str;
+    \* @type: Set($account);
     Accounts,
 
-    \* @typeAlias: VALIDATOR = Str;
-    \* @type: Set(VALIDATOR);
+    \* @typeAlias: validator = Str;
+    \* @type: Set($validator);
     Validators
 --------------------------------------------------------------------------------
 CONSTANTS 
-    \* @typeAlias: COINS = Int;
-    \* @type: Set(COINS);
+    \* @typeAlias: coins = Int;
+    \* @type: Set($coins);
     Coins,
-    \* @type: COINS;
+    \* @type: $coins;
     NoMaxCoins
 
 --------------------------------------------------------------------------------
@@ -28,33 +28,60 @@ MsgTypeUrls ==
     Send!MsgTypeUrls \cup 
     Stake!MsgTypeUrls
 
+MsgTypeURL(auth) ==
+    CASE auth.type = "generic-authorization" -> 
+        Generic!MsgTypeURL(auth)
+      [] auth.type = "send-authorization" -> 
+        Send!MsgTypeURL(auth)
+      [] auth.type = "stake-authorization" -> 
+        Stake!MsgTypeURL(auth)
+
+Accept(auth, msg) ==
+    CASE auth.type = "generic-authorization" -> 
+        Generic!Accept(auth, msg)
+      [] auth.type = "send-authorization" -> 
+        Send!Accept(auth, msg)
+      [] auth.type = "stake-authorization" -> 
+        Stake!Accept(auth, msg)
+
+--------------------------------------------------------------------------------
+\* @typeAlias: auth = {maxTokens: $coins, validators: Set($validator), allow: Bool, msgTypeUrl: $msgTypeUrl, spendLimit: $coins, allowList: Set($account), type: Str};
+\* @type: Set($auth);
 Authorization == 
     Generic!Authorization \cup 
     Send!Authorization \cup 
     Stake!Authorization
 
-\* @typeAlias: SDK_MSG_CONTENT = [amount: COINS, fromAddress: ACCOUNT, toAddress: ACCOUNT, delegatorAddress: VALIDATOR, validatorAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorSrcAddress: VALIDATOR, validatorDstAddress: VALIDATOR, typeUrl: MSG_TYPE_URL];
-SdkMsgContent == 
-    Generic!SdkMsgContent \cup 
-    Send!SdkMsgContent \cup 
-    Stake!SdkMsgContent
+AuthValidateBasic(auth) ==
+    CASE auth.type = "generic-authorization" -> 
+        Generic!AuthValidateBasic(auth)
+      [] auth.type = "send-authorization" -> 
+        Send!AuthValidateBasic(auth)
+      [] auth.type = "stake-authorization" -> 
+        Stake!AuthValidateBasic(auth)
 
 --------------------------------------------------------------------------------
-MsgTypeURL(auth) ==
-    CASE auth.authorizationType \in Generic!MsgTypeUrls -> 
-        Generic!MsgTypeURL(auth)
-      [] auth.authorizationType \in Send!MsgTypeUrls -> 
-        Send!MsgTypeURL(auth)
-      [] auth.authorizationType \in Stake!MsgTypeUrls -> 
-        Stake!MsgTypeURL(auth)
+(******************************************************************************)
+(* Messages to be executed, such as Send messages or Stake messages. The content
+of a message depends on the implementation of the authorization logic. A signer
+of the message corresponds to the granter of the authorization. An SDK message
+may contain multiple signers, but authz accepts messages with just one.  A
+message implements an Authorization interface (methods MsgTypeURL and 
+Accept). *)
+(******************************************************************************)
+\* @typeAlias: sdkMsg = {amount: $coins, delegatorAddress: $account, fromAddress: $account, toAddress: $account, typeUrl: $msgTypeUrl, validatorAddress: $validator, validatorSrcAddress: $validator, validatorDstAddress: $validator};
+\* @type: Set($sdkMsg);
+SdkMsg ==
+    Send!MsgSend \cup 
+    Stake!MsgDelegate \cup 
+    Stake!MsgUndelegate \cup 
+    Stake!MsgBeginRedelegate
 
-Accept(auth, msg) ==
-    CASE msg.typeUrl \in Generic!MsgTypeUrls -> 
-        Generic!Accept(auth, msg)
-      [] msg.typeUrl \in Send!MsgTypeUrls -> 
-        Send!Accept(auth, msg)
+SdkMsgValidateBasic(msg) ==
+    CASE msg.typeUrl \in Send!MsgTypeUrls -> 
+        Send!SdkMsgValidateBasic(msg)
       [] msg.typeUrl \in Stake!MsgTypeUrls -> 
-        Stake!Accept(auth, msg)
+        Stake!SdkMsgValidateBasic(msg)
 
 --------------------------------------------------------------------------------
 (******************************************************************************)
@@ -64,41 +91,38 @@ bytes of the granter), grantee address (the address bytes of the grantee)
 and Authorization type (its type URL). Hence we only allow one grant for 
 the (granter, grantee, Authorization) triple. *)
 (******************************************************************************)
-\* @typeAlias: GRANT_ID = [grantee: ACCOUNT, granter: ACCOUNT, msgTypeUrl: MSG_TYPE_URL];
-\* @type: Set(GRANT_ID);
+\* @typeAlias: grantId = {grantee: $account, granter: $account, msgTypeUrl: $msgTypeUrl};
+\* @type: Set($grantId);
 GrantIds == [
     granter: Accounts,
     grantee: Accounts,
     msgTypeUrl: MsgTypeUrls
 ]
 
-\* @type: (GRANT_ID) => Bool;
-IsValid(g) == g.granter # g.grantee
-
-\* @type: Set(GRANT_ID);
-ValidGrantIds == { g \in GrantIds: IsValid(g) }
-
-\* Time when the grant will expire with respect to the moment when the related
-\* event happens. If "none", then the grant doesn't have an expiration time and 
-\* other conditions in the authorization may apply to invalidate it.
-\* @typeAlias: EXPIRATION_TIME = Str;
-\* @type: Set(EXPIRATION_TIME);
-ExpirationTimes == {"past", "future", "none"}
-
 \* Grant gives permissions to execute the provide method with expiration time.
-\* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L74
-\* @typeAlias: GRANT = [authorization: AUTH, expirationTime: EXPIRATION_TIME];
-\* @type: Set(GRANT);
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authz.pb.go#L74
+\* @typeAlias: grant = {authorization: $auth, expiration: Str};
+\* @type: Set($grant);
 Grants == [
     authorization: Authorization,
-    expirationTime: ExpirationTimes
+
+    \* Time when the grant will expire with respect to the moment when the
+    \* related event happens. If "none", then the grant doesn't have an 
+    \* expiration time and other conditions in the authorization may apply to 
+    \* invalidate it.
+    expiration: {"past", "future", "none"}
 ]
 
-\* @type: AUTH;
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authorization_grant.go#L54
+\* @type: ($grant) => Str;
+GrantValidateBasic(grant) ==
+    AuthValidateBasic(grant.authorization)
+
+\* @type: $auth;
 NoAuthorization == [ type |-> "NoAuthorization" ]
 
-\* @type: GRANT;
-NoGrant == [ authorization |-> NoAuthorization, expirationTime |-> "none" ]
+\* @type: $grant;
+NoGrant == [ authorization |-> NoAuthorization, expiration |-> "none" ]
 
 ================================================================================
 Created by Hernán Vanzetto on 10 August 2022

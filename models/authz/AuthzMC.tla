@@ -1,6 +1,6 @@
-------------------------------- MODULE Authz_MC --------------------------------
+------------------------------- MODULE AuthzMC --------------------------------
 (******************************************************************************)
-
+(* Model Checker parameters                                                   *)
 (******************************************************************************)
 EXTENDS AuthzProperties
 
@@ -8,7 +8,7 @@ instance_Accounts == {"a1", "a2", "a3"}
 
 instance_Validators == {"v1", "v2", "v3"}
 
-instance_Coins == {0, 1}
+instance_Coins == {-1, 0, 1}
 
 instance_NoMaxCoins == -99
 
@@ -27,10 +27,20 @@ ConstInit ==
     /\ NoMaxCoins = instance_NoMaxCoins
 
 --------------------------------------------------------------------------------
-NumRequests == numRequests # 10
 
---------------------------------------------------------------------------------
+grantIdOfEvent(e) ==
+    IF e.type = "expire" 
+    THEN e.grantId
+    ELSE grantIdOfMsg(e)
 
-\* View == <<grantStore>>
+\* @type: <<Str, Bool, Str, Str>>;
+View == 
+    LET grantId == grantIdOfEvent(event) IN
+    <<
+        event.type, 
+        grantId.granter = grantId.grantee,
+        grantId.msgTypeUrl,
+        expectedResponse.error
+    >>
 
 ================================================================================

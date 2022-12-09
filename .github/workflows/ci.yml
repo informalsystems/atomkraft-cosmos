@@ -10,7 +10,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.10.4", "3.10.5", "3.10.6"]
+        python-version: ["3.10"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
@@ -69,3 +69,7 @@ jobs:
         run: |
           source .venv/bin/activate
           atomkraft test trace --path traces/bank/TestSuccess --reactor reactors/bank.py --keypath action.tag
+          atomkraft test trace --path traces/authz/ExecuteWithoutGrants/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/ExpireThenExecute/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/ExpireThenRevoke/sample1.itf.json --reactor reactors/authz.py --keypath event.type
+          atomkraft test trace --path traces/authz/GrantFailsThenGrantSucceeds/sample1.itf.json --reactor reactors/authz.py --keypath event.type

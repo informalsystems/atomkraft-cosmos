@@ -1,14 +1,20 @@
 [tool.poetry]
-name = "authz"
+name = "atomkraft-cosmos"
 version = "0.1.0"
 description = ""
-authors = ["Ranadeep Biswas <mail@rnbguy.at>"]
+authors = [
+    "Ranadeep Biswas <mail@rnbguy.at>",
+    "Ivan Gavran <ivan@informal.systems>",
+    "Andrey Kuprianov <andrey@informal.systems>",
+    "Hernán Vanzetto <hernan@informal.systems>",
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-atomkraft = "^0.1.0"
+atomkraft = "^0.1.2"
 
 [tool.poetry.dev-dependencies]
+black = {version = "^22.8.0", allow-prereleases = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

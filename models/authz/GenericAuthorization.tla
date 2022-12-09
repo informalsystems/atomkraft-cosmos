@@ -17,32 +17,38 @@ CONSTANT
 \* @type: Set(MSG_TYPE_URL);
 MsgTypeUrls == MsgTypes
 
-\* @typeAlias: SDK_MSG_CONTENT = [typeUrl: MSG_TYPE_URL];
-\* @type: Set(SDK_MSG_CONTENT);
-SdkMsgContent == [ typeUrl: MsgTypes ]
+\* @type: Set(SDK_MSG);
+SdkMsg == [
+    typeUrl: MsgTypeUrls 
+]
 
 --------------------------------------------------------------------------------
 
 \* GenericAuthorization gives the grantee unrestricted permissions to execute
 \* the provided method on behalf of the granter's account.
-\* https://github.com/cosmos/cosmos-sdk/blob/c1b6ace7d542925b526cf3eef6df38a206eab8d8/x/authz/authz.pb.go#L34
-\* @typeAlias: AUTH = [authorizationType: MSG_TYPE_URL];
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/authz.pb.go#L34
+\* @typeAlias: AUTH = [msgTypeUrl: MSG_TYPE_URL];
 \* @type: Set(AUTH);
 Authorization == [
+    type: {"generic-authorization"},
+
     \* In the code this field is called Msg. It's a message type, identified by
     \* its type URL. The authorization grants unrestricted permission to
     \* execute.
-    authorizationType: MsgTypeUrls
+    msgTypeUrl: MsgTypeUrls
 ]
+
+\* @type: (AUTH) => Str;
+AuthValidateBasic(auth) == "none"
 
 --------------------------------------------------------------------------------
 
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L17
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/generic_authorization.go#L17
 \* @type: (AUTH) => MSG_TYPE_URL;
 MsgTypeURL(auth) == 
-    auth.authorizationType
+    auth.msgTypeUrl
 
-\* https://github.com/cosmos/cosmos-sdk/blob/55054282d2df794d9a5fe2599ea25473379ebc3d/x/authz/generic_authorization.go#L22
+\* https://github.com/cosmos/cosmos-sdk/blob/6d32debf1aca4b7f1ed1429d87be1d02c315f02d/x/authz/generic_authorization.go#L22
 \* @typeAlias: ACCEPT_RESPONSE = [accept: Bool, delete: Bool, updated: AUTH, error: Str];
 \* @type: (AUTH, SDK_MSG) => ACCEPT_RESPONSE;
 Accept(auth, msg) == [

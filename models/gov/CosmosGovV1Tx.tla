@@ -3,29 +3,35 @@
 
 EXTENDS
     Integers,
-    Sequences,
-    CosmosBaseV1beta1Coin,
+    \* Sequences,
+    \* CosmosBaseV1beta1Coin,
+    MsgErrors,
     CosmosGovV1Gov,
     CosmosGovV1Model
-    
+
 VARIABLES
+    \* @typeAlias: request = [_tag_: Str, message: $sdkMsg, initialDeposit: $coins, proposer: $address, metadata: Str, proposalId: $proposalId, voter: $address, option: $voteOption, options: Set($weightedVoteOption), depositor: $address, amount: $coins];
+    \* @type: $request;
     request,
+    
+    \* @typeAlias: response = [_tag_: Str, error: Str, proposalId: $proposalId];
+    \* @type: $response;
     response
     
-Content == 
-    STRING
-
 --------------------------------------------------------------------------------
 \* MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
 \* proposal Content.
+\* @typeAlias: msgSubmitProposal = [_tag_: Str, message: $sdkMsg, initialDeposit: $coins, proposer: $address, metadata: Str];
+\* @type: Set($msgSubmitProposal);
 MsgSubmitProposal == [ 
-    msgType: {"msg-submit-proposal"},
+    _tag_: {"msg-submit-proposal"},
 
     \* label: repeated
-    messages: Seq(SdkMsg),
+    \* messages: BSeq(SdkMsg),
+    message: SdkMsg,
 
     \* label: repeated
-    initialDeposit: Seq(Coin),
+    initialDeposit: Coins,
 
     \* label: optional
     proposer: Address,
@@ -36,10 +42,12 @@ MsgSubmitProposal == [
 ]
 
 \* MsgSubmitProposalResponse defines the Msg/SubmitProposal response type.
+\* @typeAlias: msgSubmitProposalResponse = [_tag_: Str, error: Str, proposalId: $proposalId];
+\* @type: Set($msgSubmitProposalResponse);
 MsgSubmitProposalResponse == [ 
-    msgType: {"msg-submit-proposal-response"},
+    _tag_: {"msg-submit-proposal-response"},
 
-    error: STRING,
+    error: Errors,
 
     \* label: optional
     proposalId: ProposalId
@@ -47,12 +55,16 @@ MsgSubmitProposalResponse == [
 
 \* MsgExecLegacyContent is used to wrap the legacy content field into a message.
 \* This ensures backwards compatibility with v1beta1.MsgSubmitProposal.
+\* @typeAlias: msgExecLegacyContent = [_tag_: Str, content: $sdkMsg, authority: Str];
+\* @type: Set($msgExecLegacyContent);
 MsgExecLegacyContent == [ 
-    msgType: {"msg-exec-legacy-content"},
+    _tag_: {"msg-exec-legacy-content"},
 
     \* content is the proposal's content.
     \* label: optional
-    content: Content,
+    \* content: Content,
+    \* content: BSeq(SdkMsg),
+    content: SdkMsg,
 
     \* authority must be the gov module address.
     \* label: optional
@@ -60,15 +72,19 @@ MsgExecLegacyContent == [
 ]
 
 \* MsgExecLegacyContentResponse defines the Msg/ExecLegacyContent response type.
+\* @typeAlias: msgExecLegacyContentResponse = [_tag_: Str, error: Str];
+\* @type: Set($msgExecLegacyContentResponse);
 MsgExecLegacyContentResponse == [ 
-    msgType: {"msg-exec-legacy-content-response"},
+    _tag_: {"msg-exec-legacy-content-response"},
 
-    error: STRING
+    error: Errors
 ]
 
 \* MsgVote defines a message to cast a vote.
+\* @typeAlias: msgVote = [_tag_: Str, proposalId: $proposalId, voter: $address, option: $voteOption, metadata: Str];
+\* @type: Set($msgVote);
 MsgVote == [ 
-    msgType: {"msg-vote"},
+    _tag_: {"msg-vote"},
 
     \* label: optional
     proposalId: ProposalId,
@@ -84,15 +100,19 @@ MsgVote == [
 ]
 
 \* MsgVoteResponse defines the Msg/Vote response type.
+\* @typeAlias: msgVoteResponse = [_tag_: Str, error: Str];
+\* @type: Set($msgVoteResponse);
 MsgVoteResponse == [ 
-    msgType: {"msg-vote-response"},
+    _tag_: {"msg-vote-response"},
 
-    error: STRING
+    error: Errors
 ]
 
 \* MsgVoteWeighted defines a message to cast a vote.
+\* @typeAlias: msgVoteWeighted = [_tag_: Str, proposalId: $proposalId, voter: $address, options: Set($weightedVoteOption), metadata: Str];
+\* @type: Set($msgVoteWeighted);
 MsgVoteWeighted == [ 
-    msgType: {"msg-vote-weighted"},
+    _tag_: {"msg-vote-weighted"},
 
     \* label: optional
     proposalId: ProposalId,
@@ -101,22 +121,27 @@ MsgVoteWeighted == [
     voter: Address,
 
     \* label: repeated
-    options: Seq(WeightedVoteOption),
+    \* options: BSeq(WeightedVoteOption),
+    options: SUBSET WeightedVoteOption,
 
     \* label: optional
     metadata: STRING
 ]
 
 \* MsgVoteWeightedResponse defines the Msg/VoteWeighted response type.
+\* @typeAlias: msgVoteWeightedResponse = [_tag_: Str, error: Str];
+\* @type: Set($msgVoteWeightedResponse);
 MsgVoteWeightedResponse == [ 
-    msgType: {"msg-vote-weighted-response"},
+    _tag_: {"msg-vote-weighted-response"},
 
-    error: STRING
+    error: Errors
 ]
 
 \* MsgDeposit defines a message to submit a deposit to an existing proposal.
+\* @typeAlias: msgDeposit = [_tag_: Str, proposalId: $proposalId, depositor: $address, amount: $coins];
+\* @type: Set($msgDeposit);
 MsgDeposit == [ 
-    msgType: {"msg-deposit"},
+    _tag_: {"msg-deposit"},
 
     \* label: optional
     proposalId: ProposalId,
@@ -125,21 +150,25 @@ MsgDeposit == [
     depositor: Address,
 
     \* label: repeated
-    amount: Seq(Coin)
+    amount: Coins
 ]
 
 \* MsgDepositResponse defines the Msg/Deposit response type.
+\* @typeAlias: msgDepositResponse = [_tag_: Str, error: Str];
+\* @type: Set($msgDepositResponse);
 MsgDepositResponse == [ 
-    msgType: {"msg-deposit-response"},
+    _tag_: {"msg-deposit-response"},
 
-    error: STRING
+    error: Errors
 ]
 
 \* MsgUpdateParams is the Msg/UpdateParams request type.
 \*
 \* Since: cosmos-sdk 0.47
+\* @typeAlias: msgUpdateParams = [_tag_: Str, authority: $address, params: $params];
+\* @type: Set($msgUpdateParams);
 MsgUpdateParams == [ 
-    msgType: {"msg-update-params"},
+    _tag_: {"msg-update-params"},
 
     \* authority is the address of the governance account.
     \* label: optional
@@ -156,10 +185,12 @@ MsgUpdateParams == [
 \* MsgUpdateParams message.
 \*
 \* Since: cosmos-sdk 0.47
+\* @typeAlias: msgUpdateParamsResponse = [_tag_: Str, error: Str];
+\* @type: Set($msgUpdateParamsResponse);
 MsgUpdateParamsResponse == [ 
-    msgType: {"msg-update-params-response"},
+    _tag_: {"msg-update-params-response"},
 
-    error: STRING
+    error: Errors
 ]
 
 --------------------------------------------------------------------------------
@@ -193,54 +224,54 @@ SendUpdateParams(msgUpdateParams) ==
 
 --------------------------------------------------------------------------------
 \* SubmitProposalStep(messages, initialDeposit, proposer, metadata) == 
-\*     LET msgRequest == [msgType |-> "msg-submit-proposal", messages |-> messages, initialDeposit |-> initialDeposit, proposer |-> proposer, metadata |-> metadata] IN
+\*     LET msgRequest == [_tag_ |-> "msg-submit-proposal", messages |-> messages, initialDeposit |-> initialDeposit, proposer |-> proposer, metadata |-> metadata] IN
 \*     LET msgResponse == SendSubmitProposal(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 \* ExecLegacyContentStep(content, authority) == 
-\*     LET msgRequest == [msgType |-> "msg-exec-legacy-content", content |-> content, authority |-> authority] IN
+\*     LET msgRequest == [_tag_ |-> "msg-exec-legacy-content", content |-> content, authority |-> authority] IN
 \*     LET msgResponse == SendExecLegacyContent(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 \* VoteStep(proposalId, voter, option, metadata) == 
-\*     LET msgRequest == [msgType |-> "msg-vote", proposalId |-> proposalId, voter |-> voter, option |-> option, metadata |-> metadata] IN
+\*     LET msgRequest == [_tag_ |-> "msg-vote", proposalId |-> proposalId, voter |-> voter, option |-> option, metadata |-> metadata] IN
 \*     LET msgResponse == SendVote(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 \* VoteWeightedStep(proposalId, voter, options, metadata) == 
-\*     LET msgRequest == [msgType |-> "msg-vote-weighted", proposalId |-> proposalId, voter |-> voter, options |-> options, metadata |-> metadata] IN
+\*     LET msgRequest == [_tag_ |-> "msg-vote-weighted", proposalId |-> proposalId, voter |-> voter, options |-> options, metadata |-> metadata] IN
 \*     LET msgResponse == SendVoteWeighted(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 \* DepositStep(proposalId, depositor, amount) == 
-\*     LET msgRequest == [msgType |-> "msg-deposit", proposalId |-> proposalId, depositor |-> depositor, amount |-> amount] IN
+\*     LET msgRequest == [_tag_ |-> "msg-deposit", proposalId |-> proposalId, depositor |-> depositor, amount |-> amount] IN
 \*     LET msgResponse == SendDeposit(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 \* UpdateParamsStep(authority, params) == 
-\*     LET msgRequest == [msgType |-> "msg-update-params", authority |-> authority, params |-> params] IN
+\*     LET msgRequest == [_tag_ |-> "msg-update-params", authority |-> authority, params |-> params] IN
 \*     LET msgResponse == SendUpdateParams(msgRequest) IN
 \*     /\ request' = msgRequest
 \*     /\ response' = msgResponse
 
 --------------------------------------------------------------------------------
 \* NoRequest == 
-\*     [msgType |-> "no-request"]
+\*     [_tag_ |-> "no-request"]
 
 \* NoResponse == 
-\*     [msgType |-> "no-response"]
+\*     [_tag_ |-> "no-response"]
 
 \* Init == 
 \*     /\ request = NoRequest
 \*     /\ response = NoResponse
 
 \* Next == 
-\*     \/ \E messages \in Seq(SdkMsg), initialDeposit \in Seq(Coin), proposer \in Address, metadata \in STRING:
+\*     \/ \E messages \in Seq(SdkMsg), initialDeposit \in Coins, proposer \in Address, metadata \in STRING:
 \*         SubmitProposalStep(messages, initialDeposit, proposer, metadata)
 
 \*     \/ \E content \in Content, authority \in STRING:
@@ -252,11 +283,40 @@ SendUpdateParams(msgUpdateParams) ==
 \*     \/ \E proposalId \in ProposalId, voter \in Address, options \in Seq(WeightedVoteOption), metadata \in STRING:
 \*         VoteWeightedStep(proposalId, voter, options, metadata)
 
-\*     \/ \E proposalId \in ProposalId, depositor \in Address, amount \in Seq(Coin):
+\*     \/ \E proposalId \in ProposalId, depositor \in Address, amount \in Coins:
 \*         DepositStep(proposalId, depositor, amount)
 
 \*     \/ \E authority \in Address, params \in Params:
 \*         UpdateParamsStep(authority, params)
+
+--------------------------------------------------------------------------------
+\* TODO: auto-generate
+\* @type: Set($request);
+MsgRequests == 
+    MsgSubmitProposal \cup 
+    \* MsgExecLegacyContent \cup
+    MsgVote \cup 
+    MsgVoteWeighted \cup 
+    MsgDeposit
+    \* MsgUpdateParams
+
+\* TODO: auto-generate
+\* @type: Set($response);
+MsgResponses == 
+    MsgSubmitProposalResponse \cup 
+    \* MsgExecLegacyContentResponse \cup
+    MsgVoteResponse \cup 
+    MsgVoteWeightedResponse \cup 
+    MsgDepositResponse
+    \* MsgUpdateParamsResponse
+
+\* @type: $request;
+NoRequest == 
+    [_tag_ |-> "no-request"]
+
+\* @type: $response;
+NoResponse == 
+    [_tag_ |-> "no-response"]
 
 ================================================================================
 File automatically generated from cosmos/gov/v1/tx.proto on 2022-11-18 14:11:54 CET

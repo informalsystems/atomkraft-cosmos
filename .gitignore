@@ -134,3 +134,8 @@ dmypy.json
 # Apalache
 _apalache-out/
 *_TTrace_*.tla
+
+cosmos-sdk/
+.atomkraft/
+reports/
+.tmp
